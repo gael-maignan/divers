@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ville Vécue</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style/main.css">
+  <script src="js/smooth-scroll.js"></script>
+
+  <style>
+    /* ─── HERO ───────────────────────────────────────────────────── */
+    #hero {
+      padding: 120px 0 100px;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+      position: relative;
+
+      min-height: 480px;
+    }
+
+
+
+
+    .hero-body {
+      color: var(--bg);
+      font-size: 0.95rem;
+      max-width: 440px;
+      margin: 28px 0 40px;
+      line-height: 1.75;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--bg);
+      font-weight: 500;
+      font-size: .875rem;
+      letter-spacing: .04em;
+      padding: 14px 28px;
+      border-radius: 6px;
+      text-decoration: none;
+      transition: opacity .2s, transform .2s;
+      border: solid var(--bg) 2px;
+    }
+    .btn-primary:hover { opacity: .85; transform: translateY(-2px); }
+
+    @media (max-width: 600px) {
+      #hero {
+        padding: 80px 0 64px;
+        min-height: auto;
+      }
+      .hero-body { font-size: .9rem; margin: 20px 0 32px; }
+      .btn-primary { width: 100%; justify-content: center; }
+    }
+
+    /* ─── SECTION LABELS ─────────────────────────────────────────── */
+
+    h2 {
+      font-size: clamp(1.75rem, 3.5vw, 3.2rem);
+      line-height: 1.2;
+      letter-spacing: -.01em;
+    }
+
+    a { color: inherit; }
+
+    /* ─── SECTION: ÉDITO ─────────────────────────────────────────── */
+    #edito {
+      padding: 80px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .edito-text h2 { margin-bottom: 24px; }
+    .edito-text p {
+      color: var(--muted);
+      line-height: 1.85;
+      margin-bottom: 16px;
+      font-size: .975rem;
+    }
+
+    .aside-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 28px;
+      position: sticky;
+      top: 96px;
+      height: fit-content;
+      background: #FFF3E7;
+    }
+    .aside-card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+    .aside-card h4 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+    }
+    .aside-list { list-style: none; }
+    .aside-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: .875rem;
+      color: var(--muted);
+    }
+    .aside-list li:last-child { border-bottom: none; }
+    .aside-list .check { color: var(--accent2); font-size: 1rem; flex-shrink: 0; }
+
+    @media (max-width: 600px) {
+      #edito { padding: 60px 0; }
+      .aside-card { position: static; }
+    }
+
+    /* ─── SECTION: news / ACTUALITÉS ─────────────────────────── */
+    #news {
+      padding: 80px 0;
+      border-bottom: 1px solid var(--border);
+      color: var(--bg);
+    }
+
+    .news-header { margin-bottom: 48px; }
+
+    @media (max-width: 600px) {
+      #news { padding: 60px 0; }
+      .news-header { margin-bottom: 32px; }
+    }
+
+    /* ─── ARTICLE CARDS ──────────────────────────────────────────── */
+    .article-card {
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform .3s ease, border-color .3s ease;
+      text-decoration: none;
+      color: inherit;
+      height: 100%;
+      background: #FFF3E7;
+    }
+    .article-card:hover { transform: translateY(-3px); }
+
+    .article-thumb {
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%;
+      overflow: hidden;
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .article-thumb-inner {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .article-thumb-inner img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform .5s ease;
+    }
+    .article-card:hover .article-thumb-inner img { transform: scale(1.05); }
+
+    .article-tag {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 3;
+      font-size: .6rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      background: rgba(255,235,216,.92);
+      color: var(--accent);
+      padding: 5px 10px;
+      border-radius: 100px;
+      font-weight: 500;
+    }
+
+    .article-body {
+      padding: 22px 24px 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .article-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: .7rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: rgba(0,10,71,.45);
+    }
+    .article-meta-dot {
+      width: 3px; height: 3px;
+      border-radius: 50%;
+      background: rgba(0,10,71,.25);
+    }
+
+    .article-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      line-height: 1.35;
+      color: var(--accent);
+    }
+
+    .article-desc {
+      font-size: .825rem;
+      line-height: 1.7;
+      color: rgba(0,10,71,.6);
+    }
+
+    .article-read-more {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .72rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 500;
+      margin-top: auto;
+      padding-top: 6px;
+      text-decoration: none;
+      transition: gap .2s;
+    }
+    .article-card:hover .article-read-more { gap: 10px; }
+    .article-read-more svg {
+      width: 12px; height: 12px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    /* Cards grid responsive */
+    @media (max-width: 900px) {
+      /* 3 cols → 2 cols on tablet */
+      #news .col-4 { grid-column: span 6; }
+    }
+    @media (max-width: 600px) {
+      /* 2 cols → 1 col on mobile */
+      #news .col-4 { grid-column: span 12 !important; }
+    }
+
+    /* ─── SECTION: STATS ─────────────────────────────────────────── */
+    #stats {
+      padding: 80px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stat-block {
+      padding: 24px 0;
+      border-left: 2px solid var(--bg);
+      padding-left: 28px;
+    }
+    .stat-block:first-child { border-color: var(--bg); }
+
+    .stat-num {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 700;
+      line-height: 1;
+    }
+    .stat-desc {
+      font-size: .85rem;
+      color: var(--bg);
+      margin-top: 8px;
+      letter-spacing: .04em;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 600px) {
+      #stats { padding: 60px 0; }
+    }
+
+
+    /* ─── FADE IN ANIMATION ──────────────────────────────────────── */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* ─── SECTION VERTICAL SPACING ───────────────────────────────── */
+    @media (max-width: 600px) {
+      h2 { font-size: clamp(1.5rem, 6vw, 2rem); }
+      h1 { font-size: clamp(2rem, 9vw, 3rem); }
+    }
+  </style>
+</head>
+<body id="home">
+
+  <!-- Barre de lecture -->
+<div class="reading-bar"><div class="reading-bar-fill" id="readingBar"></div></div>
+
+<!-- ═══════════ HEADER ═══════════ -->
+<header>
+  <div class="container">
+    <div class="header-inner">
+      <a href="#home" class="logo">Ville Vécue</a>
+
+      <!-- Desktop nav -->
+      <nav>
+        <a href="#mission">À propos</a>
+        <a href="#ateliers">Ateliers</a>
+        <a href="#contact">Contact</a>
+      </nav>
+
+      <!-- Hamburger (mobile/tablet) -->
+      <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile nav overlay -->
+<nav class="mobile-nav" id="mobileNav" aria-hidden="true">
+  <a href="#mission" class="mobile-link">À propos</a>
+  <a href="#ateliers" class="mobile-link">Ateliers</a>
+  <a href="#contact" class="mobile-link">Contact</a>
+</nav>
+
+<!-- ═══════════ HERO ═══════════ -->
+<section id="hero" class="bg-section">
+  <div class="container">
+    <div class="row" style="align-items:center; gap:var(--gap) 24px;">
+      <div class="col-7 fade-in">
+        <h1>Une Ville,<br>Mille Vécus...</h1>
+        <p class="hero-body">
+          Ville Vécue est une association citoyenne qui promeut la diversité et l'inclusion dans l'espace public. Composée d'étudiant·e·s en urbanisme, ingénierie et santé, l'association mêle réflexion, témoignages et actions concrètes pour repenser la ville afin qu'elle soit praticable par toutes et tous.
+        </p>
+        <a href="#ateliers" class="btn-primary">Découvrir nos actions</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ MISSION ═══════════ -->
+<section id="mission" style="padding: 80px 0; border-bottom: 1px solid var(--border);">
+  <div class="container">
+    <div class="row">
+      <div class="col-6 edito-text fade-in">
+        <div class="section-label">Notre mission</div>
+        <h2>Une ville accessible,<br>c'est une ville plus humaine</h2>
+        <p style="color:var(--muted);line-height:1.75;font-size:.95rem;margin-top:20px">
+          Nous nous attachons à toutes les formes d'inclusion et d'exclusion : genre, âge, mobilité, déficiences sensorielles, ainsi que les usages sociaux des espaces. Notre action, portée par les étudiants et pour les étudiants, vise à sensibiliser et à éveiller les consciences sur l'accessibilité de l'espace public.
+        </p>
+        <p style="color:var(--muted);line-height:1.75;font-size:.95rem">
+          Pour l'année 2026-2027, notre action s'articulera principalement autour du programme « En Sortant de l'École » : un atelier de sensibilisation destiné aux étudiants en urbanisme, génie civil, architecture, etc., afin de leur permettre d'aborder l'accessibilité de façon concrète, par l'expérimentation.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ news / ACTUALITÉS ═══════════ -->
+<section id="news" class="bg-section">
+  <div class="container">
+    <div class="row news-header fade-in">
+      <div class="col-12">
+        <div class="section-label">Actualité</div>
+        <h2>Actualité de l'association</h2>
+        <p style="line-height:1.75;font-size:.95rem;margin-top:20px">Vous pourrez retrouver l'ensemble des dernières nouvelles au sujet de l'association en suivant ce lien : <a href="#">Toute l'actualité de Ville Vécue</a></p>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-4 fade-in" style="display:flex;">
+        <a href="article.html" class="article-card" style="width:100%">
+          <div class="article-thumb">
+            <div class="article-thumb-inner">
+              <img src="images/eivp.webp" alt="Partenariat Mairie de Paris">
+            </div>
+            <span class="article-tag">Action</span>
+          </div>
+          <div class="article-body">
+            <div class="article-meta">
+              <span>5 déc. 2025</span>
+              <span class="article-meta-dot"></span>
+              <span>4 min</span>
+            </div>
+            <h3 class="article-title">[Action] - Lancement de l'action En Sortant de l'École à l'École des Ingénieurs de la Ville de Paris</h3>
+            <p class="article-desc">Ville Vécue s'associe à la Direction de la Voirie pour co-construire des diagnostics terrain avec ses ateliers.</p>
+            <span class="article-read-more">
+              Lire
+              <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </span>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-4 fade-in" style="display:flex;transition-delay:.1s">
+        <a href="article.html" class="article-card" style="width:100%">
+          <div class="article-thumb">
+            <div class="article-thumb-inner">
+              <img src="images/article0.webp" alt="Tribune design universel">
+            </div>
+            <span class="article-tag">Article</span>
+          </div>
+          <div class="article-body">
+            <div class="article-meta">
+              <span>20 nov. 2025</span>
+              <span class="article-meta-dot"></span>
+              <span>6 min</span>
+            </div>
+            <h3 class="article-title">Concevoir pour les marges, c'est concevoir pour tous : le principe du design universel</h3>
+            <p class="article-desc">Tribune de ... sur comment l'accessibilité, loin d'être une contrainte, devient un levier de qualité urbaine pour l'ensemble des usagers.</p>
+            <span class="article-read-more">
+              Lire
+              <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </span>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-4 fade-in" style="display:flex;transition-delay:.2s">
+        <a href="article.html" class="article-card" style="width:100%">
+          <div class="article-thumb">
+            <div class="article-thumb-inner">
+              <img src="images/manifeste.webp" alt="Guide accessibilité">
+            </div>
+            <span class="article-tag">Manifeste</span>
+          </div>
+          <div class="article-body">
+            <div class="article-meta">
+              <span>8 oct. 2025</span>
+              <span class="article-meta-dot"></span>
+              <span>8 min</span>
+            </div>
+            <h3 class="article-title">[Manifeste]</h3>
+            <p class="article-desc">Méthode, grille d'observation et retours d'expérience issus de nos ateliers pour conduire votre propre diagnostic de terrain.</p>
+            <span class="article-read-more">
+              Lire
+              <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ ATELIERS ═══════════ -->
+<section id="ateliers" style="padding: 80px 0; border-bottom: 1px solid var(--border);">
+  <div class="container">
+    <div class="row">
+      <div class="col-7 edito-text fade-in" style="margin-bottom: 8px;">
+        <div class="section-label">Nos actions</div>
+        <h2>Ateliers de sensibilisation</h2>
+        <p style="margin-top:16px">
+          Le cœur de notre action s'articule autour de l'organisation d'ateliers de sensibilisation à destination d'étudiants et étudiantes afin de sensibiliser les futur·e·s acteur·rice·s de la ville.
+        </p>
+      </div>
+
+      <div class="col-12 fade-in" style="display:flex;transition-delay:.2s">
+        <a href="en-sortant-de-l-ecole.html" class="article-card" style="width:100%">
+          <div class="article-body">
+            <h3 class="article-title">« En Sortant de l'École »</h3>
+            <p>« En Sortant de l'École » est un atelier immersif qui invite les étudiant·e·s en urbanisme, génie civil et ingénierie à vivre l'espace public autrement. En refaisant leur trajet école-domicile en fauteuil roulant, ils découvrent concrètement les obstacles invisibles du quotidien. L'objectif : comprendre la réalité de l'accessibilité pour concevoir des villes réellement inclusives.</p>
+            <span class="article-read-more">
+              En savoir plus
+              <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </span>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-12 fade-in" style="display:flex;transition-delay:.3s">
+        <a href="#" class="article-card" style="width:100%">
+          <div class="article-body">
+            <h3 class="article-title">« Ça va être tout noir »</h3>
+            <p>« Ça va être tout noir » est un projet d'atelier destiné à plonger les participants dans une expérience d'immersion simulant une perte totale de vision.</p>
+            <span class="article-read-more">
+              Le projet est en cours de financement
+              <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </span>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-12 fade-in" style="display:flex;transition-delay:.4s">
+        <a href="#" class="article-card" style="width:100%">
+          <div class="article-body">
+            <h3 class="article-title">« À ton grand âge »</h3>
+            <p>« À ton grand âge » est un projet d'atelier qui vise à faire comprendre les contraintes d'accessibilité liées au vieillissement.</p>
+            <span class="article-read-more">
+              Le projet est en cours de financement
+              <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ STATS ═══════════ -->
+<section id="stats" class="bg-section">
+  <div class="container">
+    <div class="row" style="margin-top:0">
+      <div class="col-12 edito-text fade-in">
+        <div class="section-label">À propos</div>
+        <h2>L'association en chiffres</h2>
+      </div>
+
+      <div class="col-3 fade-in">
+        <div class="stat-block">
+          <div class="stat-num">0</div>
+          <div class="stat-desc">Étudiants sensibilisés, toutes actions confondues.</div>
+        </div>
+      </div>
+
+      <div class="col-3 fade-in" style="transition-delay:.1s">
+        <div class="stat-block">
+          <div class="stat-num">0 km</div>
+          <div class="stat-desc">Kilomètres parcourus en fauteuil (à la seule force des bras !).</div>
+        </div>
+      </div>
+
+      <div class="col-3 fade-in" style="transition-delay:.2s">
+        <div class="stat-block">
+          <div class="stat-num">0 années</div>
+          <div class="stat-desc">Années cumulées avec le simulateur de vieillissement.</div>
+        </div>
+      </div>
+
+      <div class="col-3 fade-in" style="transition-delay:.3s">
+        <div class="stat-block">
+          <div class="stat-num">0 mètres</div>
+          <div class="stat-desc">Mètres parcourus à l'aveugle.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CONTACT / MEMBRES ═══════════ -->
+<section id="contact" style="padding: 80px 0; border-bottom: 1px solid var(--border);">
+  <div class="container">
+    <div class="row">
+      <div class="col-7 edito-text fade-in" style="margin-bottom: 8px;">
+        <div class="section-label">Contact</div>
+        <h2>Nos membres</h2>
+        <p style="margin-top:16px">
+          L'équipe de Ville Vécue se tient à votre écoute pour toute demande d'information, de partenariat ou de participation à nos ateliers.
+          N'hésitez pas à nous écrire à <a href="mailto:contact@villevecue.fr" style="font-weight:600;text-decoration:underline">contact@villevecue.fr</a>, nous vous répondrons avec plaisir dans les plus brefs délais.
+        </p>
+      </div>
+      <div class="col-5 edito-text fade-in" style="margin-bottom: 8px;"></div>
+
+      <div class="col-4 fade-in" style="transition-delay:.2s">
+        <div class="aside-card">
+          <h3>Gaël Maignan</h3>
+          <ul class="aside-list">
+            <li>Président</li>
+            <li>Étudiant en génie urbain à l'École des Ingénieurs de la Ville de Paris</li>
+            <li><a href="mailto:gael.maignan@villevecue.fr">gael.maignan@villevecue.fr</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="col-4 fade-in" style="transition-delay:.3s">
+        <div class="aside-card">
+          <h3>Caroline Buquet</h3>
+          <ul class="aside-list">
+            <li>Vice-Présidente</li>
+            <li>Étudiante en génie urbain à l'École des Ingénieurs de la Ville de Paris</li>
+            <li><a href="mailto:caroline.buquet@villevecue.fr">caroline.buquet@villevecue.fr</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="col-4 fade-in" style="transition-delay:.4s">
+        <div class="aside-card">
+          <h3>Melvia Petit</h3>
+          <ul class="aside-list">
+            <li>Trésorière</li>
+            <li>Étudiante en génie urbain à l'École des Ingénieurs de la Ville de Paris</li>
+            <li><a href="mailto:melvia.petit@villevecue.fr">melvia.petit@villevecue.fr</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer>
+  <div class="container">
+    <div class="row" style="align-items:flex-start">
+      <div class="col-4">
+        <div class="footer-brand">Ville Vécue<span style="color:var(--accent)">.</span></div>
+        <div class="footer-copy">© 2026 — Association Ville Vécue</div>
+      </div>
+
+      <div class="col-2">
+        <div class="footer-links">
+          <a href="index.html">Accueil</a>
+          <a href="#mission">À propos</a>
+        </div>
+      </div>
+
+      <div class="col-2">
+        <div class="footer-links">
+          <a href="#ateliers">Ateliers</a>
+          <a href="#contact">Contact</a>
+          <a href="#">Mentions légales</a>
+        </div>
+      </div>
+
+      <div class="col-2">
+        <div class="footer-links">
+          <a href="https://www.linkedin.com/company/ville-vecue" target="_blank">LinkedIn</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ── Hamburger menu toggle ──
+  const hamburger = document.getElementById('hamburger');
+  const mobileNav = document.getElementById('mobileNav');
+  let menuOpen = false;
+
+  hamburger.addEventListener('click', () => {
+    menuOpen = !menuOpen;
+    hamburger.classList.toggle('open', menuOpen);
+    mobileNav.classList.toggle('open', menuOpen);
+    hamburger.setAttribute('aria-expanded', menuOpen);
+    mobileNav.setAttribute('aria-hidden', !menuOpen);
+    // Prevent body scroll when menu open
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+  });
+
+  // Close menu when a link is clicked
+  document.querySelectorAll('.mobile-link').forEach(link => {
+    link.addEventListener('click', () => {
+      menuOpen = false;
+      hamburger.classList.remove('open');
+      mobileNav.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', false);
+      mobileNav.setAttribute('aria-hidden', true);
+      document.body.style.overflow = '';
+    });
+  });
+
+  // Close menu on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && menuOpen) {
+      menuOpen = false;
+      hamburger.classList.remove('open');
+      mobileNav.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', false);
+      mobileNav.setAttribute('aria-hidden', true);
+      document.body.style.overflow = '';
+    }
+  });
+
+  // ── Fade-in on scroll ──
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target); // once is enough
+      }
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
+
+
+
+
+

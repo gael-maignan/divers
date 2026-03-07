@@ -147,7 +147,7 @@
 
     .logo {
       font-size: 1.5rem;
-      letter-spacing: .04em;
+      /*letter-spacing: .04em;*/
       color: var(--text);
       text-decoration: none;
       flex-shrink: 0;

@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ville Vécue</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css">
+
+
+</head>
+<body>
+
+  <!-- Barre de lecture -->
+<div class="reading-bar"><div class="reading-bar-fill" id="readingBar"></div></div>
+
+<!-- ═══════════ HEADER ═══════════ -->
+<header>
+  <div class="container">
+    <div class="header-inner">
+      <a href="index.html" class="logo">Ville Vécue</a>
+
+      <!-- Desktop nav -->
+      <nav>
+        <a href="#mission">À propos</a>
+        <a href="index.html#ateliers">Ateliers</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+
+      <!-- Hamburger (mobile/tablet) -->
+      <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile nav overlay -->
+<nav class="mobile-nav" id="mobileNav" aria-hidden="true">
+  <a href="index.html#mission" class="mobile-link">À propos</a>
+  <a href="index.html#ateliers" class="mobile-link">Ateliers</a>
+  <a href="index.html#contact" class="mobile-link">Contact</a>
+</nav>
+
+
+
+
+<style>
+
+    /* ── HERO ARTICLE ── */
+    #article-hero {
+      padding: 72px 0 0;
+    }
+
+    .article-category {
+      display: inline-block;
+      font-size: .65rem; letter-spacing: .14em; text-transform: uppercase;
+      color: var(--accent2); border: 1px solid var(--border);
+      padding: 5px 12px; border-radius: 100px; margin-bottom: 24px;
+    }
+
+    .article-headline {
+      font-size: clamp(2rem, 4.5vw, 3.6rem);
+      line-height: 1.15; font-weight: 700; letter-spacing: -.02em;
+      color: var(--accent); max-width: 820px;
+    }
+    .article-headline em { font-style: italic; color: var(--accent2); }
+
+    .article-standfirst {
+      font-size: 1.1rem; line-height: 1.75; color: var(--muted);
+      max-width: 680px; margin: 24px 0 40px;
+    }
+
+    .article-byline {
+      display: flex; align-items: center; gap: 16px;
+      padding: 20px 0;
+      border-top: 1px solid rgba(0,10,71,.1);
+    }
+    .byline-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: .75rem; font-weight: 500; color: white; flex-shrink: 0;
+    }
+    .byline-name { font-size: .875rem; font-weight: 500; color: var(--accent); }
+    .byline-meta { font-size: .75rem; color: var(--muted); letter-spacing: .04em; margin-top: 2px; }
+    .byline-sep { width: 1px; height: 32px; background: rgba(0,10,71,.12); margin: 0 8px; }
+    .byline-info { font-size: .75rem; color: var(--muted); }
+
+    /* ── COVER IMAGE ── */
+    .article-cover {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/7;
+      overflow: hidden;
+      border-radius: 10px;
+      border: solid var(--border) 1px;
+    }
+    .article-cover img {
+      width: 100%;
+    }
+    .article-cover-inner {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .cover-pattern {
+      position: absolute; inset: 0; opacity: .07;
+    }
+    .cover-caption {
+      position: absolute; bottom: 20px; right: 28px;
+      font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--accent);
+      background: var(--bg);
+      padding-left: 4px;
+      padding-right: 4px;
+    }
+
+    /* ── BODY LAYOUT ── */
+    #article-body {
+      padding: 18px 0 100px;
+    }
+
+    /* ── PROSE ── */
+    .prose {
+      font-size: 1.0rem;
+      line-height: 1.9;
+      color: rgba(0,10,71,.78);
+    }
+
+    .prose h2 {
+      font-size: 1.6rem; font-weight: 700;
+      letter-spacing: -.01em; line-height: 1.3;
+      color: var(--accent);
+      margin: 52px 0 20px;
+    }
+
+    .prose h3 {
+      font-size: 1.05rem; font-weight: 500;
+      letter-spacing: .02em; color: var(--accent);
+      margin: 36px 0 14px;
+      text-transform: uppercase; font-size: .75rem; letter-spacing: .14em;
+    }
+
+    .prose p { margin-bottom: 22px; }
+
+    .prose p:first-child::first-letter {
+      font-size: 3.8rem; font-weight: 700; line-height: .85;
+      float: left; margin: 4px 12px 0 0;
+      color: var(--accent);
+    }
+
+    .prose strong { color: var(--accent); font-weight: 500; }
+
+    .prose a {
+      color: var(--accent2); text-decoration: underline;
+      text-decoration-color: var(--border);
+      text-underline-offset: 3px; transition: text-decoration-color .2s;
+    }
+    .prose a:hover { text-decoration-color: var(--accent2); }
+
+    /* Pull quote */
+    .prose blockquote {
+      margin: 40px 0;
+      padding: 28px 36px;
+      border-left: 3px solid var(--accent2);
+      background: #E6D7D1;
+      /*border-radius: 0 8px 8px 0;*/
+    }
+    .prose blockquote p {
+      font-size: 1.25rem; line-height: 1.6; font-style: italic;
+      color: var(--accent); margin: 0;
+    }
+    .prose blockquote p::first-letter { all: unset; }
+    .prose blockquote cite {
+      display: block; margin-top: 14px;
+      font-size: .75rem; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--muted); font-style: normal;
+    }
+
+    /* Encart chiffres */
+    .prose .stat-inline {
+      display: inline-flex; align-items: baseline; gap: 6px;
+    }
+    .prose .stat-inline .num {
+      font-size: 2rem; font-weight: 700; color: var(--accent); line-height: 1;
+    }
+    .prose .stat-inline .unit {
+      font-size: .8rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted);
+    }
+
+    /* Encart info */
+    .infobox {
+      background: #E6D7D1;
+      border: 1px solid rgba(0,10,71,.12);
+      border-radius: 10px;
+      padding: 28px 32px;
+      margin: 40px 0;
+    }
+    .infobox-label {
+      font-size: .62rem; letter-spacing: .16em; text-transform: uppercase;
+      color: var(--accent2); margin-bottom: 10px;
+    }
+    .infobox h4 {
+      font-size: 1.05rem; color: var(--accent); margin-bottom: 10px;
+    }
+    .infobox p { font-size: .875rem; color: var(--muted); line-height: 1.75; margin: 0; }
+
+    /* Liste pros dans la prose */
+    .prose ul {
+      list-style: none; margin: 0 0 22px;
+    }
+    .prose ul li {
+      padding: 7px 0 7px 22px; position: relative;
+      font-size: .95rem; color: rgba(0,10,71,.72);
+      border-bottom: 1px solid rgba(0,10,71,.06);
+    }
+    .prose ul li::before {
+      content: '';
+      position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent2);
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar { position: sticky; top: 100px; }
+
+    .sidebar-block {
+      border: 1px solid rgba(0,10,71,.1);
+      border-radius: 10px; padding: 24px;
+      margin-bottom: 20px;
+      background: #FFF3E7;
+    }
+    .sidebar-block-label {
+      font-size: .6rem; letter-spacing: .16em; text-transform: uppercase;
+      color: var(--accent2); margin-bottom: 14px;
+    }
+
+    /* Progress de lecture */
+    .reading-bar {
+      position: fixed; top: 72px; left: 0; right: 0; height: 2px;
+      background: rgba(0,10,71,.06); z-index: 99;
+    }
+    .reading-bar-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width .1s linear;
+    }
+
+    /* Tags */
+    .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag {
+      font-size: .65rem; letter-spacing: .1em; text-transform: uppercase;
+      border: 1px solid var(--border); border-radius: 4px;
+      padding: 5px 10px; color: var(--muted);
+      text-decoration: none; transition: all .2s;
+    }
+    .tag:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Related articles */
+    .related-mini {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 14px 0; border-bottom: 1px solid rgba(0,10,71,.08);
+      text-decoration: none; color: inherit; transition: opacity .2s;
+    }
+    .related-mini:last-child { border-bottom: none; padding-bottom: 0; }
+    .related-mini:hover { opacity: .7; }
+    .related-mini-thumb {
+      width: 56px; height: 40px; border-radius: 6px; flex-shrink: 0;
+      overflow: hidden;
+    }
+    .related-mini-thumb div { width: 100%; height: 100%; }
+    .related-mini-title {
+      font-size: .8rem; line-height: 1.4; font-weight: 500; color: var(--accent);
+    }
+    .related-mini-date { font-size: .65rem; color: var(--muted); margin-top: 4px; letter-spacing: .06em; }
+
+    /* Share */
+    .share-btn {
+      display: flex; align-items: center; gap: 8px;
+      font-size: .72rem; letter-spacing: .1em; text-transform: uppercase;
+      border: 1px solid rgba(0,10,71,.15); border-radius: 6px;
+      padding: 9px 16px; color: var(--muted); background: none;
+      cursor: pointer; transition: all .2s; width: 100%; justify-content: center;
+      margin-bottom: 8px;
+    }
+    .share-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .share-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    /* ── SECTION "À LIRE AUSSI" ── */
+    #related { padding: 80px 0 100px; border-top: 1px solid rgba(0,10,71,.1); }
+
+
+    /* Image interne inline */
+    .inline-img {
+      width: 100%; border-radius: 10px;
+      aspect-ratio: 16/9; overflow: hidden;
+      margin: 8px 0;
+      position: relative;
+    }
+    .inline-img-inner {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .inline-img-caption {
+      font-size: .72rem; color: var(--muted); letter-spacing: .06em;
+      margin-top: 10px; text-align: center; font-style: italic;
+    }
+  </style>
+
+
+<!-- ═══════════ HERO ARTICLE ═══════════ -->
+<section id="article-hero">
+  <div class="container">
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb" style="padding: 8px 0 36px;">
+      <a href="index.html">Accueil</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="index.html#news">Actualités</a>
+      <span class="breadcrumb-sep">›</span>
+      <span>En Sortant de l'École</span>
+    </div>
+
+    <div class="row" style="align-items: flex-end; padding-bottom: 36px;">
+      <div class="col-8 fade-in">
+        <span class="article-category">Compte-rendu · Atelier</span>
+        <h1 class="article-headline">« En Sortant de l'École » : <em>douze étudiants</em>, un fauteuil roulant, et une ville qui résiste</h1>
+        <p class="article-standfirst">
+          En refaisant leur trajet domicile–école en fauteuil roulant, nos étudiants en génie urbain ont découvert une réalité que les plans d'accessibilité ne montrent pas : une ville conçue pour qui sait marcher.
+        </p>
+        <div class="article-byline">
+          <div class="byline-avatar">GM</div>
+          <div>
+            <div class="byline-name">Gaël Maignan</div>
+            <div class="byline-meta">Président · Ville Vécue</div>
+          </div>
+          <div class="byline-sep"></div>
+          <div class="byline-info">15 mars 2026<br>8 min de lecture</div>
+        </div>
+      </div>
+    </div>
+
+   <!-- Cover image pleine largeur -->
+   <!--
+    <div class="article-cover fade-in">
+      <div class="article-cover-inner">
+        <img src="background.webp" alt="Atelier En Sortant de l'École, Paris 2026" class="cover-image">
+      </div>
+      <span class="cover-caption">Atelier « En Sortant de l'École », Paris, 2026</span>
+    </div>-->
+
+
+  </div>
+</section>
+
+<!-- ═══════════ CORPS DE L'ARTICLE ═══════════ -->
+<section id="article-body">
+  <div class="container">
+    <div class="row" style="align-items: flex-start;">
+
+      <!-- ── PROSE (col-7) ── -->
+      <div class="col-7 prose">
+
+        <p>
+          Il est 8h30 ce mardi matin. Douze étudiant·e·s de l'École des Ingénieurs de la Ville de Paris se retrouvent devant le portail de l'école. Chacun·e a été invité·e à refaire, en fauteuil roulant manuel, le trajet qu'il ou elle emprunte chaque jour à pied ou en transports. L'exercice semblait simple. Il ne l'était pas.
+        </p>
+
+        <p>
+          Trottoir trop étroit. Bateau de trottoir absent ou défoncé. Porte d'entrée d'immeuble sans automatisme. Couloir de métro trop long pour rejoindre l'ascenseur, lui-même en panne. En l'espace d'une heure, les obstacles se sont accumulés — là où, debout, personne ne les avait jamais remarqués.
+        </p>
+
+        <blockquote>
+          <p>« J'ai traversé cette rue des dizaines de fois. Je n'avais jamais vu que le passage piéton débouchait sur un trottoir surélevé de huit centimètres. Huit centimètres qui suffisent à bloquer un fauteuil. »</p>
+          <cite>— Léa, étudiante en 2e année de génie urbain</cite>
+        </blockquote>
+
+        <h2>Un atelier né d'un constat simple</h2>
+
+        <p>
+          L'idée d'« En Sortant de l'École » est née d'un paradoxe : les futur·e·s ingénieur·e·s et urbanistes qui concevront la ville de demain n'ont, pour la plupart, jamais vécu une situation de handicap moteur. Leur formation leur enseigne les normes — PMR, largeur réglementaire, pente maximale — mais rarement <strong>la réalité sensible de ce que signifie se déplacer avec un fauteuil</strong>.
+        </p>
+
+        <p>
+          L'objectif n'était pas de simuler un handicap, ni de prétendre comprendre ce que vivent au quotidien les personnes en situation de handicap. Il était plus modeste, et pour cela plus honnête : <strong>créer un moment d'inconfort cognitif</strong>, une rupture dans la perception automatique de l'espace, pour que les étudiant·e·s commencent à voir ce qu'ils avaient appris à ne pas voir.
+        </p>
+
+        <div class="infobox">
+          <div class="infobox-label">En chiffres</div>
+          <h4>Ce que les participants ont relevé en une heure</h4>
+          <p>
+            En moyenne, <strong>14 obstacles distincts</strong> ont été identifiés par participant sur un trajet de 900 mètres — soit un obstacle toutes les 65 mètres. Parmi eux : 6 problèmes de dénivelé, 4 obstacles sur la chaussée, 3 portes non accessibles et 1 ascenseur hors service.
+          </p>
+        </div>
+
+        <h2>Le déroulé de l'atelier</h2>
+
+        <h3>Avant le terrain</h3>
+        <p>
+          Chaque participant·e a d'abord tracé, sur une carte, son trajet habituel. Puis nous avons échangé sur leurs anticipations : qu'allaient-ils trouver ? La majorité s'attendait à quelques difficultés ponctuelles. Personne n'avait prévu l'accumulation.
+        </p>
+
+        <h3>Sur le terrain</h3>
+        <p>
+          Les douze étudiant·e·s sont parti·e·s par binômes — l'un en fauteuil, l'autre à pied avec une grille d'observation. Ils avaient pour consigne de noter chaque obstacle rencontré, sa nature et son impact sur le trajet : contournement, blocage total, aide extérieure nécessaire.
+        </p>
+
+        <!-- Image inline -->
+        <div class="fade-in">
+          <div class="inline-img">
+            <img src="background.webp" style="width:100%;">
+            <!--
+            <div class="inline-img-inner" style="background: linear-gradient(135deg, #0a1628 0%, #1a3a5c 50%, #7eb8a4 100%); position:absolute; inset:0;">
+              <svg style="position:absolute;inset:0;width:100%;height:100%;opacity:.08" viewBox="0 0 700 394" preserveAspectRatio="xMidYMid slice">
+                <rect x="100" y="80" width="500" height="234" rx="4" fill="none" stroke="white" stroke-width="2"/>
+                <line x1="100" y1="160" x2="600" y2="160" stroke="white" stroke-width="1"/>
+                <circle cx="350" cy="220" r="50" fill="none" stroke="white" stroke-width="1.5"/>
+              </svg>
+              <span style="font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.3);position:relative">Photo à venir</span>
+            </div>-->
+          </div>
+          <p class="inline-img-caption">Participants en binôme lors du trajet, Paris 11e — mars 2026</p>
+        </div>
+
+        <h3>Le débriefing</h3>
+        <p>
+          De retour à l'école, les observations ont été mises en commun sur une grande carte murale. Chaque obstacle était représenté par un point de couleur. En une demi-heure, la carte du quartier était couverte de points. <strong>La visualisation collective a été le moment le plus fort de la journée.</strong>
+        </p>
+
+        <ul>
+          <li>Problèmes de dénivelé (bateaux de trottoir absents ou abîmés)</li>
+          <li>Obstacles statiques : mobilier urbain, poubelles, vélos mal garés</li>
+          <li>Portes et sas d'entrée non automatisés</li>
+          <li>Passages piétons sans signal sonore</li>
+          <li>Ascenseurs en panne ou inexistants dans les stations de métro</li>
+          <li>Revêtements de sol inadaptés (pavés, gravier, joint mal entretenu)</li>
+        </ul>
+
+        <h2>Ce que l'atelier change — et ce qu'il ne change pas</h2>
+
+        <p>
+          Nous ne prétendons pas qu'une heure en fauteuil roulant suffit à former des ingénieurs sensibles à l'accessibilité. Ce serait réducteur, et quelque peu condescendant envers les personnes qui vivent ces contraintes chaque jour de leur vie, sans avoir le luxe de les « tester ».
+        </p>
+
+        <p>
+          Ce que l'atelier change, c'est le regard. Plusieurs participant·e·s nous ont rapporté qu'ils et elles avaient, dans les jours suivants, <strong>spontanément remarqué des obstacles sur leur chemin</strong> — sans être en fauteuil, juste en marchant. Cette attention nouvelle est le premier pas vers une pratique professionnelle réellement inclusive.
+        </p>
+
+        <blockquote>
+          <p>« Je conçois des espaces publics depuis le bureau, avec des logiciels et des normes. Maintenant j'ai une image. Et cette image, je ne l'oublierai pas quand je dessinerai un trottoir. »</p>
+          <cite>— Thomas, étudiant en 3e année de génie civil</cite>
+        </blockquote>
+
+        <p>
+          Pour 2026-2027, nous souhaitons élargir cet atelier à d'autres écoles partenaires et intégrer une session de retour d'expérience avec des associations de personnes handicapées, pour que le regard des premiers bénéficiaires de l'accessibilité vienne nourrir la réflexion des futur·e·s concepteur·rice·s.
+        </p>
+
+        <!-- Tags -->
+        <div style="margin-top: 52px; padding-top: 28px; border-top: 1px solid var(--border);">
+          <div class="section-label" style="margin-bottom:12px">Thèmes abordés</div>
+          <div class="tag-list">
+            <a href="#" class="tag">Accessibilité</a>
+            <a href="#" class="tag">Handicap moteur</a>
+            <a href="#" class="tag">Espace public</a>
+            <a href="#" class="tag">Génie urbain</a>
+            <a href="#" class="tag">Sensibilisation</a>
+            <a href="#" class="tag">Design universel</a>
+            <a href="#" class="tag">Atelier immersif</a>
+          </div>
+        </div>
+
+      </div><!-- /prose -->
+
+      <!-- ── SIDEBAR (col-4, offset-1) ── -->
+      <div class="col-1"></div>
+      <div class="col-4 fade-in" style="transition-delay:.2s">
+        <div class="sidebar">
+
+          <!-- Partager -->
+          <!--<div class="sidebar-block">
+            <div class="sidebar-block-label">Partager l'article</div>
+            <button class="share-btn">
+              <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+              LinkedIn
+            </button>
+            <button class="share-btn">
+              <svg viewBox="0 0 24 24"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
+              Twitter / X
+            </button>
+            <button class="share-btn">
+              <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+              Copier le lien
+            </button>
+          </div>-->
+
+          <!-- À propos de l'auteur -->
+          <div class="sidebar-block">
+            <div class="sidebar-block-label">À propos de l'auteur</div>
+            <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px">
+              <div class="byline-avatar" style="width:48px;height:48px;font-size:.85rem;">GM</div>
+              <div>
+                <div style="font-weight:500;font-size:.9rem;color:var(--accent)">Gaël Maignan</div>
+                <div style="font-size:.72rem;color:var(--muted);margin-top:2px">Président de Ville Vécue</div>
+              </div>
+            </div>
+            <p style="font-size:.8rem;color:var(--muted);line-height:1.7">Étudiant en génie urbain à l'EIVP, Gaël est le fondateur de l'association. Il porte le projet d'accessibilité depuis 2024.</p>
+          </div>
+
+          <!-- Articles liés -->
+          <div class="sidebar-block">
+            <div class="sidebar-block-label">À lire aussi</div>
+
+            <a href="#" class="related-mini">
+              <div class="related-mini-thumb">
+                <div style="background:linear-gradient(135deg,#2d4a3e,#7eb8a4);width:100%;height:100%"></div>
+              </div>
+              <div>
+                <div class="related-mini-title">Journée portes ouvertes à l'EIVP</div>
+                <div class="related-mini-date">2 fév. 2026</div>
+              </div>
+            </a>
+
+            <a href="#" class="related-mini">
+              <div class="related-mini-thumb">
+                <div style="background:linear-gradient(135deg,#000A47,#4a6fa5);width:100%;height:100%"></div>
+              </div>
+              <div>
+                <div class="related-mini-title">Nouveau partenariat avec la Mairie de Paris</div>
+                <div class="related-mini-date">5 déc. 2025</div>
+              </div>
+            </a>
+
+            <a href="#" class="related-mini">
+              <div class="related-mini-thumb">
+                <div style="background:linear-gradient(135deg,#1a1a2e,#7eb8a4);width:100%;height:100%"></div>
+              </div>
+              <div>
+                <div class="related-mini-title">Concevoir pour les marges, c'est concevoir pour tous</div>
+                <div class="related-mini-date">20 nov. 2025</div>
+              </div>
+            </a>
+
+          </div>
+
+          <!-- Newsletter -->
+          <!--
+          <div class="sidebar-block" style="background:rgba(0,10,71,.03)">
+            <div class="sidebar-block-label">Newsletter</div>
+            <p style="font-size:.8rem;color:var(--muted);line-height:1.7;margin-bottom:14px">Recevez nos actualités et comptes-rendus d'ateliers directement dans votre boîte mail.</p>
+            <input type="email" placeholder="votre@email.fr" style="width:100%;padding:9px 14px;border:1px solid rgba(0,10,71,.15);border-radius:6px;background:var(--bg);color:var(--accent);font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none;margin-bottom:8px"/>
+            <button style="width:100%;padding:10px;background:var(--accent);color:var(--bg);border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:opacity .2s" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">S'abonner</button>
+          </div>-->
+
+        </div>
+      </div><!-- /sidebar -->
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ À LIRE AUSSI ═══════════ -->
+<section id="related">
+  <div class="container">
+    <div class="row" style="margin-bottom:40px">
+      <div class="col-12 fade-in">
+        <div class="section-label">Continuer la lecture</div>
+        <h2>D'autres articles</h2>
+      </div>
+    </div>
+    <div class="row">
+
+      <div class="col-4 fade-in" style="display:flex;">
+        <a href="#" class="article-card" style="width:100%">
+          <div class="article-thumb">
+            <div class="article-thumb-inner">
+              <div class="article-thumb-bg" style="background:linear-gradient(135deg,#1a1a2e 0%,#7eb8a4 60%,#000A47 100%)"></div>
+            </div>
+            <span class="article-tag">Tribune</span>
+          </div>
+          <div class="article-body">
+            <div class="article-meta"><span>20 nov. 2025</span><span class="article-meta-dot"></span><span>6 min</span></div>
+            <h3 class="article-title">Concevoir pour les marges, c'est concevoir pour tous</h3>
+            <p class="article-desc">Tribune sur le design universel comme levier de qualité urbaine pour l'ensemble des usagers.</p>
+            <span class="article-read-more">Lire <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-4 fade-in" style="display:flex;transition-delay:.1s">
+        <a href="#" class="article-card" style="width:100%">
+          <div class="article-thumb">
+            <div class="article-thumb-inner">
+              <div class="article-thumb-bg" style="background:linear-gradient(135deg,#000A47 0%,#4a6fa5 100%)"></div>
+            </div>
+            <span class="article-tag">Partenariat</span>
+          </div>
+          <div class="article-body">
+            <div class="article-meta"><span>5 déc. 2025</span><span class="article-meta-dot"></span><span>4 min</span></div>
+            <h3 class="article-title">Un nouveau partenariat avec la Mairie de Paris</h3>
+            <p class="article-desc">Ville Vécue s'associe à la Direction de la Voirie pour co-construire des diagnostics terrain.</p>
+            <span class="article-read-more">Lire <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-4 fade-in" style="display:flex;transition-delay:.2s">
+        <a href="#" class="article-card" style="width:100%">
+          <div class="article-thumb">
+            <div class="article-thumb-inner">
+              <div class="article-thumb-bg" style="background:linear-gradient(135deg,#2e1503 0%,#c8a96e 70%,#7eb8a4 100%)"></div>
+            </div>
+            <span class="article-tag">Ressource</span>
+          </div>
+          <div class="article-body">
+            <div class="article-meta"><span>8 oct. 2025</span><span class="article-meta-dot"></span><span>8 min</span></div>
+            <h3 class="article-title">Guide pratique : évaluer l'accessibilité d'un trajet urbain</h3>
+            <p class="article-desc">Méthode et grille d'observation issus de nos ateliers pour conduire votre propre diagnostic de terrain.</p>
+            <span class="article-read-more">Lire <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+          </div>
+        </a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<script>
+  // Fade-in au scroll
+  const observer = new IntersectionObserver(
+    entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+    { threshold: 0.08 }
+  );
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+  // Barre de lecture
+  const bar = document.getElementById('readingBar');
+  window.addEventListener('scroll', () => {
+    const scrolled = window.scrollY;
+    const total = document.body.scrollHeight - window.innerHeight;
+    bar.style.width = Math.min(100, (scrolled / total) * 100) + '%';
+  });
+</script>
+
+
+
+
+
+
+
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer>
+  <div class="container">
+    <div class="row" style="align-items:flex-start">
+      <div class="col-4">
+        <div class="footer-brand">Ville Vécue<span style="color:var(--accent)">.</span></div>
+        <div class="footer-copy">© 2026 — Association Ville Vécue</div>
+      </div>
+
+      <div class="col-2">
+        <div class="footer-links">
+          <a href="#">Accueil</a>
+          <a href="#mission">À propos</a>
+          <a href="#news">Nos actions</a>
+        </div>
+      </div>
+
+      <div class="col-2">
+        <div class="footer-links">
+          <a href="#ateliers">Ateliers</a>
+          <a href="#contact">Contact</a>
+          <a href="#">Mentions légales</a>
+        </div>
+      </div>
+
+      <div class="col-2">
+        <div class="footer-links">
+          <a href="#">LinkedIn</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ── Hamburger menu toggle ──
+  const hamburger = document.getElementById('hamburger');
+  const mobileNav = document.getElementById('mobileNav');
+  let menuOpen = false;
+
+  hamburger.addEventListener('click', () => {
+    menuOpen = !menuOpen;
+    hamburger.classList.toggle('open', menuOpen);
+    mobileNav.classList.toggle('open', menuOpen);
+    hamburger.setAttribute('aria-expanded', menuOpen);
+    mobileNav.setAttribute('aria-hidden', !menuOpen);
+    // Prevent body scroll when menu open
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+  });
+
+  // Close menu when a link is clicked
+  document.querySelectorAll('.mobile-link').forEach(link => {
+    link.addEventListener('click', () => {
+      menuOpen = false;
+      hamburger.classList.remove('open');
+      mobileNav.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', false);
+      mobileNav.setAttribute('aria-hidden', true);
+      document.body.style.overflow = '';
+    });
+  });
+
+  // Close menu on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && menuOpen) {
+      menuOpen = false;
+      hamburger.classList.remove('open');
+      mobileNav.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', false);
+      mobileNav.setAttribute('aria-hidden', true);
+      document.body.style.overflow = '';
+    }
+  });
+</script>
+</body>
+</html>

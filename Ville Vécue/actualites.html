@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Association Ville Vécue — Accueil</title>
+  <title>Association Ville Vécue — Toute l'actualité</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style/main.css">
   <script src="js/smooth-scroll.js"></script>
@@ -12,8 +12,8 @@
   <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
 
-  <meta name="description" content="Ville Vécue est une association citoyenne qui promeut la diversité et l'inclusion dans l'espace public. Composée d'étudiant·e·s en urbanisme, ingénierie et santé, l'association mêle réflexion, témoignages et actions concrètes pour repenser la ville afin qu'elle soit praticable par toutes et tous.">
-  <meta name="keywords" content="Ville vécue, association, asso, inclusivité, Urbanisme, Urbain, accessibilité, handicap, ville">
+  <meta name="description" content="Vous pouvez retrouver l’ensemble des dernières actualités de l’association en suivant ce lien">
+  <meta name="keywords" content="Ville vécue, association, asso, actualités, actu">
 
 
   <meta property="og:title" content="Association Ville Vécue">
@@ -22,51 +22,7 @@
   <meta property="og:type" content="website">
 
   <style>
-    /* ─── HERO ───────────────────────────────────────────────────── */
-    #hero {
-      padding: 120px 0 100px;
-      border-bottom: 1px solid var(--border);
-      overflow: hidden;
-      position: relative;
 
-      min-height: 480px;
-    }
-
-
-
-
-    .hero-body {
-      color: var(--bg);
-      font-size: 0.95rem;
-      max-width: 440px;
-      margin: 28px 0 40px;
-      line-height: 1.75;
-    }
-
-    .btn-primary {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--bg);
-      font-weight: 500;
-      font-size: .875rem;
-      letter-spacing: .04em;
-      padding: 14px 28px;
-      border-radius: 6px;
-      text-decoration: none;
-      transition: opacity .2s, transform .2s;
-      border: solid var(--bg) 2px;
-    }
-    .btn-primary:hover { opacity: .85; transform: translateY(-2px); }
-
-    @media (max-width: 600px) {
-      #hero {
-        padding: 80px 0 64px;
-        min-height: auto;
-      }
-      .hero-body { font-size: .9rem; margin: 20px 0 32px; }
-      .btn-primary { width: 100%; justify-content: center; }
-    }
 
     /* ─── SECTION LABELS ─────────────────────────────────────────── */
 
@@ -325,13 +281,13 @@
 <header>
   <div class="container">
     <div class="header-inner">
-      <a href="#home" class="logo">Ville Vécue</a>
+      <a href="index.html" class="logo">Ville Vécue</a>
 
       <!-- Desktop nav -->
       <nav>
-        <a href="#mission">À propos</a>
-        <a href="#ateliers">Ateliers</a>
-        <a href="#contact">Contact</a>
+        <a href="index.html#mission">À propos</a>
+        <a href="index.html#ateliers">Ateliers</a>
+        <a href="index.html#contact">Contact</a>
       </nav>
 
       <!-- Hamburger (mobile/tablet) -->
@@ -346,50 +302,13 @@
 
 <!-- Mobile nav overlay -->
 <nav class="mobile-nav" id="mobileNav" aria-hidden="true">
-  <a href="#mission" class="mobile-link">À propos</a>
-  <a href="#ateliers" class="mobile-link">Ateliers</a>
-  <a href="#contact" class="mobile-link">Contact</a>
+  <a href="index.html#mission" class="mobile-link">À propos</a>
+  <a href="index.html#ateliers" class="mobile-link">Ateliers</a>
+  <a href="index.html#contact" class="mobile-link">Contact</a>
 </nav>
 
-<!-- ═══════════ HERO ═══════════ -->
-<section id="hero" class="bg-section">
-  <div class="container">
-    <div class="row" style="align-items:center; gap:var(--gap) 24px;">
-      <div class="col-7 fade-in">
-        <h1>Une Ville,<br>Mille Vécus...</h1>
-        <p class="hero-body">
-          Ville Vécue est une association citoyenne qui promeut la diversité et l'inclusion dans l'espace public. Composée d'étudiant·e·s en urbanisme, ingénierie et santé, l'association mêle réflexion, témoignages et actions concrètes pour repenser la ville afin qu'elle soit praticable par toutes et tous.
-        </p>
-        <a href="#ateliers" class="btn-primary">Découvrir nos actions</a>
-      </div>
-    </div>
-  </div>
-</section>
 
-<!-- ═══════════ MISSION ═══════════ -->
-<section id="mission" style="padding: 80px 0; border-bottom: 1px solid var(--border);">
-  <div class="container">
-    <div class="row">
-      <div class="col-6 edito-text fade-in">
-        <div class="section-label">Notre mission</div>
-        <h2>Une ville accessible,<br>c'est une ville plus humaine</h2>
-        <p style="color:var(--muted);line-height:1.75;font-size:.95rem;margin-top:20px">
-          Née sur les bancs de l'EIVP, Ville Vécue est une association citoyenne qui promeut la diversité et l'inclusion dans l'espace public. Composée d'étudiant·e·s en urbanisme, ingénierie et santé, l'association mêle réflexion, témoignages et actions concrètes pour repenser la ville afin qu'elle soit praticable par toutes et tous.
-        </p>
-        <p style="color:var(--muted);line-height:1.75;font-size:.95rem;margin-top:20px">
-          Nous nous attachons à toutes les formes d'inclusion et d'exclusion : genre, âge, mobilité, déficiences sensorielles, ainsi que les usages sociaux des espaces. Notre action, portée par les étudiants et pour les étudiants, vise à sensibiliser et à éveiller les consciences sur l'accessibilité de l'espace public.
-        </p>
-        <p style="color:var(--muted);line-height:1.75;font-size:.95rem">
-          Pour l'année 2026-2027, notre action s'articulera principalement autour du programme « En Sortant de l'École » : un atelier de sensibilisation destiné aux étudiants en urbanisme, génie civil, architecture, etc., afin de leur permettre d'aborder l'accessibilité de façon concrète, par l'expérimentation.
-        </p>
 
-        <p style="color:var(--muted);line-height:1.75;font-size:.95rem">
-          <a href="manifeste.html">Lire notre manifeste (01/03/2026)</a>
-        </p>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- ═══════════ news / ACTUALITÉS ═══════════ -->
 <section id="news" class="bg-section">
@@ -397,8 +316,7 @@
     <div class="row news-header fade-in">
       <div class="col-12">
         <div class="section-label">Actualité</div>
-        <h2>Actualité de l'association</h2>
-        <p style="line-height:1.75;font-size:.95rem;margin-top:20px">Vous pouvez retrouver l’ensemble des dernières actualités de l’association en suivant ce lien : <a href="actualites.html">Toute l'actualité de Ville Vécue</a></p>
+        <h2>Toute l'actualité de Ville Vécue</h2>
       </div>
     </div>
 
@@ -478,151 +396,6 @@
   </div>
 </section>
 
-<!-- ═══════════ ATELIERS ═══════════ -->
-<section id="ateliers" style="padding: 80px 0; border-bottom: 1px solid var(--border);">
-  <div class="container">
-    <div class="row">
-      <div class="col-7 edito-text fade-in" style="margin-bottom: 8px;">
-        <div class="section-label">Nos actions</div>
-        <h2>Ateliers de sensibilisation</h2>
-        <p style="margin-top:16px">
-          Le cœur de notre action s'articule autour de l'organisation d'ateliers de sensibilisation à destination d'étudiants et étudiantes afin de sensibiliser les futur·e·s acteur·rice·s de la ville.
-        </p>
-      </div>
-
-      <div class="col-12 fade-in" style="display:flex;transition-delay:.2s">
-        <a href="en-sortant-de-l-ecole.html" class="article-card" style="width:100%">
-          <div class="article-body">
-            <h3 class="article-title">« En Sortant de l'École »</h3>
-            <p>« En Sortant de l'École » est un atelier immersif qui invite les étudiant·e·s en urbanisme, génie civil et ingénierie à vivre l'espace public autrement. En refaisant leur trajet école-domicile en fauteuil roulant, ils découvrent concrètement les obstacles invisibles du quotidien. L'objectif : comprendre la réalité de l'accessibilité pour concevoir des villes réellement inclusives.</p>
-            <span class="article-read-more">
-              En savoir plus
-              <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-            </span>
-          </div>
-        </a>
-      </div>
-
-      <div class="col-12 fade-in" style="display:flex;transition-delay:.3s">
-        <a href="#" class="article-card" style="width:100%">
-          <div class="article-body">
-            <h3 class="article-title">« Ça va être tout noir »</h3>
-            <p>« Ça va être tout noir » est un projet d'atelier destiné à plonger les participants dans une expérience d'immersion simulant une perte totale de vision.</p>
-            <span class="article-read-more">
-              Le projet est en cours de financement
-              <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-            </span>
-          </div>
-        </a>
-      </div>
-
-      <div class="col-12 fade-in" style="display:flex;transition-delay:.4s">
-        <a href="#" class="article-card" style="width:100%">
-          <div class="article-body">
-            <h3 class="article-title">« À ton grand âge »</h3>
-            <p>« À ton grand âge » est un projet d'atelier qui vise à faire comprendre les contraintes d'accessibilité liées au vieillissement.</p>
-            <span class="article-read-more">
-              Le projet est en cours de financement
-              <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-            </span>
-          </div>
-        </a>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════ STATS ═══════════ -->
-<section id="stats" class="bg-section">
-  <div class="container">
-    <div class="row" style="margin-top:0">
-      <div class="col-12 edito-text fade-in">
-        <div class="section-label">À propos</div>
-        <h2>L'association en chiffres</h2>
-      </div>
-
-      <div class="col-3 fade-in">
-        <div class="stat-block">
-          <div class="stat-num">0</div>
-          <div class="stat-desc">Étudiants sensibilisés, toutes actions confondues.</div>
-        </div>
-      </div>
-
-      <div class="col-3 fade-in" style="transition-delay:.1s">
-        <div class="stat-block">
-          <div class="stat-num">0 km</div>
-          <div class="stat-desc">Kilomètres parcourus en fauteuil (à la seule force des bras !).</div>
-        </div>
-      </div>
-
-      <div class="col-3 fade-in" style="transition-delay:.2s">
-        <div class="stat-block">
-          <div class="stat-num">0 années</div>
-          <div class="stat-desc">Années cumulées avec le simulateur de vieillissement.</div>
-        </div>
-      </div>
-
-      <div class="col-3 fade-in" style="transition-delay:.3s">
-        <div class="stat-block">
-          <div class="stat-num">0 mètres</div>
-          <div class="stat-desc">Mètres parcourus à l'aveugle.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════ CONTACT / MEMBRES ═══════════ -->
-<section id="contact" style="padding: 80px 0; border-bottom: 1px solid var(--border);">
-  <div class="container">
-    <div class="row">
-      <div class="col-7 edito-text fade-in" style="margin-bottom: 8px;">
-        <div class="section-label">Contact</div>
-        <h2>Nos membres</h2>
-        <p style="margin-top:16px">
-          L'équipe de Ville Vécue se tient à votre écoute pour toute demande d'information, de partenariat ou de participation à nos ateliers.
-          N'hésitez pas à nous écrire à <a href="mailto:contact@villevecue.fr" style="font-weight:600;text-decoration:underline">contact@villevecue.fr</a>, nous vous répondrons avec plaisir dans les plus brefs délais.
-        </p>
-      </div>
-      <div class="col-5 edito-text fade-in" style="margin-bottom: 8px;"></div>
-
-      <div class="col-4 fade-in" style="transition-delay:.2s">
-        <div class="aside-card">
-          <h3>Gaël Maignan</h3>
-          <ul class="aside-list">
-            <li>Président</li>
-            <li>Étudiant en génie urbain à l'École des Ingénieurs de la Ville de Paris</li>
-            <li><a href="mailto:gael.maignan@villevecue.fr">gael.maignan@villevecue.fr</a></li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="col-4 fade-in" style="transition-delay:.3s">
-        <div class="aside-card">
-          <h3>Caroline Buquet</h3>
-          <ul class="aside-list">
-            <li>Vice-Présidente</li>
-            <li>Étudiante en génie urbain à l'École des Ingénieurs de la Ville de Paris</li>
-            <li><a href="mailto:caroline.buquet@villevecue.fr">caroline.buquet@villevecue.fr</a></li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="col-4 fade-in" style="transition-delay:.4s">
-        <div class="aside-card">
-          <h3>Melvia Petit</h3>
-          <ul class="aside-list">
-            <li>Trésorière</li>
-            <li>Étudiante en génie urbain à l'École des Ingénieurs de la Ville de Paris</li>
-            <li><a href="mailto:melvia.petit@villevecue.fr">melvia.petit@villevecue.fr</a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-
 
 <!-- ═══════════ FOOTER ═══════════ -->
 <footer>
@@ -636,14 +409,15 @@
       <div class="col-2">
         <div class="footer-links">
           <a href="index.html">Accueil</a>
-          <a href="#mission">À propos</a>
+          <a href="index.html#mission">À propos</a>
+          <a href="#">Actualités</a>
         </div>
       </div>
 
       <div class="col-2">
         <div class="footer-links">
-          <a href="#ateliers">Ateliers</a>
-          <a href="#contact">Contact</a>
+          <a href="index.html#ateliers">Ateliers</a>
+          <a href="index.html#contact">Contact</a>
           <a href="#">Mentions légales</a>
         </div>
       </div>

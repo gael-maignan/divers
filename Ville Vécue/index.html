@@ -5,219 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ville Vécue</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css">
+  <script src="js/smooth-scroll.js"></script>
+
   <style>
-    /* ─── RESET & BASE ───────────────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:        #FFEEE0;
-      --surface:   #161616;
-      --border:    #2a2a2a;
-      --accent:    #000A47;
-
-      --accent2:   #000A47;
-      --text:      #000A47;
-      --muted:     #000A47;
-      --gap:       24px;
-      --cols:      12;
-      --max:       1280px;
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      overflow-x: hidden;
-    }
-
-    /* ─── GRID SYSTEM ────────────────────────────────────────────── */
-    .container {
-      max-width: var(--max);
-      margin: 0 auto;
-      padding: 0 40px;
-    }
-
-    .row {
-      display: grid;
-      grid-template-columns: repeat(var(--cols), 1fr);
-      gap: var(--gap);
-    }
-
-    .col-1  { grid-column: span 1; }
-    .col-2  { grid-column: span 2; }
-    .col-3  { grid-column: span 3; }
-    .col-4  { grid-column: span 4; }
-    .col-5  { grid-column: span 5; }
-    .col-6  { grid-column: span 6; }
-    .col-7  { grid-column: span 7; }
-    .col-8  { grid-column: span 8; }
-    .col-9  { grid-column: span 9; }
-    .col-10 { grid-column: span 10; }
-    .col-11 { grid-column: span 11; }
-    .col-12 { grid-column: span 12; }
-
-    /* Offset helpers */
-    .offset-1  { grid-column-start: 2; }
-    .offset-2  { grid-column-start: 3; }
-    .offset-3  { grid-column-start: 4; }
-
-    /* ─── RESPONSIVE BREAKPOINTS ─────────────────────────────────── */
-
-    /* Tablette large (≤ 1024px) */
-    @media (max-width: 1024px) {
-      .container { padding: 0 32px; }
-      :root { --gap: 20px; }
-    }
-
-    /* Tablette (≤ 900px) */
-    @media (max-width: 900px) {
-      .col-3, .col-4  { grid-column: span 6; }
-      .col-5, .col-6  { grid-column: span 6; }
-      .col-7, .col-8  { grid-column: span 12; }
-      .col-9          { grid-column: span 12; }
-      .col-1, .col-2  { grid-column: span 4; }
-
-      /* Hero text prend toute la largeur sur tablette */
-      #hero .col-7 { grid-column: span 12; }
-
-      /* Edito aside full width */
-      #edito .col-7 { grid-column: span 12; }
-      #edito .col-5 { grid-column: span 12; }
-      #edito .col-4 { grid-column: span 6; }
-
-      /* Stats : 2 par ligne */
-      #stats .col-3 { grid-column: span 6; }
-
-      /* Footer */
-      footer .col-4 { grid-column: span 12; }
-      footer .col-2 { grid-column: span 4; }
-    }
-
-    /* Mobile (≤ 600px) */
-    @media (max-width: 600px) {
-      :root { --gap: 16px; }
-      .container { padding: 0 20px; }
-      [class^="col-"] { grid-column: span 12 !important; }
-      .offset-1, .offset-2, .offset-3 { grid-column-start: auto; }
-    }
-
-    /* ─── HEADER ─────────────────────────────────────────────────── */
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(255,235,216,.85);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .header-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 72px;
-    }
-
-    .logo {
-      font-size: 1.5rem;
-      letter-spacing: .04em;
-      color: var(--text);
-      text-decoration: none;
-      flex-shrink: 0;
-    }
-    .logo span { color: var(--accent); }
-
-    /* Desktop nav */
-    nav {
-      display: flex;
-      gap: 36px;
-      align-items: center;
-    }
-    nav a {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: .875rem;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      transition: color .2s;
-      white-space: nowrap;
-    }
-    nav a:hover { color: var(--accent); }
-
-    /* ─── HAMBURGER BUTTON ───────────────────────────────────────── */
-    .hamburger {
-      display: none;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 5px;
-      width: 40px;
-      height: 40px;
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      cursor: pointer;
-      padding: 0;
-      flex-shrink: 0;
-    }
-    .hamburger span {
-      display: block;
-      width: 18px;
-      height: 1.5px;
-      background: var(--accent);
-      border-radius: 2px;
-      transition: transform .3s ease, opacity .3s ease;
-      transform-origin: center;
-    }
-    .hamburger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
-    .hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
-    .hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
-
-    /* ─── MOBILE NAV OVERLAY ─────────────────────────────────────── */
-    .mobile-nav {
-      display: none;
-      position: fixed;
-      inset: 72px 0 0 0;
-      background: rgba(255,235,216,.97);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      z-index: 99;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 32px;
-      opacity: 0;
-      transform: translateY(-12px);
-      transition: opacity .3s ease, transform .3s ease;
-      pointer-events: none;
-    }
-    .mobile-nav.open {
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: all;
-    }
-    .mobile-nav a {
-      color: var(--accent);
-      text-decoration: none;
-      font-size: 1.5rem;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      font-weight: 500;
-      transition: opacity .2s;
-    }
-    .mobile-nav a:hover { opacity: .6; }
-
-    /* Show hamburger on tablet/mobile */
-    @media (max-width: 860px) {
-      nav { display: none; }
-      .hamburger { display: flex; }
-      .mobile-nav { display: flex; }
-    }
-
     /* ─── HERO ───────────────────────────────────────────────────── */
     #hero {
       padding: 120px 0 100px;
@@ -497,7 +288,6 @@
     .stat-block:first-child { border-color: var(--accent); }
 
     .stat-num {
-      font-family: 'Playfair Display', serif;
       font-size: clamp(1.5rem, 3vw, 2rem);
       font-weight: 700;
       color: var(--accent);
@@ -944,3 +734,8 @@
 </script>
 </body>
 </html>
+
+
+
+
+

@@ -3,7 +3,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:        #FFEEE0;
+      --bg:        #FFF2EA;
       --surface:   #161616;
       --border:    #2a2a2a;
       --accent:    #000A47;
@@ -72,9 +72,6 @@
       .col-7, .col-8  { grid-column: span 12; }
       .col-9          { grid-column: span 12; }
       .col-1, .col-2  { grid-column: span 4; }
-
-      /* Hero text prend toute la largeur sur tablette */
-      #hero .col-7 { grid-column: span 12; }
 
       /* Edito aside full width */
       #edito .col-7 { grid-column: span 12; }
@@ -211,38 +208,6 @@
       .mobile-nav { display: flex; }
     }
 
-    /* ─── HERO ───────────────────────────────────────────────────── */
-    #hero {
-      padding: 120px 0 100px;
-      border-bottom: 1px solid var(--border);
-      overflow: hidden;
-      position: relative;
-      background-image: url('blur.png');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      min-height: 480px;
-    }
-
-    h1 {
-      color: var(--bg);
-      font-size: clamp(2.2rem, 5vw, 4.5rem);
-      line-height: 1.1;
-      font-weight: 700;
-      letter-spacing: -.01em;
-    }
-    h1 em {
-      font-style: italic;
-      color: var(--accent);
-    }
-
-    .hero-body {
-      color: var(--bg);
-      font-size: 0.95rem;
-      max-width: 440px;
-      margin: 28px 0 40px;
-      line-height: 1.75;
-    }
 
     .btn-primary {
       display: inline-flex;
@@ -261,11 +226,6 @@
     .btn-primary:hover { opacity: .85; transform: translateY(-2px); }
 
     @media (max-width: 600px) {
-      #hero {
-        padding: 80px 0 64px;
-        min-height: auto;
-      }
-      .hero-body { font-size: .9rem; margin: 20px 0 32px; }
       .btn-primary { width: 100%; justify-content: center; }
     }
 
@@ -287,68 +247,10 @@
 
     a { color: inherit; }
 
-    /* ─── SECTION: ÉDITO ─────────────────────────────────────────── */
-    #edito {
-      padding: 80px 0;
-      border-bottom: 1px solid var(--border);
-    }
 
-    .edito-text h2 { margin-bottom: 24px; }
-    .edito-text p {
-      color: var(--muted);
-      line-height: 1.85;
-      margin-bottom: 16px;
-      font-size: .975rem;
-    }
 
-    .aside-card {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 28px;
-      position: sticky;
-      top: 96px;
-      height: fit-content;
-      background: #FFF3E7;
-    }
-    .aside-card h3 {
-      font-size: 1.1rem;
-      margin-bottom: 8px;
-    }
-    .aside-card h4 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.1rem;
-      margin-bottom: 16px;
-    }
-    .aside-list { list-style: none; }
-    .aside-list li {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: .875rem;
-      color: var(--muted);
-    }
-    .aside-list li:last-child { border-bottom: none; }
-    .aside-list .check { color: var(--accent2); font-size: 1rem; flex-shrink: 0; }
 
-    @media (max-width: 600px) {
-      #edito { padding: 60px 0; }
-      .aside-card { position: static; }
-    }
 
-    /* ─── SECTION: GALERIE / ACTUALITÉS ─────────────────────────── */
-    #galerie {
-      padding: 80px 0;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .galerie-header { margin-bottom: 48px; }
-
-    @media (max-width: 600px) {
-      #galerie { padding: 60px 0; }
-      .galerie-header { margin-bottom: 32px; }
-    }
 
     /* ─── ARTICLE CARDS ──────────────────────────────────────────── */
     .article-card {
@@ -475,38 +377,6 @@
       #galerie .col-4 { grid-column: span 12 !important; }
     }
 
-    /* ─── SECTION: STATS ─────────────────────────────────────────── */
-    #stats {
-      padding: 80px 0;
-      border-bottom: 1px solid var(--border);
-      background: linear-gradient(180deg, transparent, rgba(200,169,110,.03));
-    }
-
-    .stat-block {
-      padding: 24px 0;
-      border-left: 2px solid var(--border);
-      padding-left: 28px;
-    }
-    .stat-block:first-child { border-color: var(--accent); }
-
-    .stat-num {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(1.5rem, 3vw, 2rem);
-      font-weight: 700;
-      color: var(--accent);
-      line-height: 1;
-    }
-    .stat-desc {
-      font-size: .85rem;
-      color: var(--muted);
-      margin-top: 8px;
-      letter-spacing: .04em;
-      line-height: 1.5;
-    }
-
-    @media (max-width: 600px) {
-      #stats { padding: 60px 0; }
-    }
 
     /* ─── FOOTER ─────────────────────────────────────────────────── */
     footer {

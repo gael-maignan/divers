@@ -15,24 +15,12 @@
       border-bottom: 1px solid var(--border);
       overflow: hidden;
       position: relative;
-      background-image: url('blur.png');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
+
       min-height: 480px;
     }
 
-    h1 {
-      color: var(--bg);
-      font-size: clamp(2.2rem, 5vw, 4.5rem);
-      line-height: 1.1;
-      font-weight: 700;
-      letter-spacing: -.01em;
-    }
-    h1 em {
-      font-style: italic;
-      color: var(--accent);
-    }
+
+
 
     .hero-body {
       color: var(--bg);
@@ -68,14 +56,6 @@
     }
 
     /* ─── SECTION LABELS ─────────────────────────────────────────── */
-    .section-label {
-      font-size: .7rem;
-      letter-spacing: .16em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 16px;
-      margin-top: 16px;
-    }
 
     h2 {
       font-size: clamp(1.75rem, 3.5vw, 3.2rem);
@@ -139,6 +119,7 @@
     #news {
       padding: 80px 0;
       border-bottom: 1px solid var(--border);
+      color: var(--bg);
     }
 
     .news-header { margin-bottom: 48px; }
@@ -277,25 +258,23 @@
     #stats {
       padding: 80px 0;
       border-bottom: 1px solid var(--border);
-      background: linear-gradient(180deg, transparent, rgba(200,169,110,.03));
     }
 
     .stat-block {
       padding: 24px 0;
-      border-left: 2px solid var(--border);
+      border-left: 2px solid var(--bg);
       padding-left: 28px;
     }
-    .stat-block:first-child { border-color: var(--accent); }
+    .stat-block:first-child { border-color: var(--bg); }
 
     .stat-num {
       font-size: clamp(1.5rem, 3vw, 2rem);
       font-weight: 700;
-      color: var(--accent);
       line-height: 1;
     }
     .stat-desc {
       font-size: .85rem;
-      color: var(--muted);
+      color: var(--bg);
       margin-top: 8px;
       letter-spacing: .04em;
       line-height: 1.5;
@@ -305,29 +284,6 @@
       #stats { padding: 60px 0; }
     }
 
-    /* ─── FOOTER ─────────────────────────────────────────────────── */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 48px 0;
-    }
-
-    .footer-brand { font-family: 'Playfair Display', serif; font-size: 1.1rem; }
-    .footer-copy { color: var(--muted); font-size: .8rem; margin-top: 8px; margin-bottom: 8px; }
-    .footer-links { display: flex; flex-direction: column; gap: 10px; }
-    .footer-links a {
-      color: var(--muted);
-      font-size: .875rem;
-      text-decoration: none;
-      transition: color .2s;
-    }
-    .footer-links a:hover { color: var(--accent); }
-
-    @media (max-width: 600px) {
-      footer { padding: 40px 0; }
-      /* Stack footer columns */
-      footer .col-4 { margin-bottom: 24px; }
-      footer .col-2 { margin-bottom: 16px; }
-    }
 
     /* ─── FADE IN ANIMATION ──────────────────────────────────────── */
     .fade-in {
@@ -347,7 +303,7 @@
     }
   </style>
 </head>
-<body>
+<body id="home">
 
   <!-- Barre de lecture -->
 <div class="reading-bar"><div class="reading-bar-fill" id="readingBar"></div></div>
@@ -356,7 +312,7 @@
 <header>
   <div class="container">
     <div class="header-inner">
-      <a href="#" class="logo">Ville Vécue</a>
+      <a href="#home" class="logo">Ville Vécue</a>
 
       <!-- Desktop nav -->
       <nav>
@@ -383,7 +339,7 @@
 </nav>
 
 <!-- ═══════════ HERO ═══════════ -->
-<section id="hero">
+<section id="hero" class="bg-section">
   <div class="container">
     <div class="row" style="align-items:center; gap:var(--gap) 24px;">
       <div class="col-7 fade-in">
@@ -416,7 +372,7 @@
 </section>
 
 <!-- ═══════════ news / ACTUALITÉS ═══════════ -->
-<section id="news">
+<section id="news" class="bg-section">
   <div class="container">
     <div class="row news-header fade-in">
       <div class="col-12">
@@ -556,7 +512,7 @@
 </section>
 
 <!-- ═══════════ STATS ═══════════ -->
-<section id="stats">
+<section id="stats" class="bg-section">
   <div class="container">
     <div class="row" style="margin-top:0">
       <div class="col-12 edito-text fade-in">

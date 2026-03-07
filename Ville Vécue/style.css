@@ -26,6 +26,42 @@
       overflow-x: hidden;
     }
 
+
+.bg-section {
+  background-image: url('blur.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      color: var(--bg);
+}
+
+    .bg-section h1, .bg-section h2, .bg-section .section-label  {
+
+      
+            text-shadow:
+    -1px -1px 0 var(--accent),
+     1px -1px 0 var(--accent),
+    -1px  1px 0 var(--accent),
+     1px  1px 0 var(--accent);
+    }
+
+
+        h1 {
+      color: var(--bg);
+      font-size: clamp(2.2rem, 5vw, 4.5rem);
+      line-height: 1.1;
+      font-weight: 700;
+      letter-spacing: -.01em;}
+
+     
+    h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+
+ 
+
     /* ─── GRID SYSTEM ────────────────────────────────────────────── */
     .container {
       max-width: var(--max);
@@ -77,9 +113,6 @@
       #edito .col-7 { grid-column: span 12; }
       #edito .col-5 { grid-column: span 12; }
       #edito .col-4 { grid-column: span 6; }
-
-      /* Stats : 2 par ligne */
-      #stats .col-3 { grid-column: span 6; }
 
       /* Footer */
       footer .col-4 { grid-column: span 12; }
@@ -234,7 +267,7 @@
       font-size: .7rem;
       letter-spacing: .16em;
       text-transform: uppercase;
-      color: var(--accent);
+      color: inherit;
       margin-bottom: 16px;
       margin-top: 16px;
     }

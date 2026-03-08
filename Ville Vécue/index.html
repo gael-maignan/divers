@@ -362,6 +362,10 @@
         </p>
         <a href="#ateliers" class="btn-primary">Découvrir nos actions</a>
       </div>
+      <div class="col-5 fade-in">
+  
+
+      </div>
     </div>
   </div>
 </section>
@@ -386,6 +390,85 @@
         <p style="color:var(--muted);line-height:1.75;font-size:.95rem">
           <a href="manifeste.html">Lire notre manifeste (01/03/2026)</a>
         </p>
+      </div>
+      <div class="col-6">
+         <figure id="icon-figure">
+  
+  <div id="icon">
+    <div class="svg-layer" id="svg-black"></div>
+    <div class="svg-layer" id="svg-red"></div>
+  </div>
+
+  <figcaption>
+    Trajets réalisés lors de nos ateliers de sensibilisation<br><a href="en-sortant-de-l-ecole/carte.html?geojson=paris.geojson">Voir la carte interactive</a>
+  </figcaption>
+
+</figure>
+
+<style>
+#icon-figure {
+  margin: 0;
+}
+
+#icon {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  min-height: 200px;
+  position: relative;
+}
+
+/* couches superposées */
+.svg-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.svg-layer svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* SVG noir (dessous) */
+#svg-black path,
+#svg-black line {
+  stroke: #CCC3C4;
+  stroke-width: 3;
+  fill: none;
+}
+
+/* SVG rouge (au dessus) */
+#svg-red path,
+#svg-red line {
+  stroke: var(--accent);
+  stroke-width: 3;
+  fill: none;
+}
+
+/* légende */
+figcaption {
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: -1.5rem;
+  text-align: center;
+}
+</style>
+
+<script>
+fetch("images/paris-axes.svg")
+  .then(r => r.text())
+  .then(data => {
+    document.getElementById("svg-black").innerHTML = data;
+  });
+
+fetch("images/paris-esde.svg")
+  .then(r => r.text())
+  .then(data => {
+    document.getElementById("svg-red").innerHTML = data;
+  });
+</script>
+
+
       </div>
     </div>
   </div>
@@ -413,7 +496,7 @@
           </div>
           <div class="article-body">
             <div class="article-meta">
-              <span>5 déc. 2025</span>
+              <span>20 mars 2026</span>
               <span class="article-meta-dot"></span>
               <span>4 min</span>
             </div>
@@ -427,29 +510,29 @@
         </a>
       </div>
 
-      <!--<div class="col-4 fade-in" style="display:flex;transition-delay:.1s">
+      <div class="col-4 fade-in" style="display:flex;transition-delay:.1s">
         <a href="article.html" class="article-card" style="width:100%">
           <div class="article-thumb">
             <div class="article-thumb-inner">
-              <img src="images/article0.webp" alt="Tribune design universel">
+              <img src="images/carto.webp" alt="Tribune design universel">
             </div>
-            <span class="article-tag">Article</span>
+            <span class="article-tag">Cartes</span>
           </div>
           <div class="article-body">
             <div class="article-meta">
-              <span>20 nov. 2025</span>
+              <span>08 mars 2026</span>
               <span class="article-meta-dot"></span>
               <span>6 min</span>
             </div>
-            <h3 class="article-title">Concevoir pour les marges, c'est concevoir pour tous : le principe du design universel</h3>
-            <p class="article-desc">Tribune de ... sur comment l'accessibilité, loin d'être une contrainte, devient un levier de qualité urbaine pour l'ensemble des usagers.</p>
+            <h3 class="article-title">Découvrez l'étendue de nos actions à travers une série de cartographies</h3>
+            <p class="article-desc">En complément de nos actions de sensibilisation sur le terrain, nous tenons à documenter notre travail pour témoigner fidèlement des réalités auxquelles nous sommes confrontés.</p>
             <span class="article-read-more">
               Lire
               <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </span>
           </div>
         </a>
-      </div>-->
+      </div>
 
       <div class="col-4 fade-in" style="display:flex;transition-delay:.2s">
         <a href="manifeste.html" class="article-card" style="width:100%">

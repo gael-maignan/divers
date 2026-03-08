@@ -234,7 +234,7 @@ html, body { height: 100%; width: 100%; font-family: 'DM Sans', sans-serif; back
     <select class="trip-select" id="trip-select" onchange="onTripChange()">
       <option value="all">— Tous —</option>
     </select>
-    <button class="btn-all active" id="btn-all" onclick="showAll()">🗺 Tous les trajets</button>
+    <button class="btn-all active" id="btn-all" onclick="showAll()">Tous les trajets</button>
   </div>
 
   <div class="header-stats" id="header-stats"></div>
@@ -291,19 +291,19 @@ html, body { height: 100%; width: 100%; font-family: 'DM Sans', sans-serif; back
     <div class="li"><div class="ll" style="background:var(--p4)"></div><span class="li-label">4 — Critique</span></div>
   </div>
   <div class="legend-sec">
-    <div class="legend-sec-title">Marqueurs</div>
-    <div class="li"><span style="font-size:14px">🚇</span><span class="li-label">Bouche de métro</span></div>
-    <div class="li"><span style="font-size:14px">🚌</span><span class="li-label">Arrêt de bus</span></div>
-    <div class="li"><span style="font-size:14px">⚠️</span><span class="li-label">Obstacle</span></div>
-    <div class="li"><span style="font-size:14px">📌</span><span class="li-label">Autre</span></div>
+    <!--<div class="legend-sec-title">Marqueurs</div>
+    <div class="li"><span style="font-size:14px">🚇</span><span class="li-label">Métro</span></div>
+    <div class="li"><span style="font-size:14px">🚌</span><span class="li-label">Bus</span></div>
+    <div class="li"><span style="font-size:14px">⚠️</span><span class="li-label">Obstacle</span></div>-->
+    <!--<div class="li"><span style="font-size:14px">📌</span><span class="li-label">Autre</span></div>-->
   </div>
 </div>
 
 <!-- GEOCODER -->
 <div class="geocoder-wrap" id="geocoder-wrap" style="display:none">
-  <span class="geocoder-icon">🔍</span>
+  <!--<span class="geocoder-icon">🔍</span>
   <input class="geocoder-input" id="geocoder" placeholder="Rechercher un lieu…" oninput="geocode(this.value)" autocomplete="off">
-  <div class="geocoder-results" id="geo-res"></div>
+  <div class="geocoder-results" id="geo-res"></div>-->
 </div>
 
 <!-- INFO PANEL -->
@@ -504,7 +504,7 @@ function updateStats() {
   document.getElementById('header-stats').innerHTML =
     `<div class="stat-pill"><div class="stat-dot" style="background:var(--p4)"></div>${routeFeatures.length} tracés</div>
      <div class="stat-pill"><div class="stat-dot" style="background:var(--marker)"></div>${markerFeatures.length} marqueurs</div>
-     <div class="stat-pill">🛤 ${trips.length} trajet${trips.length>1?'s':''}</div>`;
+     <div class="stat-pill">${trips.length} trajet${trips.length>1?'s':''}</div>`;
 
   document.getElementById('fc-all').textContent     = allFeatures.length;
   document.getElementById('fc-1').textContent       = c[1]||0;
@@ -640,14 +640,14 @@ function openRoutePanel(f) {
   const tripId = p.VV_trajet || '';
   if (tripId) {
     const t = trips.find(x => x.id === tripId);
-    html += `<div class="ip-trip-tag">🛤 ${tripId}${t?.date ? '  ·  '+t.date : ''}</div>`;
+    html += `<div class="ip-trip-tag">${tripId}${t?.date ? '  ·  '+t.date : ''}</div>`;
   }
 
   // Champs observation VeloViz
   const vvFields = [
-    {key:'VV_commentaire',        icon:'💬', label:'Commentaire'},
-    {key:'VV_date',               icon:'📅', label:'Date d\'observation'},
-    {key:'VV_trajet_description', icon:'📝', label:'Description du trajet'},
+    {key:'VV_commentaire',        icon:'', label:'Commentaire'},
+    {key:'VV_date',               icon:'', label:'Date d\'observation'},
+    {key:'VV_trajet_description', icon:'', label:'Description du trajet'},
   ];
   const shown = new Set(['VV_note','VV_trajet','VV_date','VV_commentaire','VV_trajet_description','VV_id','_note','_id','_comment','_date']);
   vvFields.forEach(({key,icon,label}) => {
@@ -658,18 +658,18 @@ function openRoutePanel(f) {
 
   // Données OSM / voirie
   const osmFields = [
-    {key:'ref',      icon:'🔢', label:'Référence'},
-    {key:'highway',  icon:'🛣️', label:'Type de voie'},
-    {key:'name',     icon:'🏷️', label:'Nom'},
-    {key:'maxspeed', icon:'🚦', label:'Vitesse max'},
-    {key:'surface',  icon:'🪨', label:'Revêtement'},
-    {key:'lanes',    icon:'↔️', label:'Voies'},
-    {key:'oneway',   icon:'➡️', label:'Sens unique'},
-    {key:'bicycle',  icon:'🚲', label:'Vélo'},
-    {key:'foot',     icon:'🚶', label:'Piéton'},
-    {key:'access',   icon:'🔑', label:'Accès'},
-    {key:'lit',      icon:'💡', label:'Éclairage'},
-    {key:'width',    icon:'📏', label:'Largeur'},
+    {key:'ref',      icon:'', label:'Référence'},
+    {key:'highway',  icon:'', label:'Type de voie'},
+    {key:'name',     icon:'', label:'Nom'},
+    {key:'maxspeed', icon:'', label:'Vitesse max'},
+    {key:'surface',  icon:'', label:'Revêtement'},
+    {key:'lanes',    icon:'', label:'Voies'},
+    {key:'oneway',   icon:'', label:'Sens unique'},
+    {key:'bicycle',  icon:'', label:'Vélo'},
+    {key:'foot',     icon:'', label:'Piéton'},
+    {key:'access',   icon:'', label:'Accès'},
+    {key:'lit',      icon:'', label:'Éclairage'},
+    {key:'width',    icon:'', label:'Largeur'},
   ];
   let hasOsm = false;
   osmFields.forEach(({key,icon,label}) => {
@@ -725,15 +725,15 @@ function openMarkerPanel(f) {
   const tripId = p.VV_trajet || '';
   if (tripId) {
     const t = trips.find(x => x.id === tripId);
-    html += `<div class="ip-trip-tag">🛤 ${tripId}${t?.date ? '  ·  '+t.date : ''}</div>`;
+    html += `<div class="ip-trip-tag">${tripId}${t?.date ? '  ·  '+t.date : ''}</div>`;
   }
 
-  html += row('📍', 'Coordonnées', `${lat.toFixed(5)}, ${lon.toFixed(5)}`);
+  html += row('', 'Coordonnées', `${lat.toFixed(5)}, ${lon.toFixed(5)}`);
 
   [
-    {key:'VV_commentaire',         alt:'commentaire', icon:'💬', label:'Commentaire'},
-    {key:'VV_date',                alt:'date',         icon:'📅', label:'Date'},
-    {key:'VV_trajet_description',  alt:'',             icon:'📝', label:'Description du trajet'},
+    {key:'VV_commentaire',         alt:'commentaire', icon:'', label:'Commentaire'},
+    {key:'VV_date',                alt:'date',         icon:'', label:'Date'},
+    {key:'VV_trajet_description',  alt:'',             icon:'', label:'Description du trajet'},
   ].forEach(({key,alt,icon,label:lbl}) => {
     const v = p[key] || (alt ? p[alt] : '') || '';
     if (v) html += row(icon, lbl, v);

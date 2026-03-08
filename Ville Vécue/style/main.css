@@ -584,16 +584,6 @@
       flex-shrink: 0;
     }
 
-    /* Cards grid responsive */
-    @media (max-width: 900px) {
-      /* 3 cols → 2 cols on tablet */
-      #galerie .col-4 { grid-column: span 6; }
-    }
-    @media (max-width: 600px) {
-      /* 2 cols → 1 col on mobile */
-      #galerie .col-4 { grid-column: span 12 !important; }
-    }
-
 
     /* ─── FOOTER ─────────────────────────────────────────────────── */
     footer {

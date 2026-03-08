@@ -159,7 +159,9 @@ html, body { height: 100%; width: 100%; font-family: 'DM Sans', sans-serif; back
 .ip-body { padding: 14px 16px; overflow-y: auto; flex: 1; }
 .ip-body::-webkit-scrollbar { width: 3px; }
 .ip-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-.ip-badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 20px; padding: 4px 11px; font-size: 12px; font-weight: 600; margin-bottom: 10px; }
+.ip-badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 20px; padding: 4px 11px; font-size: 12px; font-weight: 600; margin-bottom: 10px;
+  margin-right: 5px;
+ }
 .ip-trip-tag {
   display: inline-flex; align-items: center; gap: 5px;
   background: #fffbeb; border: 1px solid #fde68a; border-radius: 20px;
@@ -250,22 +252,22 @@ html, body { height: 100%; width: 100%; font-family: 'DM Sans', sans-serif; back
     <span class="filter-count" id="fc-all">0</span>
   </button>
   <button class="filter-btn" onclick="setFilter('1',this)">
-    <div class="fb-dot" style="background:var(--p1)"></div>Priorité 1
+    <div class="fb-dot" style="background:var(--p1)"></div>Accessible
     <span class="filter-count" id="fc-1">0</span>
   </button>
   <button class="filter-btn" onclick="setFilter('2',this)">
-    <div class="fb-dot" style="background:var(--p2)"></div>Priorité 2
+    <div class="fb-dot" style="background:var(--p2)"></div>Fatiguant
     <span class="filter-count" id="fc-2">0</span>
   </button>
   <button class="filter-btn" onclick="setFilter('3',this)">
-    <div class="fb-dot" style="background:var(--p3)"></div>Priorité 3
+    <div class="fb-dot" style="background:var(--p3)"></div>Difficilement accessible
     <span class="filter-count" id="fc-3">0</span>
   </button>
   <button class="filter-btn" onclick="setFilter('4',this)">
-    <div class="fb-dot" style="background:var(--p4)"></div>Priorité 4
+    <div class="fb-dot" style="background:var(--p4)"></div>Non accessible
     <span class="filter-count" id="fc-4">0</span>
   </button>
-  <button class="filter-btn" onclick="setFilter('markers',this)">
+  <button class="filter-btn" onclick="setFilter('markers',this)" style="display:none;">
     <div class="fb-dot" style="background:var(--marker)"></div>Marqueurs
     <span class="filter-count" id="fc-markers">0</span>
   </button>
@@ -285,10 +287,10 @@ html, body { height: 100%; width: 100%; font-family: 'DM Sans', sans-serif; back
   <div class="legend-title">Légende</div>
   <div class="legend-sec">
     <div class="legend-sec-title">Tracés — Priorité</div>
-    <div class="li"><div class="ll" style="background:var(--p1)"></div><span class="li-label">1 — Faible</span></div>
-    <div class="li"><div class="ll" style="background:var(--p2)"></div><span class="li-label">2 — Moyen</span></div>
-    <div class="li"><div class="ll" style="background:var(--p3)"></div><span class="li-label">3 — Élevé</span></div>
-    <div class="li"><div class="ll" style="background:var(--p4)"></div><span class="li-label">4 — Critique</span></div>
+    <div class="li"><div class="ll" style="background:var(--p1)"></div><span class="li-label">Accessible</span></div>
+    <div class="li"><div class="ll" style="background:var(--p2)"></div><span class="li-label">Fatiguant</span></div>
+    <div class="li"><div class="ll" style="background:var(--p3)"></div><span class="li-label">Difficilement accessible</span></div>
+    <div class="li"><div class="ll" style="background:var(--p4)"></div><span class="li-label">Non accessible</span></div>
   </div>
   <div class="legend-sec">
     <!--<div class="legend-sec-title">Marqueurs</div>

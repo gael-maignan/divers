@@ -26,16 +26,40 @@
   <!-- Barre de lecture -->
 <div class="reading-bar"><div class="reading-bar-fill" id="readingBar"></div></div>
 
+
+
+
+
+
 <!-- ═══════════ HEADER ═══════════ -->
+
 <header>
   <div class="container">
     <div class="header-inner">
-      <a href="index.html" class="logo">Ville Vécue</a>
+      <a href="index.html" class="logo" aria-label="Ville Vécue">
+        <img src="logo.png" alt="Ville Vécue">
+      </a>
 
       <!-- Desktop nav -->
       <nav>
         <a href="index.html#mission">À propos</a>
-        <a href="index.html#ateliers">Ateliers</a>
+        <a href="actualites.html">Actualités</a>
+
+        <!-- Menu déroulant Ateliers -->
+        <div class="dropdown">
+          <button class="dropdown-toggle" aria-expanded="false" aria-haspopup="true">
+            Ateliers
+            <svg class="chevron" width="10" height="6" viewBox="0 0 10 6" fill="none">
+              <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <div class="dropdown-menu" role="menu">
+            <a href="en-sortant-de-l-ecole.html" role="menuitem">« En Sortant de l'École »</a>
+            <a href="#" role="menuitem">« Ça va être tout noir »</a>
+            <a href="#" role="menuitem">« À ton grand âge »</a>
+          </div>
+        </div>
+
         <a href="index.html#contact">Contact</a>
       </nav>
 
@@ -52,9 +76,28 @@
 <!-- Mobile nav overlay -->
 <nav class="mobile-nav" id="mobileNav" aria-hidden="true">
   <a href="index.html#mission" class="mobile-link">À propos</a>
-  <a href="index.html#ateliers" class="mobile-link">Ateliers</a>
+
+  <!-- Accordéon mobile pour Ateliers -->
+  <div class="mobile-accordion">
+    <button class="mobile-accordion-toggle">
+      Ateliers
+      <svg class="chevron" width="10" height="6" viewBox="0 0 10 6" fill="none">
+        <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <div class="mobile-accordion-body">
+      <a href="en-sortant-de-l-ecole.html" class="mobile-link mobile-sub-link">En Sortant de l'École</a>
+      <a href="#" class="mobile-link mobile-sub-link">« Ça va être tout noir »</a>
+      <a href="#" class="mobile-link mobile-sub-link">« À ton grand âge »</a>
+    </div>
+  </div>
+
+  <a href="actualites.html" class="mobile-link">Actualités</a>
   <a href="index.html#contact" class="mobile-link">Contact</a>
 </nav>
+
+  <script src="js/nav.js"></script>
+
 
 
 

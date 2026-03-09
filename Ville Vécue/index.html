@@ -24,12 +24,11 @@
   <style>
     /* ─── HERO ───────────────────────────────────────────────────── */
     #hero {
-      padding: 120px 0 100px;
+      padding: 100px 0 100px;
       border-bottom: 1px solid var(--border);
       overflow: hidden;
       position: relative;
 
-      min-height: 480px;
     }
 
 
@@ -38,7 +37,7 @@
     .hero-body {
       color: var(--bg);
       font-size: 0.95rem;
-      max-width: 440px;
+      max-width: 840px;
       margin: 28px 0 40px;
       line-height: 1.75;
     }
@@ -290,10 +289,6 @@
         </p>
         <a href="#ateliers" class="btn-primary">Découvrir nos actions</a>
       </div>
-      <div class="col-5 fade-in">
-  
-
-      </div>
     </div>
   </div>
 </section>
@@ -301,9 +296,10 @@
 <!-- ═══════════ MISSION ═══════════ -->
 <section id="mission" style="padding: 80px 0; border-bottom: 1px solid var(--border);">
   <div class="container">
+    <div class="section-label">Notre mission</div>
     <div class="row">
       <div class="col-6 edito-text fade-in">
-        <div class="section-label">Notre mission</div>
+        
         <h2>Une ville accessible,<br>c'est une ville plus humaine</h2>
         <p style="color:var(--muted);line-height:1.75;font-size:.95rem;margin-top:20px">
           Née sur les bancs de l'EIVP, Ville Vécue est une association citoyenne qui promeut la diversité et l'inclusion dans l'espace public. Composée d'étudiant·e·s en urbanisme, ingénierie et santé, l'association mêle réflexion, témoignages et actions concrètes pour repenser la ville afin qu'elle soit praticable par toutes et tous.
@@ -316,10 +312,15 @@
         </p>
       </div>
 
+<div class="col-1">
+</div>
+      <div class="col-5 fade-in">
+  <h3>Atelier - « En Sortant de l'École »</h3>
+
+    <p style="color:var(--muted);line-height:1.75;font-size:.8rem; margin-top:20px">« En Sortant de l'École » est un atelier immersif qui invite des étudiant·e·s en urbanisme, génie civil et ingénierie à expérimenter l’espace public autrement. En refaisant un trajet quotidien en fauteuil roulant, ils prennent conscience des obstacles souvent invisibles. Chaque atelier est documenté et cartographié pour rendre ces difficultés visibles.</p>
 
 
-      <!--
-      <div class="col-6 fade-in">
+        <div class="col-6 fade-in">
          <figure id="icon-figure">
   
   <div id="icon">
@@ -328,7 +329,7 @@
   </div>
 
   <figcaption>
-    Trajets réalisés lors de nos ateliers de sensibilisation<br><a href="en-sortant-de-l-ecole/carte.html?geojson=paris.geojson">Voir la carte interactive</a>
+    Trajets réalisés lors de l'atelier de sensibilisation<br><a href="en-sortant-de-l-ecole/carte.html?geojson=paris.geojson">Voir la carte interactive</a>
   </figcaption>
 
 </figure>
@@ -375,7 +376,7 @@
 
 /* légende */
 figcaption {
-  font-size: 0.9rem;
+  font-size: 0.7rem;
   color: #666;
   margin-top: -1.5rem;
   text-align: center;
@@ -395,6 +396,12 @@ fetch("images/paris-esde.svg")
     document.getElementById("svg-red").innerHTML = data;
   });
 </script>
+
+
+      </div>
+
+      <!--
+
 
 -->
       </div>

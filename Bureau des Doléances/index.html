@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bureau des Doléances - Accueil</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style/main.css">
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+
+
+
+
+
+
+  /* ── LAYOUT HELPERS ──────────────────────────── */
+  .container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  section { padding: 40px 0; }
+
+  .section-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: var(--gray-800);
+  }
+
+  /* ── À LA UNE + EN RÉGION ────────────────────── */
+  .top-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    padding-top: 36px;
+    /*padding-bottom: 36px;*/
+  }
+
+  .une-main-card {
+/*    display: grid;
+    grid-template-columns: 220px 1fr;
+    margin-bottom: 20px;
+    gap: 20px;*/
+    
+    border: 1px solid var(--gray-200);
+    padding: 0;
+    
+    overflow: hidden;
+     position: relative; 
+     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  
+       display: block;
+  text-decoration: none;
+  color: inherit;
+  }
+
+  .une-main-card:hover{
+    background:var(--gray-hover);
+  }
+
+  .une-main-card img {
+    object-fit: cover;
+    width: 100%;
+  }
+
+  .une-main-card .card-body {
+    padding: 16px 16px 16px 0;
+    padding: 25px;
+  }
+
+  .card-tag {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--gray-400);
+    margin-bottom: 6px;
+  }
+
+  .card-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--blue);
+    line-height: 1.35;
+    margin-bottom: 8px;
+  }
+
+  .card-excerpt {
+    font-size: 13px;
+    color: var(--gray-600);
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+
+  .card-date {
+    font-size: 11.5px;
+    color: var(--gray-400);
+  }
+
+  .card-arrow {
+  font-size: 24px;
+  color: var(--blue);
+
+  position: absolute;
+  bottom: 0px;
+  right: 12px;
+}
+
+
+  /* EN REGION */
+  .region-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .region-card {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 14px;
+    align-items: start;
+  }
+
+  .region-card img {
+    width: 110px;
+    height: 72px;
+    object-fit: cover;
+  }
+
+  .region-card .card-title { font-size: 16px; }
+
+
+
+  /* ── EN CE MOMENT ────────────────────────────── */
+  .moment-section { background: var(--gray-100); }
+
+  .moment-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .moment-card {
+    position: relative;
+    overflow: hidden;
+    height: 320px;
+    display: block;
+  }
+
+  .moment-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .4s ease;
+  }
+
+  .moment-card:hover img { transform: scale(1.04); }
+
+  .moment-overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,.75));
+    padding: 60px 24px 24px;
+    color: var(--white);
+  }
+
+  .moment-tag {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    background: var(--blue);
+    color: var(--white);
+    padding: 3px 8px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+
+  .moment-title {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: 8px;
+  }
+
+  .moment-desc { font-size: 13px; opacity: .88; line-height: 1.5; }
+
+  .voir-tous {
+    text-align: center;
+    margin-top: 28px;
+  }
+
+  .btn-outline {
+    display: inline-block;
+    border: 1px solid var(--blue);
+    color: var(--blue);
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 10px 24px;
+    transition: background .2s, color .2s;
+  }
+
+  .btn-outline:hover { background: var(--blue); color: var(--white); }
+
+  /* ── PROCHAINS ÉVÉNEMENTS ────────────────────── */
+  .events-section { background: var(--purple-bg); }
+
+  .events-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .event-card { background: var(--white); overflow: hidden; }
+
+  .event-card img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+  }
+
+  .event-body { padding: 16px; }
+
+  .event-type {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-weight: 700;
+    color: var(--purple);
+    margin-bottom: 6px;
+  }
+
+  .event-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gray-800);
+    line-height: 1.35;
+    margin-bottom: 10px;
+  }
+
+  .event-arrow { color: var(--blue); font-size: 18px; }
+
+  .events-cta { text-align: center; margin-top: 28px; }
+
+  .btn-purple {
+    display: inline-block;
+    background: var(--purple);
+    color: var(--white);
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 10px 28px;
+    transition: background .2s;
+  }
+
+  .btn-purple:hover { background: #6a278f; }
+
+  /* ── DERNIÈRES PUBLICATIONS ──────────────────── */
+  .publications-section { }
+
+  .publications-grid {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 40px;
+    align-items: start;
+  }
+
+  .publications-grid img {
+    width: 260px;
+    height: 300px;
+    object-fit: cover;
+  }
+
+  .pub-right { }
+
+  .pub-name {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .badge {
+    display: inline-block;
+    background: var(--blue-light);
+    color: var(--blue);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    margin-bottom: 16px;
+    border: 1px solid var(--blue-mid);
+  }
+
+  .pub-links { display: flex; flex-direction: column; gap: 8px; }
+
+  .pub-link {
+    color: var(--blue);
+    font-size: 13.5px;
+    border-bottom: 1px solid var(--gray-200);
+    padding-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .pub-link:hover { color: var(--blue-dark); }
+
+  /* ── COMMUNIQUÉS DE PRESSE ───────────────────── */
+  .press-section { background: var(--gray-100); }
+
+  .tag-filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .tag-filter {
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid var(--gray-400);
+    color: var(--gray-600);
+    padding: 4px 12px;
+    cursor: pointer;
+    transition: all .2s;
+    background: var(--white);
+  }
+
+  .tag-filter.active, .tag-filter:hover {
+    background: var(--blue);
+    color: var(--white);
+    border-color: var(--blue);
+  }
+
+  .press-item {
+    background: var(--white);
+    padding: 18px 20px;
+    margin-bottom: 12px;
+
+    border: 1px solid var(--gray-200);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: block;
+  }
+  .press-item:hover {
+    background: var(--gray-hover);
+  }
+
+
+  .press-item-tags { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+
+  .press-tag {
+    font-size: 10.5px;
+    font-weight: 700;
+    border: 1px solid var(--gray-400);
+    color: var(--gray-600);
+    padding: 2px 8px;
+  }
+
+  .press-title {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--blue);
+    line-height: 1.4;
+    margin-bottom: 8px;
+  }
+
+  .press-date { font-size: 11.5px; color: var(--gray-400); }
+
+  .press-arrow {
+    float: right;
+    color: var(--blue);
+    margin-top: -16px;
+  }
+
+  .press-cta { text-align: center; margin-top: 24px; }
+
+  /* ── DOSSIERS DE PRESSE ──────────────────────── */
+  .dossiers-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .dossier-item {
+    border-bottom: 2px solid var(--gray-200);
+    padding-bottom: 16px;
+  }
+
+  .dossier-item .card-title { font-size: 14px; color: var(--blue); margin-bottom: 6px; }
+  .dossier-item .card-date { font-size: 11.5px; color: var(--gray-400); }
+
+  /* ── NEWSLETTER ──────────────────────────────── */
+  .newsletter-section {
+    background: var(--white);
+    border-top: 1px solid var(--gray-200);
+  }
+
+
+
+  .newsletter-inner {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 40px;
+    align-items: center;
+  }
+
+  .newsletter-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+  .newsletter-desc { font-size: 13px; color: var(--gray-600); max-width:600px }
+
+  .social-links { display: flex; gap: 10px; align-items: center; }
+
+  .social-link {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--gray-400);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: var(--gray-600);
+    transition: all .2s;
+  }
+
+  .social-link:hover { background: var(--blue); color: var(--white); border-color: var(--blue); }
+
+  .btn-subscribe {
+    display: inline-block;
+    background: var(--blue);
+    color: var(--white);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 22px;
+    margin-top: 16px;
+    transition: background .2s;
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn-subscribe:hover { background: var(--blue-dark); }
+
+
+    @media (max-width: 900px) {
+    .top-grid, .moment-grid, .events-grid, .publications-grid,
+    .newsletter-inner, .dossiers-grid { grid-template-columns: 1fr; }
+    .une-main-card { grid-template-columns: 1fr; }
+    .une-main-card .card-img { height: 200px; width: 100%; }
+    .nav-links { display: none; }
+    .main-nav {
+      align-items: center;
+      text-align: center;
+      margin: auto;
+    }
+    .nav-right {
+      padding: 5px;
+
+      margin: auto;
+    }
+  }
+
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<header class="site-header">
+  <div class="header-top">
+    <a href="#" class="logo-area">
+      <div class="rf-logo"><img src="logo.png"></div>
+      <div class="logo-divider"></div>
+      <div class="logo-title">
+        <h1>Bureau<br>des Doléances</h1>
+        <span>Accueillir · Adresser · Archiver</span>
+      </div>
+    </a>
+  </div>
+
+  <nav class="main-nav">
+    <div class="nav-inner">
+      <ul class="nav-links">
+        <li><a href="#en-ce-moment">Actualités</a></li>
+        <li><a href="#a-propos">À propos du Bureau</a></li>
+        <li><a href="#soumettre-une-lettre">Soumettre une lettre</a></li>
+      </ul>
+      <div class="nav-right">
+        <a>Toutes les lettres</a> | <a href="#soumettre-une-lettre">Soumettre</a> | <a href="#contact">Contact</a>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<!-- ══ À LA UNE + EN RÉGION ══ -->
+<section style="padding: 0;">
+  <div class="container">
+    <div class="top-grid">
+
+      <!-- À LA UNE -->
+      <div>
+        <h2 class="section-title">À la une</h2>
+
+        <a href="#" class="une-main-card">
+          <img src="rep.png">
+          <div class="card-body">
+            <div class="card-title">Doléances à la République : Lettres ouvertes en provenance et à destination de la République</div>
+            <p class="card-excerpt">Sur la Place de la République, un bureau temporaire s'installe pour recueillir des paroles adressées à la République.</p>
+            <div class="card-date">Publié le 27 mars 2026</div>
+            <div class="card-arrow"><span class="arrow-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="https://www.w3.org/2000/svg"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg></span></div>
+          </div>
+        </a>
+      </div>
+
+      <!-- EN RÉGION + À L'AFFICHE -->
+      <div>
+        <h2 class="section-title">Dernières lettres</h2>
+        <div class="region-list">
+          <a href="lettres/lettre.html" class="region-card">
+            <img src="doleances2.png">
+            <div>
+              <div class="card-title">Lettre À la République - 29/03/2026</div>
+              <div class="card-date">Publié le 21 mars 2026</div>
+            </div>
+          </a>
+          <a class="region-card">
+            <!--<div class="img-placeholder ph-museum" style="width:110px;height:72px;"></div>-->
+            <img src="doleances2.png">
+            <div>
+              <div class="card-title">Pour un chantier durable - 27/03/2026</div>
+              <div class="card-date">Publié le 14 mars 2026</div>
+            </div>
+          </a>
+           <a class="region-card">
+            <img src="doleances2.png">
+            <div>
+              <div class="card-title">Ne plus vouloir détourner le regard - 27/03/2026</div>
+              <div class="card-date">Publié le 14 mars 2026</div>
+            </div>
+          </a>
+
+
+          <div class="region-card">
+            <!--<div class="img-placeholder ph-museum" style="width:110px;height:72px;"></div>-->
+            <img src="doleances2.png">
+            <div>
+              <div class="card-title">Pour un chantier durable - 27/03/2026</div>
+              <div class="card-date">Publié le 14 mars 2026</div>
+            </div>
+          </div>
+           <div class="region-card">
+            <img src="doleances2.png">
+            <div>
+              <div class="card-title">Ne plus vouloir détourner le regard - 27/03/2026</div>
+              <div class="card-date">Publié le 14 mars 2026</div>
+            </div>
+          </div>
+
+
+
+        </div>
+      </div>
+
+    </div>
+
+    <div class="voir-tous" style="margin-bottom:40px;">
+      <a href="#" class="btn-outline">Lire toutes les lettres</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══ EN CE MOMENT ══ -->
+<section class="moment-section" id="en-ce-moment">
+  <div class="container">
+    <h2 class="section-title">En ce moment</h2>
+    <div class="moment-grid">
+
+      <a href="#" class="moment-card">
+        <img src="rep.png" alt="Description" style="width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0;">
+        <div class="moment-overlay">
+          <div class="moment-tag">Évènement</div>
+          <div class="moment-title">Doléances à la République</div>
+          <p class="moment-desc">Sur la Place de la République, un bureau temporaire s'installe pour recueillir des paroles adressées à la République.</p>
+        </div>
+      </a>
+
+      <a href="#" class="moment-card">
+        <img src="doleances2.png" alt="Description" style="width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0;">
+        <div class="moment-overlay">
+          <div class="moment-tag">Évènement</div>
+          <div class="moment-title">Ouverture du Bureau des Doléances</div>
+          <p class="moment-desc">Le Bureau des doléances est un dispositif public et numérique qui permet à chacun d'exprimer ses préoccupations, interrogations ou constats.</p>
+        </div>
+      </a>
+
+    </div>
+    <!--<div class="voir-tous">
+      <a href="#" class="btn-outline">Voir tous les dossiers</a>
+    </div>-->
+  </div>
+</section>
+
+<!-- ══ PROCHAINS ÉVÉNEMENTS ══ -->
+<!--
+<section class="events-section">
+  <div class="container">
+    <div class="section-title">Prochains événements</div>
+    <div class="events-grid">
+
+      <div class="event-card">
+        <div class="img-placeholder ph-event1" style="height:160px;width:100%;"></div>
+        <div class="event-body">
+          <div class="event-type">À venir</div>
+          <div class="event-title">Les tables rondes du ministère de la Culture</div>
+          <div class="event-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="img-placeholder ph-event2" style="height:160px;width:100%;"></div>
+        <div class="event-body">
+          <div class="event-type">À venir</div>
+          <div class="event-title">Nuit européenne des musées — Samedi 17 mai 2026</div>
+          <div class="event-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="img-placeholder ph-event3" style="height:160px;width:100%;"></div>
+        <div class="event-body">
+          <div class="event-type">Crédit photo</div>
+          <div class="event-title">Rendez-vous aux Jardins — Juin 2026</div>
+          <div class="event-arrow">→</div>
+        </div>
+      </div>
+
+    </div>
+    <div class="events-cta">
+      <a href="#" class="btn-purple">Événements nationaux</a>
+    </div>
+  </div>
+</section>-->
+
+<!-- ══ DERNIÈRES PUBLICATIONS ══ -->
+<!--
+<section class="publications-section">
+  <div class="container">
+    <div class="section-title">À propos du Bureau des Doléances</div>
+    <div class="publications-grid">
+      <div class="img-placeholder ph-minister" style="width:260px;height:300px;"></div>
+      <div class="pub-right">
+        <div class="pub-name">Catherine Pégard, ministre de la Culture</div>
+        <div class="badge">Biographie</div>
+        <div class="pub-links">
+          <a href="#" class="pub-link">Agenda <span>+</span></a>
+          <a href="#" class="pub-link">Discours <span>+</span></a>
+          <a href="#" class="pub-link">Déplacements <span>+</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>-->
+
+
+<style>
+  #a-propos p {
+      margin-bottom: 15px;
+  
+  }
+</style>
+<!-- ══ DOSSIERS DE PRESSE ══ -->
+<section id="a-propos">
+  <div class="container">
+    <h2 class="section-title">À propos du Bureau</h2>
+
+<!--
+<p>Le Bureau des doléances est un dispositif d'expression publique et numérique. Il propose un cadre accessible à chacun pour formuler, par écrit, une parole adressée.</p>
+<p>Ouvert à toutes et tous, il accueille des contributions individuelles sous forme de lettres : inquiétudes, interrogations, colères ou constats. Ces écrits ne visent ni à débattre ni à trancher, mais à rendre formulables et partageables des expériences souvent diffuses.</p>
+
+<p>Le Bureau assure un espace d'accueil, de dépôt et de conservation de ces paroles. Il garantit un cadre respectueux, la possibilité d'anonymat, ainsi qu'une collecte sans intervention sur le contenu des textes.</p>
+<p>
+Les contributions recueillies peuvent faire l'objet de différentes formes de transmission : envoi à des institutions, archivage en ligne, ou valorisation artistique et éditoriale.</p>
+<p>Le Bureau des doléances contribue ainsi à faire exister une forme d'expression écrite libre, située à l'interface entre démarche citoyenne et proposition artistique.</p>
+
+</p>-->
+
+<p>Le Bureau des doléances est un dispositif numérique et physique qui permet à chacun d'exprimer par écrit ses préoccupations, interrogations ou constats, sous forme de lettres individuelles. Il offre un espace accessible, respectueux et anonyme, sans intervention sur le contenu des contributions. Celles-ci ne visent pas le débat mais la mise en partage d'expériences. Les textes peuvent ensuite être transmis, archivés ou valorisés. Le dispositif se situe à la croisée de l'expression citoyenne et de la démarche artistique.</p>
+
+<p>Toutes les lettres archivées sont à retrouver à l'adresse : <a href="#" class="link">https://bureau-des-doleances.fr/archive</a></p>
+
+<br>
+<p>À ce jour, nous classifions les doléances en trois catégories : <strong>ce qui vient</strong>, où vous écrivez ce que vous imaginez, espérez ou redoutez pour l'avenir, qu'il soit proche ou lointain ; <strong>ce qui nous fracture</strong>, où vous exprimez ce qui vous divise, vous révolte ou vous blesse dans le monde, qu'il s'agisse de conflits, de tensions ou d'injustices ; <strong>et ce qui déborde</strong>, où vous déposez ce qui ne trouve pas sa place ailleurs, une pensée, une émotion ou un trop-plein.</p>
+<br id="soumettre-une-lettre">
+<h2 class="section-title">Soumettre une lettre en ligne</h2>
+
+<p>Le Bureau des doléances contemporaines met à disposition un espace de dépôt numérique permettant de formuler une lettre à distance. Les contributions peuvent être anonymes. Aucun nom, justification ou information personnelle n'est requis pour déposer une lettre.</p>
+<p>
+Le Bureau assure un cadre de réception respectueux. Les textes sont recueillis sans modification ni intervention sur leur contenu. Ils ne font pas l'objet de réponse individuelle.</p>
+<p>
+En plus de l'archivage en ligne, Les lettres déposées peuvent, avec l'accord de leur auteur, faire l'objet de différentes formes de transmission :
+<br>
+- envoi à des institutions, associations ou médias<br>
+- valorisation artistique ou éditoriale (lecture publique, publication, installation)</p>
+<p>
+
+Le dépôt en ligne prolonge le dispositif présent dans l'espace public. Il en conserve les principes : accueillir une parole, lui offrir une forme, et permettre qu'elle soit partagée.</p>
+
+<p>Les lettres sont à envoyer à l'adresse : <a href="mailto:lettre@bureau-des-doleances.fr" class="link">lettre@bureau-des-doleances.fr</a></p>
+
+<!--<a href="#" class="link">En savoir plus au sujet du Bureau des Doléances</a>-->
+  </div>
+</section>
+
+
+
+<!-- ══ COMMUNIQUÉS DE PRESSE ══ -->
+<section class="press-section">
+  <div class="container">
+    <div class="section-title">Communiqués de presse</div>
+
+    <!--
+    <div class="tag-filters">
+      <span class="tag-filter active">Actualités artistiques</span>
+      <span class="tag-filter">Patrimoine et musées</span>
+      <span class="tag-filter">Médias et industries culturelles</span>
+      <span class="tag-filter">Tous publics</span>
+    </div>-->
+
+<!--
+    <div class="press-item">
+      <div class="card-title press-title">Préprogramme : 22ème édition de la Nuit européenne des musées – Samedi 23 mai 2026</div>
+      <div class="press-date">Publié le 4 mars 2026</div>
+      <div class="press-arrow"><span class="arrow-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="https://www.w3.org/2000/svg">
+                                    <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </span></div>
+    </div>-->
+
+    <a href="#" class="press-item">
+      <div class="card-title press-title">Lancement du Bureau des Doléances - Vendredi 27 mars 2026</div>
+      <div class="press-date">Publié le 27 mars 2026</div>
+      <div class="press-arrow"><span class="arrow-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="https://www.w3.org/2000/svg">
+                                    <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </span></div>
+    </a>
+
+    <!--<div class="press-cta">
+      <a href="#" class="btn-outline">Tous les communiqués de presse</a>
+    </div>-->
+  </div>
+</section>
+
+
+<!-- ══ NEWSLETTER ══ -->
+<!--
+<section class="newsletter-section">
+  <div class="container">
+    <div class="newsletter-inner">
+      <div>
+        <h2 class="newsletter-title">Abonnez-vous à notre lettre d'information</h2>
+        <p class="newsletter-desc">Vous désirez des nouvelles fraîches de la culture ? En abonnant votre adresse e-mail, vous recevrez notre lettre d'information sur toutes nos actualités.</p>
+        <button class="btn-subscribe">S'inscrire</button>
+      </div>
+      <div>
+        <div class="newsletter-title" style="margin-bottom:12px;">Suivez-nous sur les réseaux sociaux</div>
+        <div class="social-links">
+          <a href="#" class="social-link" title="X / Twitter">&#120143;</a>
+          <a href="#" class="social-link" title="LinkedIn">in</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>-->
+
+<section class="newsletter-section" id="contact">
+  <div class="container">
+    <div class="newsletter-inner">
+      <div>
+        <h2>Contact</h2>
+        <p class="newsletter-desc" style="margin-top:15px">Vous désirez nous contacter pour collaborer avec nous ou simplement échanger ? N'hésitez pas à nous écrire à l'adresse mail : <a href="mailto:contact@bureau-des-doleances.fr" class="link">contact@bureau-des-doleances.fr</a></p>
+
+      </div>
+      <div>
+        <div class="newsletter-title" style="margin-bottom:12px;">Suivez-nous sur les réseaux sociaux</div>
+        <div class="social-links">
+          <a href="#" class="social-link" title="X / Twitter">&#120143;</a>
+          <a href="#" class="social-link" title="LinkedIn">in</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="container">
+    <div class="footer-logo">
+      <div class="rf-logo" style="color:#bbb;">
+<img src="logo.png">
+      </div>
+      <div class="logo-divider" style="background:#555;"></div>
+      <div class="logo-title">
+        BUREAU<br>DES DOLÉANCES
+        <span>Accueillir · Adresser · Archiver</span>
+      </div>
+    </div>
+
+    <div class="footer-links">
+      <a href="#contact">Contact</a>
+      <a href="#">Presse</a>
+      <a href="#">Politique de confidentialité</a>
+    </div>
+
+    <div class="footer-social">
+      <span>Retrouvez-nous sur :</span>
+      <a href="#">&#120143; @BureauDesDoleances</a>
+      <a href="#">in linkedin.com &#8599;</a>
+    </div>
+
+    <div class="footer-bottom">
+      Sur ce service, sauf exception, tous les contenus sont sous <a href="#" style="color:#999;">licence ouverte / Open Licence</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

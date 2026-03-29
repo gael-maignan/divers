@@ -1,0 +1,130 @@
+/*titre*/
+  :root {
+  --highlight-color: rgb(223, 95, 77); /* jaune vif */
+  --highlight-color-rgb: 223, 95, 77; 
+}
+
+
+    h1, h2, h3, h4, h5, h6 {
+        font-weight: 900;
+    font-family: 'Raleway', sans-serif;
+    color: white;
+}
+
+h2 {
+	font-size: 32px;
+}
+
+
+
+/* Version inversée du titre */
+.title-invert {
+  color: var(--highlight-color);
+}
+
+.title-invert .line {
+  background-color: white;
+}
+
+.title-invert .second-line::before {
+  background-color: white;
+}
+
+
+.line {
+  display: inline-block;        
+  padding: 0.08em 0.18em;       
+  background-color:  var(--highlight-color);    
+  margin-bottom: 0em; /* espace entre les lignes */
+}
+
+/* Surlignage du deuxième rectangle incliné */
+.second-line {
+  position: relative;
+  background-color: transparent; /* on supprime le fond original */
+}
+.second-line::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color:  var(--highlight-color);
+  transform: rotate(2deg); /* inclinaison du rectangle */
+  transform-origin: left bottom;
+  z-index: -1; /* derrière le texte */
+}
+
+/*text*/
+
+  p {
+    color: var(--highlight-color);
+  font-family: "HK Grotesk", sans-serif;
+  font-weight: 600; /* HK Grotesk SemiBold */}
+
+
+.text-invert {
+	font-weight: 500;
+	color: white;
+}
+
+.highlight {
+  background-color: rgba(var(--highlight-color-rgb), 0.15);
+  color: inherit;           /* garde la couleur du texte original */
+  padding: 0 2px;           /* léger espace autour du texte */
+}
+
+
+/*bouton*/
+
+
+/* container : positionné pour accueillir l'ombre (::after) */
+.btn {
+  position: relative;
+  display: inline-block; /* s'adapte à la taille du bouton */
+  padding: 0;            /* tout est géré par .btn-inner */
+  border-radius: 99px;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+}
+
+/* la "vraie" surface du bouton : fond, bordure, texte -> sera animée */
+.btn .btn-inner {
+  display: inline-block;
+  padding: 0.6em 1.2em;
+  font-family: "HK Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--highlight-color);
+  background-color: white;
+  border: 2px solid var(--highlight-color);
+  border-radius: 99px;
+  transition: transform 0.15s ease;
+  position: relative;
+  z-index: 1; /* au-dessus de l'ombre */
+  text-transform: uppercase;
+}
+
+/* on anime uniquement l'enfant : seule la surface descend */
+.btn:hover .btn-inner,
+.btn:focus-within .btn-inner {
+  transform: translateY(4px); /* même valeur que top de l'ombre pour "rejoindre" */
+}
+
+/* ombre fixe (ne bouge pas car attachée au parent) */
+.btn::after {
+  content: "";
+  position: absolute;
+  top: 8px;      /* décalage de l'ombre */
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--highlight-color);
+  border-radius: 99px;
+  z-index: 0;
+}
+
+
+

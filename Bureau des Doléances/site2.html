@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Gabarit 12 Colonnes avec Sections + Bridge</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        :root {
+    --bridge-overlap: 50px; /* chevauchement vers le haut */
+
+    --bridge-gap: 30px;     /* espace sous le bridge */
+}
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; line-height: 1.6; }
+
+        /* ===== SECTIONS FULL WIDTH ===== */
+        .section { width: 100%; padding: 80px 0; position: relative; }
+        .section-dark { background-color: #2c3e50; color: white; }
+        .section-light { background-color: red; color: white; /* couleur d'exemple */ position: relative; }
+        .section-image {
+            background: url('https://picsum.photos/1920/1080') center/cover no-repeat;
+            color: white; position: relative;
+        }
+        .section-image .container { position: relative; z-index: 1; }
+
+        /* ===== CONTAINER CENTRÉ ===== */
+        .container { width: 90%; max-width: 1200px; margin: auto; }
+
+        /* ===== GRID 12 COLONNES ===== */
+        .row {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .col {
+            background-color: #3498db;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 6px;
+        }
+
+
+        .col-1  { grid-column: span 1; }
+        .col-2  { grid-column: span 2; }
+        .col-3  { grid-column: span 3; }
+        .col-4  { grid-column: span 4; }
+        .col-5  { grid-column: span 5; }
+        .col-6  { grid-column: span 6; }
+        .col-7  { grid-column: span 7; }
+        .col-8  { grid-column: span 8; }
+        .col-9  { grid-column: span 9; }
+        .col-10 { grid-column: span 10; }
+        .col-11 { grid-column: span 11; }
+        .col-12 { grid-column: span 12; }
+
+
+        /* Colonnes dynamiques */
+        .width-1  { grid-column-end: span 1; }
+        .width-2  { grid-column-end: span 2; }
+        .width-3  { grid-column-end: span 3; }
+        .width-4  { grid-column-end: span 4; }
+        .width-5  { grid-column-end: span 5; }
+        .width-6  { grid-column-end: span 6; }
+        .width-7  { grid-column-end: span 7; }
+        .width-8  { grid-column-end: span 8; }
+        .width-9  { grid-column-end: span 9; }
+        .width-10 { grid-column-end: span 10; }
+        .width-11 { grid-column-end: span 11; }
+        .width-12 { grid-column-end: span 12; }
+
+        .start-1  { grid-column-start: 1; }
+        .start-2  { grid-column-start: 2; }
+        .start-3  { grid-column-start: 3; }
+        .start-4  { grid-column-start: 4; }
+        .start-5  { grid-column-start: 5; }
+        .start-6  { grid-column-start: 6; }
+        .start-7  { grid-column-start: 7; }
+        .start-8  { grid-column-start: 8; }
+        .start-9  { grid-column-start: 9; }
+        .start-10 { grid-column-start: 10; }
+        .start-11 { grid-column-start: 11; }
+        .start-12 { grid-column-start: 12; }
+
+        /* ===== BRIDGE (container chevauchant entre deux sections) ===== */
+        /* NOTE: maintenant positionné en absolute et intégré dans la section-light */
+        .bridge {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0; /* margin géré par position absolute */
+            position: absolute; /* <-- ici */
+            top: calc(-1 * var(--bridge-overlap));          /* remonte de 60px pour chevaucher la section précédente */
+            left: 50%;           /* centrer horizontalement */
+            transform: translateX(-50%);
+            z-index: 5; /* plus haut pour être au-dessus des sections */
+        }
+
+        .bridge .col {
+            background: white;      /* design différent du reste */
+            color: #222;
+            padding: 24px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            text-align: left;
+        }
+
+        /* Pour que le contenu de la section ne soit pas caché par le bridge,
+           on augmente le padding-top de la section-light (ajuster selon la hauteur du bridge) */
+        .section-bridge {
+  padding-top: calc(
+    80px + var(--bridge-overlap) + var(--bridge-gap)
+  ); }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .bridge { top: -40px; transform: translateX(-50%); width: 92%; max-width: 1000px; }
+            .section-bridge { padding-top: 110px; }
+        }
+
+        @media (max-width: 768px) {
+            .row { grid-template-columns: 1fr; }
+            .col { grid-column: span 1 !important; }
+            /* annule le chevauchement sur mobile (meilleure lisibilité) */
+            .bridge {
+                position: static;     /* redevenir flow normal */
+                transform: none;
+                top: auto;
+                left: auto;
+                margin: 0 auto 30px;
+                width: 90%;
+            }
+            .section-bridge { padding-top: 80px; /* réduit le padding sur mobile */ }
+        }
+
+        footer {
+            background-color: #111;
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+        }
+
+
+        .divider {
+  display: block;
+  width: 100%;
+  margin-bottom: -1px;     /* élimine éventuel gap */
+  pointer-events: none;
+}
+.section-image { position: relative; z-index: 0; }
+.section-dark { position: relative; z-index: 0; }
+
+    </style>
+</head>
+<body>
+
+<!-- SECTION HERO IMAGE -->
+<section class="section section-image">
+    <div class="container">
+        <div class="row">
+            <div class="col col-12">
+                Section pleine largeur avec image de fond
+            </div>
+        </div>
+    </div>
+
+<!-- SVG separator inversé : mettre juste avant la fermeture de la section image -->
+<svg class="divider" viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true">
+  <path d="M0,120 C300,0 900,120 1200,0 L1200,120 L0,120 Z" fill="#2c3e50"></path>
+</svg>
+
+</section>
+
+<!-- SECTION COULEUR SOMBRE -->
+<section class="section section-dark">
+    <div class="container">
+        <div class="row">
+            <div class="col col-6">col-6</div>
+            <div class="col col-6">col-6</div>
+        </div>
+        <div class="row">
+            <div class="col col-2">col-1</div>
+            <div class="col col-2">col-2</div>
+            <div class="col col-2">col-3</div>
+            <div class="col col-2">col-4</div>
+            <div class="col col-2">col-5</div>
+            <div class="col col-2">col-6</div>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION CLAIRE (LE BRIDGE EST ICI, INTÉGRÉ DANS LA SECTION SUIVANTE) -->
+<section class="section section-image section-bridge">
+
+    <!-- BRIDGE AU NIVEAU DE LA SECTION -->
+    <div class="bridge">
+        <div class="container">
+            <div class="row">
+                <div class="col start-5 width-4">
+                    <h3 style="margin-top:0;">Bloc 2</h3>
+                    <p>Accent coloré — exemple de mise en avant.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENU NORMAL -->
+    <div class="container">
+        <div class="row">
+            <div class="col col-4">col-4</div>
+            <div class="col col-4">col-4</div>
+            <div class="col col-4">col-4</div>
+        </div>
+
+        <div class="row">
+            <div class="col col-8">col-8</div>
+            <div class="col col-4">col-4</div>
+        </div>
+    </div>
+
+</section>
+
+<footer>
+    Footer - Grille 12 colonnes avec sections
+</footer>
+
+</body>
+</html>

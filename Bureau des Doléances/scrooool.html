@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Image qui se glisse dans le header - Démo</title>
+  <style>
+    :root{
+      --header-h:76px;
+      --corner-size:96px; /* taille de l'image dans le header */
+      --corner-margin:16px; /* marge par rapport au bord du header */
+      --transition:400ms cubic-bezier(.22,.9,.31,1);
+    }
+    *{box-sizing:border-box}
+    body{font-family:Inter, system-ui, Arial; margin:0; line-height:1.4}
+
+    /* HEADER */
+    header.app-header{
+      position:fixed;
+      top:0; left:0; right:0;
+      height:var(--header-h);
+      background:#111;
+      color:white;
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 20px;
+      z-index:60;
+      box-shadow:0 4px 18px rgba(0,0,0,.25);
+    }
+    header .brand{font-weight:700; letter-spacing:.4px}
+
+    /* zone de contenu (pour voir le scroll) */
+    main{padding-top:calc(var(--header-h) + 20px); min-height:200vh;}
+
+    .container{max-width:980px;margin:40px auto;padding:0 18px}
+
+    /* wrapper qui garde la place de l'image (le "trou") */
+    .image-wrap{
+      width:100%;max-width:900px;margin:0 auto 24px; position:relative;
+      /* on définit une hauteur explicite pour éviter le collapse lors du position:fixed du clone */
+      aspect-ratio:16/9; overflow:hidden; background:linear-gradient(0deg,#eee,#ddd);
+      display:flex;align-items:center;justify-content:center;
+    }
+    .image-wrap img.original{
+      width:100%;height:100%;object-fit:cover;display:block;transition:opacity var(--transition) ease;
+    }
+    .image-wrap img.original.invisible{opacity:0; /* garde sa place mais invisible */}
+
+    /* l'image qui apparaîtra et se déplacera dans le header */
+    img.floating{
+      position:fixed; /* positionnée par rapport à la fenêtre */
+      top:calc(var(--corner-margin));
+      right:calc(var(--corner-margin));
+      width:var(--corner-size);
+      height:auto;
+      object-fit:cover;
+      border-radius:6px;
+      box-shadow:0 6px 20px rgba(0,0,0,.35);
+      transform-origin:center center;
+      opacity:0;
+      pointer-events:none;
+      z-index:80;
+      transition:opacity 220ms linear, transform var(--transition), top var(--transition), right var(--transition), width var(--transition);
+      will-change:transform, top, right, width;
+    }
+    img.floating.visible{opacity:1}
+
+    /* petite variante: si on veut que l'image réduise/zoome pendant la translation */
+    img.floating.visible.shrink{
+      transform:scale(1);
+    }
+
+    /* contenu simulé */
+    .text-card{background:white;padding:18px;border-radius:8px;margin-bottom:18px;box-shadow:0 4px 12px rgba(8,8,8,.05)}
+
+    /* responsive: réduire la taille du coin sur petits écrans */
+    @media (max-width:600px){
+      :root{--corner-size:64px}
+      header.app-header{padding:0 12px}
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">Ma démo — header</div>
+    <nav aria-label="menu">menu</nav>
+  </header>
+
+  <!-- l'image "originale" garde la place (le trou). Le clone floating est positionné dans le header et animé. -->
+  <main>
+    <div class="container">
+      <h1>Effet : image qui glisse dans le coin du header</h1>
+
+      <div class="image-wrap" id="imageWrap">
+        <img src="https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?q=80&w=1600&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder" alt="paysage" class="original" id="originalImg">
+      </div>
+
+      <div class="text-card">
+        <p>Contenu de la page — faites défiler pour déclencher l'animation. Lorsque vous sortez l'image du flux de mise en page, la place qu'elle occupait reste (le "trou").</p>
+      </div>
+
+      <!-- plusieurs blocs pour allonger la page -->
+      <div class="text-card"><p>Bloc 2 — Lorem ipsum dolor sit amet...</p></div>
+      <div class="text-card"><p>Bloc 3 — Lorem ipsum dolor sit amet...</p></div>
+      <div class="text-card"><p>Bloc 4 — Lorem ipsum dolor sit amet...</p></div>
+
+    </div>
+  </main>
+
+  <!-- CLONE fixe qui se déplace vers le coin du header -->
+  <img src="https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?q=80&w=1600&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder" alt="paysage mini" class="floating" id="floatingImg" aria-hidden="true">
+
+  <script>
+    (function(){
+      const header = document.querySelector('.app-header');
+      const original = document.getElementById('originalImg');
+      const floating = document.getElementById('floatingImg');
+      const wrap = document.getElementById('imageWrap');
+
+      // seuil: quand la partie supérieure du wrap passe sous le header
+      function getThreshold(){
+        // on veut déclencher lorsque le haut du wrap atteint le bas du header
+        const wrapTop = wrap.getBoundingClientRect().top + window.scrollY;
+        return wrapTop - header.offsetHeight - 8; // 8px marge
+      }
+
+      let threshold = getThreshold();
+      window.addEventListener('resize', ()=>{ threshold = getThreshold(); });
+
+      let ticking = false;
+      function onScroll(){
+        const y = window.scrollY || window.pageYOffset;
+        if(y > threshold){
+          // déclencher: afficher le clone dans le header
+          if(!floating.classList.contains('visible')){
+            // s'assurer que le floating a la même image source
+            floating.src = original.src;
+            floating.classList.add('visible');
+            // masquer visuellement l'original sans casser la place (opacity à 0 garde l'espace)
+            original.classList.add('invisible');
+          }
+        } else {
+          if(floating.classList.contains('visible')){
+            floating.classList.remove('visible');
+            original.classList.remove('invisible');
+          }
+        }
+      }
+
+      // au chargement, recalcul threshold
+      window.addEventListener('load', ()=>{ threshold = getThreshold(); onScroll(); });
+      window.addEventListener('scroll', ()=>{
+        if(!ticking){
+          window.requestAnimationFrame(()=>{ onScroll(); ticking=false; });
+          ticking = true;
+        }
+      }, {passive:true});
+
+      // amélioration : si vous voulez que le floating suive une trajectoire plus précise
+      // (par ex. apparaître dans le coin droit du header) on peut animer top/right/width
+      // mais ici nous utilisons des valeurs fixes CSS pour garder le code simple.
+
+    })();
+  </script>
+</body>
+</html>

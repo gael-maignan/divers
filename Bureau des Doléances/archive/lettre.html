@@ -3,16 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bureau des Doléances - Accueil</title>
+<title>Bureau des Doléances - Lettre</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../style/main.css">
+<link rel="stylesheet" href="../style/lettre.css">
 <link rel="icon" type="image/png" href="logo.png">
 <style>
-
-
-
-
-
 
   /* ── LAYOUT HELPERS ──────────────────────────── */
   .container {
@@ -32,105 +28,6 @@
     margin-bottom: 24px;
     color: var(--gray-800);
   }
-
-  /* ── À LA UNE + EN RÉGION ────────────────────── */
-  .top-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
-    padding-top: 36px;
-    /*padding-bottom: 36px;*/
-  }
-
-  .une-main-card {
-/*    display: grid;
-    grid-template-columns: 220px 1fr;
-    margin-bottom: 20px;
-    gap: 20px;*/
-    
-    border: 1px solid var(--gray-200);
-    padding: 0;
-    
-    overflow: hidden;
-     position: relative; 
-     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  
-       display: block;
-  text-decoration: none;
-  color: inherit;
-  }
-
-  .une-main-card:hover{
-    background:var(--gray-hover);
-  }
-
-  .une-main-card img {
-    object-fit: cover;
-    width: 100%;
-  }
-
-  .une-main-card .card-body {
-    padding: 16px 16px 16px 0;
-    padding: 25px;
-  }
-
-  .card-tag {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    color: var(--gray-400);
-    margin-bottom: 6px;
-  }
-
-  .card-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--blue);
-    line-height: 1.35;
-    margin-bottom: 8px;
-  }
-
-  .card-excerpt {
-    font-size: 13px;
-    color: var(--gray-600);
-    line-height: 1.5;
-    margin-bottom: 10px;
-  }
-
-  .card-date {
-    font-size: 11.5px;
-    color: var(--gray-400);
-  }
-
-  .card-arrow {
-  font-size: 24px;
-  color: var(--blue);
-
-  position: absolute;
-  bottom: 0px;
-  right: 12px;
-}
-
-
-  /* EN REGION */
-  .region-list { display: flex; flex-direction: column; gap: 12px; }
-
-  .region-card {
-    display: grid;
-    grid-template-columns: 110px 1fr;
-    gap: 14px;
-    align-items: start;
-  }
-
-  .region-card img {
-    width: 110px;
-    height: 72px;
-    object-fit: cover;
-  }
-
-  .region-card .card-title { font-size: 16px; }
-
 
 
   /* ── EN CE MOMENT ────────────────────────────── */
@@ -187,216 +84,16 @@
 
   .moment-desc { font-size: 13px; opacity: .88; line-height: 1.5; }
 
-  .voir-tous {
-    text-align: center;
-    margin-top: 28px;
-  }
-
-  .btn-outline {
-    display: inline-block;
-    border: 1px solid var(--blue);
-    color: var(--blue);
-    font-size: 13.5px;
-    font-weight: 600;
-    padding: 10px 24px;
-    transition: background .2s, color .2s;
-  }
-
-  .btn-outline:hover { background: var(--blue); color: var(--white); }
-
-  /* ── PROCHAINS ÉVÉNEMENTS ────────────────────── */
-  .events-section { background: var(--purple-bg); }
-
-  .events-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-  }
-
-  .event-card { background: var(--white); overflow: hidden; }
-
-  .event-card img {
-    width: 100%;
-    height: 160px;
-    object-fit: cover;
-  }
-
-  .event-body { padding: 16px; }
-
-  .event-type {
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    font-weight: 700;
-    color: var(--purple);
-    margin-bottom: 6px;
-  }
-
-  .event-title {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--gray-800);
-    line-height: 1.35;
-    margin-bottom: 10px;
-  }
-
-  .event-arrow { color: var(--blue); font-size: 18px; }
-
-  .events-cta { text-align: center; margin-top: 28px; }
-
-  .btn-purple {
-    display: inline-block;
-    background: var(--purple);
-    color: var(--white);
-    font-size: 13.5px;
-    font-weight: 600;
-    padding: 10px 28px;
-    transition: background .2s;
-  }
-
-  .btn-purple:hover { background: #6a278f; }
-
-  /* ── DERNIÈRES PUBLICATIONS ──────────────────── */
-  .publications-section { }
-
-  .publications-grid {
-    display: grid;
-    grid-template-columns: 260px 1fr;
-    gap: 40px;
-    align-items: start;
-  }
-
-  .publications-grid img {
-    width: 260px;
-    height: 300px;
-    object-fit: cover;
-  }
-
-  .pub-right { }
-
-  .pub-name {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 6px;
-  }
-
-  .badge {
-    display: inline-block;
-    background: var(--blue-light);
-    color: var(--blue);
-    font-size: 11px;
-    font-weight: 700;
-    padding: 3px 10px;
-    margin-bottom: 16px;
-    border: 1px solid var(--blue-mid);
-  }
-
-  .pub-links { display: flex; flex-direction: column; gap: 8px; }
-
-  .pub-link {
-    color: var(--blue);
-    font-size: 13.5px;
-    border-bottom: 1px solid var(--gray-200);
-    padding-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .pub-link:hover { color: var(--blue-dark); }
-
-  /* ── COMMUNIQUÉS DE PRESSE ───────────────────── */
-  .press-section { background: var(--gray-100); }
-
-  .tag-filters {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-  }
-
-  .tag-filter {
-    font-size: 12px;
-    font-weight: 600;
-    border: 1px solid var(--gray-400);
-    color: var(--gray-600);
-    padding: 4px 12px;
-    cursor: pointer;
-    transition: all .2s;
-    background: var(--white);
-  }
-
-  .tag-filter.active, .tag-filter:hover {
-    background: var(--blue);
-    color: var(--white);
-    border-color: var(--blue);
-  }
-
-  .press-item {
-    background: var(--white);
-    padding: 18px 20px;
-    margin-bottom: 12px;
-
-    border: 1px solid var(--gray-200);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    display: block;
-  }
-  .press-item:hover {
-    background: var(--gray-hover);
-  }
 
 
-  .press-item-tags { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
 
-  .press-tag {
-    font-size: 10.5px;
-    font-weight: 700;
-    border: 1px solid var(--gray-400);
-    color: var(--gray-600);
-    padding: 2px 8px;
-  }
 
-  .press-title {
-    font-size: 14.5px;
-    font-weight: 700;
-    color: var(--blue);
-    line-height: 1.4;
-    margin-bottom: 8px;
-  }
-
-  .press-date { font-size: 11.5px; color: var(--gray-400); }
-
-  .press-arrow {
-    float: right;
-    color: var(--blue);
-    margin-top: -16px;
-  }
-
-  .press-cta { text-align: center; margin-top: 24px; }
-
-  /* ── DOSSIERS DE PRESSE ──────────────────────── */
-  .dossiers-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-  }
-
-  .dossier-item {
-    border-bottom: 2px solid var(--gray-200);
-    padding-bottom: 16px;
-  }
-
-  .dossier-item .card-title { font-size: 14px; color: var(--blue); margin-bottom: 6px; }
-  .dossier-item .card-date { font-size: 11.5px; color: var(--gray-400); }
 
   /* ── NEWSLETTER ──────────────────────────────── */
   .newsletter-section {
     background: var(--white);
     border-top: 1px solid var(--gray-200);
   }
-
-
-
   .newsletter-inner {
     display: grid;
     grid-template-columns: 1fr auto;
@@ -489,7 +186,8 @@
 <section id="a-propos">
   <div class="container text-container">
     <a href="../archive.html" class="link" style="font-size: 0.8rem;">< Toutes les lettres</a>
-    <h2 class="section-title" style="margin-top:35px;">Ne plus vouloir détourner le regard - 27/03/2026</h2>
+    <h2 class="section-title" style="margin-top:35px; margin-bottom:35px;">Ne plus vouloir détourner le regard<br>
+    27/03/2026</h2>
 
 
 
@@ -514,6 +212,7 @@ Alors je reste là, face à ce qui est. Sans solution, sans certitude, mais avec
 Peut-être que cela ne change rien.<br>
 Mais peut-être que c’est déjà un début.</p>
 
+<p style="text-align: right; font-style: italic;">Anonyme</p>
 
 
 
@@ -523,9 +222,9 @@ Mais peut-être que c’est déjà un début.</p>
 
 <br>
 <br id="soumettre-une-lettre">
-<h2 style="margin-bottom:15px;">Soumettre une lettre en ligne</h2>
+<h2 style="margin-bottom:15px;">Vous aussi, soumettez votre Doléance !</h2>
 
-<p>Le Bureau des doléances contemporaines met à disposition un espace de dépôt numérique permettant de formuler une lettre à distance. Les contributions peuvent être anonymes. Aucun nom, justification ou information personnelle n'est requis pour déposer une lettre.</p>
+<p>Le Bureau des doléances met à disposition un espace de dépôt numérique permettant de formuler une lettre à distance. Les contributions peuvent être anonymes. Aucun nom, justification ou information personnelle n'est requis pour déposer une lettre.</p>
 <p>
 Le Bureau assure un cadre de réception respectueux. Les textes sont recueillis sans modification ni intervention sur leur contenu. Ils ne font pas l'objet de réponse individuelle.</p>
 <p>
@@ -539,6 +238,7 @@ Le dépôt en ligne prolonge le dispositif présent dans l'espace public. Il en 
 
 <p>Les lettres sont à envoyer à l'adresse : <a href="mailto:lettre@bureau-des-doleances.fr" class="link">lettre@bureau-des-doleances.fr</a></p>
 
+
 <!--<a href="#" class="link">En savoir plus au sujet du Bureau des Doléances</a>-->
   </div>
 </section>
@@ -549,14 +249,14 @@ Le dépôt en ligne prolonge le dispositif présent dans l'espace public. Il en 
     <div class="newsletter-inner">
       <div>
         <h2>Contact</h2>
-        <p class="newsletter-desc" style="margin-top:15px">Vous désirez nous contacter pour collaborer avec nous ou simplement échanger ? N'hésitez pas à nous écrire à l'adresse mail : <a href="mailto:contact@bureau-des-doleances.fr" class="link">contact@bureau-des-doleances.fr</a></p>
+        <p class="newsletter-desc" style="margin-top:15px">Souhaitez-vous nous contacter pour envisager une collaboration ou simplement échanger ? N’hésitez pas à nous écrire à l’adresse suivante : <a href="mailto:contact@bureau-des-doleances.fr" class="link">contact@bureau-des-doleances.fr</a></p>
 
       </div>
       <div>
         <div class="newsletter-title" style="margin-bottom:12px;">Suivez-nous sur les réseaux sociaux</div>
         <div class="social-links">
-          <a href="#" class="social-link" title="X / Twitter">&#120143;</a>
-          <a href="#" class="social-link" title="LinkedIn">in</a>
+          <a href="#" class="social-link" title="X / Twitter" target="_blank">&#120143;</a>
+          <a href="https://www.linkedin.com/company/bureau-des-dol%C3%A9ances/" target="_blank" class="social-link" title="LinkedIn">in</a>
         </div>
       </div>
     </div>
@@ -585,8 +285,8 @@ Le dépôt en ligne prolonge le dispositif présent dans l'espace public. Il en 
 
     <div class="footer-social">
       <span>Retrouvez-nous sur :</span>
-      <a href="#">&#120143; @BureauDesDoleances</a>
-      <a href="#">in linkedin.com &#8599;</a>
+      <a href="#" target="_blank">&#120143; @BureauDesDoleances</a>
+      <a href="https://www.linkedin.com/company/bureau-des-dol%C3%A9ances/" target="_blank">in linkedin.com &#8599;</a>
     </div>
 
     <div class="footer-bottom">

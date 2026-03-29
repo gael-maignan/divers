@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bureau des Doléances - Archive</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style/main.css">
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+
+
+
+
+
+
+  /* ── LAYOUT HELPERS ──────────────────────────── */
+  .container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  section { padding: 40px 0; }
+
+  .section-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: var(--gray-800);
+  }
+
+  /* ── À LA UNE + EN RÉGION ────────────────────── */
+  .top-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+    padding-top: 36px;
+    /*padding-bottom: 36px;*/
+  }
+
+  .une-main-card {
+/*    display: grid;
+    grid-template-columns: 220px 1fr;
+    margin-bottom: 20px;
+    gap: 20px;*/
+    
+    border: 1px solid var(--gray-200);
+    padding: 0;
+    
+    overflow: hidden;
+     position: relative; 
+     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  
+       display: block;
+  text-decoration: none;
+  color: inherit;
+  }
+
+  .une-main-card:hover{
+    background:var(--gray-hover);
+  }
+
+  .une-main-card img {
+    object-fit: cover;
+    width: 100%;
+  }
+
+  .une-main-card .card-body {
+    padding: 16px 16px 16px 0;
+    padding: 25px;
+  }
+
+  .card-tag {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--gray-400);
+    margin-bottom: 6px;
+  }
+
+  .card-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--blue);
+    line-height: 1.35;
+    margin-bottom: 8px;
+  }
+
+  .card-excerpt {
+    font-size: 13px;
+    color: var(--gray-600);
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+
+  .card-date {
+    font-size: 11.5px;
+    color: var(--gray-400);
+  }
+
+  .card-arrow {
+  font-size: 24px;
+  color: var(--blue);
+
+  position: absolute;
+  bottom: 0px;
+  right: 12px;
+}
+
+
+  /* EN REGION */
+  .region-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .region-card {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 14px;
+    align-items: start;
+  }
+
+  .region-card img {
+    width: 110px;
+    height: 72px;
+    object-fit: cover;
+  }
+
+  .region-card .card-title { font-size: 16px; }
+
+
+  /* ── COMMUNIQUÉS DE PRESSE ───────────────────── */
+  .press-section { background: var(--gray-100); }
+
+  .tag-filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .tag-filter {
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid var(--gray-400);
+    color: var(--gray-600);
+    padding: 4px 12px;
+    cursor: pointer;
+    transition: all .2s;
+    background: var(--white);
+  }
+
+  .tag-filter.active, .tag-filter:hover {
+    background: var(--blue);
+    color: var(--white);
+    border-color: var(--blue);
+  }
+
+  .press-item {
+    background: var(--white);
+    padding: 18px 20px;
+    margin-bottom: 12px;
+
+    border: 1px solid var(--gray-200);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: block;
+  }
+  .press-item:hover {
+    background: var(--gray-hover);
+  }
+
+
+  .press-item-tags { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+
+  .press-tag {
+    font-size: 10.5px;
+    font-weight: 700;
+    border: 1px solid var(--gray-400);
+    color: var(--gray-600);
+    padding: 2px 8px;
+  }
+
+  .press-title {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--blue);
+    line-height: 1.4;
+    margin-bottom: 8px;
+  }
+
+  .press-date { font-size: 11.5px; color: var(--gray-400); }
+
+  .press-arrow {
+    float: right;
+    color: var(--blue);
+    margin-top: -16px;
+  }
+
+  .press-cta { text-align: center; margin-top: 24px; }
+
+  /* ── DOSSIERS DE PRESSE ──────────────────────── */
+  .dossiers-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .dossier-item {
+    border-bottom: 2px solid var(--gray-200);
+    padding-bottom: 16px;
+  }
+
+  .dossier-item .card-title { font-size: 14px; color: var(--blue); margin-bottom: 6px; }
+  .dossier-item .card-date { font-size: 11.5px; color: var(--gray-400); }
+
+  /* ── NEWSLETTER ──────────────────────────────── */
+  .newsletter-section {
+    background: var(--white);
+    border-top: 1px solid var(--gray-200);
+  }
+
+
+
+  .newsletter-inner {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 40px;
+    align-items: center;
+  }
+
+  .newsletter-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+  .newsletter-desc { font-size: 13px; color: var(--gray-600); max-width:600px }
+
+  .social-links { display: flex; gap: 10px; align-items: center; }
+
+  .social-link {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--gray-400);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: var(--gray-600);
+    transition: all .2s;
+  }
+
+  .social-link:hover { background: var(--blue); color: var(--white); border-color: var(--blue); }
+
+  .btn-subscribe {
+    display: inline-block;
+    background: var(--blue);
+    color: var(--white);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 22px;
+    margin-top: 16px;
+    transition: background .2s;
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn-subscribe:hover { background: var(--blue-dark); }
+
+
+    @media (max-width: 900px) {
+    .top-grid, .moment-grid, .events-grid, .publications-grid,
+    .newsletter-inner, .dossiers-grid { grid-template-columns: 1fr; }
+    .une-main-card { grid-template-columns: 1fr; }
+    .une-main-card .card-img { height: 200px; width: 100%; }
+  }
+
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<header class="site-header">
+  <div class="header-top">
+    <a href="index.html" class="logo-area">
+      <div class="rf-logo"><img src="logo.png"></div>
+      <div class="logo-divider"></div>
+      <div class="logo-title">
+        <h1>Bureau<br>des Doléances</h1>
+        <span>Accueillir · Adresser · Archiver</span>
+      </div>
+    </a>
+  </div>
+
+  <nav class="main-nav">
+    <div class="nav-inner">
+      <ul class="nav-links">
+        <li><a href="index.html#en-ce-moment">Actualités</a></li>
+        <li><a href="index.html#a-propos">À propos du Bureau</a></li>
+        <li><a href="index.html#soumettre-une-lettre">Soumettre une lettre</a></li>
+      </ul>
+      <div class="nav-right">
+        <a href="#">Toutes les lettres</a> | <a href="index.html#soumettre-une-lettre">Soumettre</a> | <a href="index.html#contact">Contact</a>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<!-- ══ À LA UNE + EN RÉGION ══ -->
+<section style="padding: 0;">
+  <div class="container">
+    <div class="top-grid" style="margin-bottom:64px;">
+
+      <!-- EN RÉGION + À L'AFFICHE -->
+      <div>
+        <h2 class="section-title">Archive : Toutes les Doléances</h2>
+
+        <p style="margin-bottom:18px;">Consultez ici l’ensemble des lettres du Bureau des Doléances, classées de la plus récente à la plus ancienne.<br>
+Vous avez également la possibilité de <a href="index.html#soumettre-une-lettre" class="link">soumettre votre propre contribution</a>.</p><br>
+
+        <div class="region-list">
+          <a href="archive/lettre.html" class="region-card">
+            <img src="doleances2.webp">
+            <div>
+              <div class="card-title">Lettre À la République - 29/03/2026</div>
+              <div class="card-date">Publié le 21 mars 2026</div>
+            </div>
+          </a>
+          <a href="archive/lettre.html" class="region-card">
+            <!--<div class="img-placeholder ph-museum" style="width:110px;height:72px;"></div>-->
+            <img src="doleances2.webp">
+            <div>
+              <div class="card-title">Pour un chantier durable - 27/03/2026</div>
+              <div class="card-date">Publié le 14 mars 2026</div>
+            </div>
+          </a>
+           <a href="archive/lettre.html" class="region-card">
+            <img src="doleances2.webp">
+            <div>
+              <div class="card-title">Ne plus vouloir détourner le regard - 27/03/2026</div>
+              <div class="card-date">Publié le 14 mars 2026</div>
+            </div>
+          </a>
+
+
+          <a href="archive/lettre.html" class="region-card">
+            <!--<div class="img-placeholder ph-museum" style="width:110px;height:72px;"></div>-->
+            <img src="doleances2.webp">
+            <div>
+              <div class="card-title">Pour un chantier durable - 27/03/2026</div>
+              <div class="card-date">Publié le 14 mars 2026</div>
+            </div>
+          </a>
+           <a href="archive/lettre.html" class="region-card">
+            <img src="doleances2.webp">
+            <div>
+              <div class="card-title">Ne plus vouloir détourner le regard - 27/03/2026</div>
+              <div class="card-date">Publié le 14 mars 2026</div>
+            </div>
+          </a>
+
+
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<section class="newsletter-section" id="contact">
+  <div class="container">
+    <div class="newsletter-inner">
+      <div>
+        <h2>Contact</h2>
+        <p class="newsletter-desc" style="margin-top:15px">Souhaitez-vous nous contacter pour envisager une collaboration ou simplement échanger ? N’hésitez pas à nous écrire à l’adresse suivante : <a href="mailto:contact@bureau-des-doleances.fr" class="link">contact@bureau-des-doleances.fr</a></p>
+
+      </div>
+      <div>
+        <div class="newsletter-title" style="margin-bottom:12px;">Suivez-nous sur les réseaux sociaux</div>
+        <div class="social-links">
+          <a href="#" target="_blank" class="social-link" title="X / Twitter">&#120143;</a>
+          <a href="https://www.linkedin.com/company/bureau-des-dol%C3%A9ances/" target="_blank" class="social-link" title="LinkedIn">in</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="container">
+    <div class="footer-logo">
+      <div class="rf-logo" style="color:#bbb;">
+<img src="logo.png">
+      </div>
+      <div class="logo-divider" style="background:#555;"></div>
+      <div class="logo-title">
+        BUREAU<br>DES DOLÉANCES
+        <span>Accueillir · Adresser · Archiver</span>
+      </div>
+    </div>
+
+    <div class="footer-links">
+      <a href="#contact">Contact</a>
+      <a href="#">Presse</a>
+      <a href="#">Politique de confidentialité</a>
+    </div>
+
+    <div class="footer-social">
+      <span>Retrouvez-nous sur :</span>
+      <a href="#" target="_blank">&#120143; @BureauDesDoleances</a>
+      <a href="https://www.linkedin.com/company/bureau-des-dol%C3%A9ances/" target="_blank">in linkedin.com &#8599;</a>
+    </div>
+
+    <div class="footer-bottom">
+      Sur ce service, sauf exception, tous les contenus sont sous <a href="#" style="color:#999;">licence ouverte / Open Licence</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

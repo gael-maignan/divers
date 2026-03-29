@@ -234,3 +234,21 @@
   }
 
 
+
+
+
+
+      @media (max-width: 900px) {
+
+    .nav-links { display: none; }
+    .main-nav {
+      align-items: center;
+      text-align: center;
+      margin: auto;
+    }
+    .nav-right {
+      padding: 5px;
+
+      margin: auto;
+    }
+  }

@@ -233,9 +233,14 @@
     overflow: hidden;
   }
 
+/*@media (min-width: 1024px) {
+.text-container {
+  text-align: justify;
+}}*/
 
-
-
+.text-container {
+  text-align: justify;
+}
 
 
       @media (max-width: 900px) {

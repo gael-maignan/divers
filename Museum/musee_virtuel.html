@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Musée Numérique — Galerie Virtuelle</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;600&family=Inter:wght@300;400&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --cream: #f5f0e8;
+    --dark: #0d0b08;
+    --dark2: #1a1610;
+    --dark3: #2a2318;
+    --text-muted: #8a7d6a;
+  }
+
+  body {
+    background: var(--dark);
+    color: var(--cream);
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* ── ÉCRAN D'ACCUEIL ── */
+  #welcome {
+    position: fixed; inset: 0; z-index: 100;
+    background: var(--dark);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 0;
+    transition: opacity 1s ease;
+  }
+
+  #welcome.hidden { opacity: 0; pointer-events: none; }
+
+  .welcome-ornament {
+    width: 120px; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 1.5rem auto;
+  }
+
+  .welcome-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    font-size: 0.75rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+  }
+
+  .welcome-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--cream);
+    line-height: 1.1;
+    text-align: center;
+  }
+
+  .welcome-desc {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    font-style: italic;
+    color: var(--text-muted);
+    text-align: center;
+    max-width: 480px;
+    line-height: 1.7;
+    margin-top: 0.5rem;
+  }
+
+  .welcome-info {
+    margin-top: 2.5rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 520px;
+  }
+
+  .info-item {
+    text-align: center;
+    border: 0.5px solid rgba(201,168,76,0.2);
+    padding: 1rem 0.75rem;
+    border-radius: 4px;
+  }
+
+  .info-key {
+    font-size: 1.5rem;
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .info-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .btn-enter {
+    margin-top: 2.5rem;
+    padding: 1rem 3rem;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-enter::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--gold);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: -1;
+  }
+
+  .btn-enter:hover { color: var(--dark); }
+  .btn-enter:hover::before { transform: translateX(0); }
+
+  /* ── CANVAS 3D ── */
+  #canvas { display: block; width: 100vw; height: 100vh; }
+
+  /* ── HUD ── */
+  #hud {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    padding: 1.5rem 2rem;
+    display: flex; align-items: center; justify-content: center;
+    gap: 3rem;
+    background: linear-gradient(to top, rgba(13,11,8,0.95), transparent);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+
+  #hud.visible { opacity: 1; }
+
+  .hud-control {
+    display: flex; align-items: center; gap: 0.6rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .hud-key {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px;
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 4px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    color: var(--gold);
+  }
+
+  /* ── PANNEAU OEUVRE ── */
+  #artwork-panel {
+    position: fixed; right: 0; top: 0; bottom: 0;
+    width: 380px;
+    background: linear-gradient(to left, rgba(13,11,8,0.98), rgba(13,11,8,0.92));
+    border-left: 0.5px solid rgba(201,168,76,0.15);
+    padding: 3rem 2rem;
+    transform: translateX(100%);
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    overflow-y: auto;
+    z-index: 50;
+    display: flex; flex-direction: column;
+    gap: 0;
+  }
+
+  #artwork-panel.open { transform: translateX(0); }
+
+  .panel-ornament {
+    width: 40px; height: 1px;
+    background: var(--gold);
+    margin-bottom: 2rem;
+  }
+
+  .panel-category {
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1rem;
+  }
+
+  .panel-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem;
+    font-weight: 300;
+    line-height: 1.2;
+    color: var(--cream);
+    margin-bottom: 0.5rem;
+  }
+
+  .panel-artist {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+  }
+
+  .panel-divider {
+    height: 0.5px;
+    background: rgba(201,168,76,0.2);
+    margin-bottom: 1.5rem;
+  }
+
+  .panel-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .meta-item { }
+
+  .meta-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.2rem;
+  }
+
+  .meta-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    color: var(--cream);
+  }
+
+  .panel-description {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: rgba(245,240,232,0.75);
+    flex: 1;
+  }
+
+  .panel-close {
+    position: absolute; top: 1.5rem; left: 1.5rem;
+    width: 36px; height: 36px;
+    background: transparent;
+    border: 0.5px solid rgba(201,168,76,0.2);
+    border-radius: 50%;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .panel-close:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* ── RÉTICULE ── */
+  #crosshair {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px; height: 20px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+  #crosshair.visible { opacity: 0.4; }
+  #crosshair::before, #crosshair::after {
+    content: '';
+    position: absolute;
+    background: var(--cream);
+  }
+  #crosshair::before { width: 1px; height: 100%; left: 50%; }
+  #crosshair::after  { height: 1px; width: 100%; top: 50%; }
+
+  /* ── INDICATEUR INTERACTION ── */
+  #interact-hint {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, calc(-50% + 24px));
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  #interact-hint.visible { opacity: 1; }
+
+  /* ── NOM DE LA SALLE ── */
+  #room-name {
+    position: fixed; top: 2rem; left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: rgba(201,168,76,0.5);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+  #room-name.visible { opacity: 1; }
+
+  /* ── MINIMAP ── */
+  #minimap {
+    position: fixed; bottom: 5rem; right: 1.5rem;
+    width: 100px; height: 80px;
+    border: 0.5px solid rgba(201,168,76,0.2);
+    background: rgba(13,11,8,0.8);
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 0.5s;
+    overflow: hidden;
+  }
+  #minimap.visible { opacity: 0.7; }
+  #minimap canvas { width: 100%; height: 100%; }
+
+  .loading-screen {
+    position: fixed; inset: 0;
+    background: var(--dark);
+    z-index: 200;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 1.5rem;
+    transition: opacity 0.8s ease;
+  }
+  .loading-screen.hidden { opacity: 0; pointer-events: none; }
+  .loading-bar-wrap {
+    width: 200px; height: 1px;
+    background: rgba(201,168,76,0.15);
+    position: relative;
+  }
+  .loading-bar {
+    position: absolute; left: 0; top: 0; height: 100%;
+    background: var(--gold);
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+  .loading-text {
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+</style>
+</head>
+<body>
+
+<!-- Chargement -->
+<div class="loading-screen" id="loading">
+  <div class="welcome-subtitle">Musée Numérique</div>
+  <div class="loading-bar-wrap"><div class="loading-bar" id="load-bar"></div></div>
+  <div class="loading-text" id="load-text">Initialisation…</div>
+</div>
+
+<!-- Écran d'accueil -->
+<div id="welcome" style="display:none">
+  <div class="welcome-subtitle">Musée Numérique — Collection Permanente</div>
+  <div class="welcome-ornament"></div>
+  <div class="welcome-title">Galerie<br>Virtuelle</div>
+  <div class="welcome-desc">Une promenade immersive à travers les chefs-d'œuvre de la collection, reconstituée en trois dimensions.</div>
+  <div class="welcome-ornament"></div>
+  <div class="welcome-info">
+    <div class="info-item">
+      <span class="info-key">ZQSD</span>
+      <span class="info-label">Déplacement</span>
+    </div>
+    <div class="info-item">
+      <span class="info-key">↔</span>
+      <span class="info-label">Regard</span>
+    </div>
+    <div class="info-item">
+      <span class="info-key">E</span>
+      <span class="info-label">Examiner</span>
+    </div>
+  </div>
+  <button class="btn-enter" id="btn-enter">Entrer dans la galerie</button>
+</div>
+
+<!-- Canvas 3D -->
+<canvas id="canvas"></canvas>
+
+<!-- Réticule -->
+<div id="crosshair"></div>
+<div id="interact-hint">Appuyer sur E pour examiner</div>
+
+<!-- Nom de la salle -->
+<div id="room-name">Grande Galerie — Aile Ouest</div>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="hud-control">
+    <div class="hud-key">Z</div><div class="hud-key">Q</div><div class="hud-key">S</div><div class="hud-key">D</div>
+    <span>Déplacer</span>
+  </div>
+  <div class="hud-control">
+    <span>Souris</span><span>—</span><span>Regarder</span>
+  </div>
+  <div class="hud-control">
+    <div class="hud-key">E</div>
+    <span>Examiner l'œuvre</span>
+  </div>
+  <div class="hud-control">
+    <div class="hud-key">Échap</div>
+    <span>Menu</span>
+  </div>
+</div>
+
+<!-- Panneau d'œuvre -->
+<div id="artwork-panel">
+  <button class="panel-close" id="panel-close">✕</button>
+  <div class="panel-ornament"></div>
+  <div class="panel-category" id="p-category">Peinture</div>
+  <div class="panel-title" id="p-title">Sans titre</div>
+  <div class="panel-artist" id="p-artist">Artiste inconnu</div>
+  <div class="panel-divider"></div>
+  <div class="panel-meta">
+    <div class="meta-item">
+      <div class="meta-label">Date</div>
+      <div class="meta-value" id="p-date">—</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Technique</div>
+      <div class="meta-value" id="p-medium">—</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Dimensions</div>
+      <div class="meta-value" id="p-size">—</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Collection</div>
+      <div class="meta-value" id="p-collection">—</div>
+    </div>
+  </div>
+  <div class="panel-divider"></div>
+  <div class="panel-description" id="p-desc"></div>
+</div>
+
+<!-- Minimap -->
+<div id="minimap"><canvas id="mapCanvas" width="100" height="80"></canvas></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ══════════════════════════════════════════
+// DONNÉES DES ŒUVRES
+// ══════════════════════════════════════════
+const ARTWORKS = [
+  {
+    id: 0,
+    title: "Harmonie en Bleu Nuit",
+    artist: "Élise Vauclaire",
+    date: "1923",
+    medium: "Huile sur toile",
+    size: "92 × 73 cm",
+    collection: "Fonds Dupont",
+    category: "Peinture",
+    palette: [0x1a3a5c, 0x2d5d8a, 0x4a7fab, 0x0d1f33, 0x3c6e9e],
+    desc: "Chef-d'œuvre de la maturité d'Élise Vauclaire, cette composition explore la profondeur chromatique du bleu de nuit en superposant de multiples couches de glacis translucides. L'artiste y déploie une maîtrise exceptionnelle de la lumière diffuse, évoquant les dernières heures avant l'aube sur les toits de Marseille. La touche est à la fois libre et précise, révélant une tension entre l'instinct et le contrôle."
+  },
+  {
+    id: 1,
+    title: "Étude pour la Mélancolie",
+    artist: "Anton Reberg",
+    date: "1887",
+    medium: "Fusain et sanguine",
+    size: "65 × 50 cm",
+    collection: "Legs Moreau",
+    category: "Dessin",
+    palette: [0x8b6347, 0x6b4a35, 0x9a7459, 0x4a3020, 0xb8997a],
+    desc: "Cette étude préparatoire révèle le processus créatif d'Anton Reberg dans toute sa spontanéité. Les traits de fusain vigoureusement posés se mêlent aux rehauts de sanguine pour construire une figure de femme en proie à une méditation intérieure profonde. Reberg cherchait, dans cette série, à capturer le silence des états d'âme que la peinture à l'huile ne lui permettait pas d'atteindre."
+  },
+  {
+    id: 2,
+    title: "Composition Solaire IV",
+    artist: "Marthe Escoffier",
+    date: "1967",
+    medium: "Acrylique sur toile",
+    size: "120 × 120 cm",
+    collection: "Collection Permanente",
+    category: "Art abstrait",
+    palette: [0xd4821a, 0xf0a832, 0xc4601a, 0x8b3e0a, 0xf5c84a],
+    desc: "Appartenant à la série emblématique des 'Compositions solaires', ce tableau de grand format marque le tournant vers l'abstraction géométrique pure dans l'œuvre de Marthe Escoffier. Les formes circulaires, évoquant les cycles planétaires, rayonnent depuis un centre lumineux vers les bordures dans une progression de couleurs chaudes parfaitement maîtrisée. L'équilibre entre tension et sérénité est saisissant."
+  },
+  {
+    id: 3,
+    title: "Portrait de Madame N.",
+    artist: "Jean-Paul Deschênes",
+    date: "1902",
+    medium: "Huile sur toile",
+    size: "85 × 68 cm",
+    collection: "Donation Lambert",
+    category: "Portrait",
+    palette: [0x2d4a1e, 0x3d6428, 0x4d7a32, 0x1e3214, 0x5a8f3e],
+    desc: "Portrait de commande exécuté par Jean-Paul Deschênes à l'apogée de sa carrière, cette toile illustre sa technique souveraine du fond sombre sur lequel surgit la carnation lumineuse du visage. L'identité de Madame N. reste mystérieuse — certains historiens d'art l'identifient à la pianiste Nathalie Voronoff, d'autres à une figure de la haute société lyonnaise. Le regard, d'une intensité troublante, continue de fasciner."
+  },
+  {
+    id: 4,
+    title: "Tempête sur le Lac Gris",
+    artist: "Hendrika Voort",
+    date: "1854",
+    medium: "Huile sur panneau de bois",
+    size: "78 × 110 cm",
+    collection: "Fonds des Amis du Musée",
+    category: "Paysage",
+    palette: [0x3a3a4a, 0x555570, 0x2a2a3a, 0x6a6a85, 0x1a1a28],
+    desc: "Peinture de marine romantique d'une intensité dramatique rare, cette œuvre de Hendrika Voort — l'une des rares femmes artistes reconnues en son temps — représente une tempête nocturne sur un lac du Jutland. Le ciel tourmenté, rendu dans des gris bleutés aux multiples nuances, contraste violemment avec les eaux noires et agitées. Une embarcation minuscule au premier plan souligne l'infinie puissance de la nature face à la fragilité humaine."
+  },
+  {
+    id: 5,
+    title: "Trois Formes en Dialogue",
+    artist: "César Montoya",
+    date: "1978",
+    medium: "Sculpture, marbre blanc et acier",
+    size: "42 × 28 × 35 cm",
+    collection: "Acquisition 2001",
+    category: "Sculpture",
+    palette: [0xd4cfc8, 0xb8b0a8, 0xe8e3dc, 0x9a9088, 0xf0ece6],
+    desc: "Cette sculpture de César Montoya met en scène trois volumes géométriques aux surfaces polies — deux masses de marbre blanc et une tige d'acier inoxydable — qui semblent entretenir une conversation silencieuse autour d'un vide central. L'artiste valencien, formé à Paris, cherchait à explorer les relations entre le plein et le vide, entre le naturel et l'industriel, entre la permanence et la fluidité. L'ensemble respire une tension sereine et meditative."
+  },
+  {
+    id: 6,
+    title: "Jardin de Nuit",
+    artist: "Amara Senghor",
+    date: "2018",
+    medium: "Techniques mixtes sur papier",
+    size: "100 × 140 cm",
+    collection: "Acquisition Récente",
+    category: "Œuvre contemporaine",
+    palette: [0x0a2a0a, 0x1a4a1a, 0x0d3d0d, 0x2a6a2a, 0x082008],
+    desc: "Œuvre phare de la jeune artiste dakaroise Amara Senghor, ce grand format mêle pastel, encre, pigments naturels et collages photographiques pour recréer l'atmosphère d'un jardin tropical à la tombée de la nuit. Les formes végétales, tour à tour précises et dissolues, émergent d'un fond obscur dans un ballet de verts profonds. L'artiste y déploie sa vision d'une nature vivante, habitée d'une intelligence propre, à la fois familière et étrange."
+  },
+  {
+    id: 7,
+    title: "Fugue en Gris Mineur",
+    artist: "Lise Hartmann",
+    date: "1955",
+    medium: "Encre de Chine sur papier vélin",
+    size: "55 × 72 cm",
+    collection: "Fonds Hartmann",
+    category: "Dessin",
+    palette: [0x2a2a2a, 0x444444, 0x1a1a1a, 0x5a5a5a, 0x383838],
+    desc: "Composée d'un entrelacement de traits fins à l'encre de Chine pure, cette œuvre de Lise Hartmann est une méditation graphique sur la musique de Bach. L'artiste, pianiste amateur, traduisait les partitions en compositions visuelles selon un code personnel jamais explicité. Les lignes se superposent, s'enchevêtrent et résonnent comme des voix contrapuntiques, créant une profondeur visuelle saisissante depuis la parfaite platitude du papier blanc."
+  },
+];
+
+// ══════════════════════════════════════════
+// ÉTAT DE L'APPLICATION
+// ══════════════════════════════════════════
+const state = {
+  running: false,
+  keys: {},
+  artworkMeshes: [],
+  cartelMeshes: [],
+  nearArtwork: null,
+  panelOpen: false,
+  yaw: 0,
+  pitch: 0,
+  playerPos: new THREE.Vector3(0, 1.7, 8),
+};
+
+// ══════════════════════════════════════════
+// CHARGEMENT SIMULÉ
+// ══════════════════════════════════════════
+const loadBar = document.getElementById('load-bar');
+const loadText = document.getElementById('load-text');
+const steps = [
+  [10, "Génération de l'espace…"],
+  [30, "Construction des murs…"],
+  [55, "Accrochage des œuvres…"],
+  [75, "Pose du parquet…"],
+  [90, "Réglage de l'éclairage…"],
+  [100, "Prêt."],
+];
+let si = 0;
+function nextStep() {
+  if (si < steps.length) {
+    loadBar.style.width = steps[si][0] + '%';
+    loadText.textContent = steps[si][1];
+    si++;
+    setTimeout(nextStep, si === steps.length ? 400 : 350);
+  } else {
+    setTimeout(() => {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('welcome').style.display = 'flex';
+    }, 500);
+  }
+}
+setTimeout(nextStep, 200);
+
+// ══════════════════════════════════════════
+// THREE.JS SETUP
+// ══════════════════════════════════════════
+const canvas = document.getElementById('canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.85;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0d0b08);
+scene.fog = new THREE.Fog(0x0d0b08, 20, 45);
+
+const camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 60);
+camera.position.copy(state.playerPos);
+
+// ── LUMIÈRES ──
+const ambient = new THREE.AmbientLight(0xfff8ec, 0.25);
+scene.add(ambient);
+
+// Lumières spots pour les œuvres (simuler éclairage musée)
+function addSpotlight(x, y, z, tx, ty, tz, intensity = 1.5) {
+  const spot = new THREE.SpotLight(0xfff5e0, intensity, 12, Math.PI / 6, 0.5, 1.5);
+  spot.position.set(x, y, z);
+  spot.target.position.set(tx, ty, tz);
+  spot.castShadow = true;
+  spot.shadow.mapSize.set(512, 512);
+  scene.add(spot);
+  scene.add(spot.target);
+}
+
+// Lumière centrale douce
+const ceiling = new THREE.PointLight(0xfff8ec, 0.4, 20);
+ceiling.position.set(0, 3.8, 0);
+scene.add(ceiling);
+
+// ── MATÉRIAUX RÉUTILISABLES ──
+const wallMat = new THREE.MeshStandardMaterial({ color: 0x1e1a14, roughness: 0.95, metalness: 0 });
+const floorMat = new THREE.MeshStandardMaterial({ color: 0x2a2016, roughness: 0.3, metalness: 0.05 });
+const ceilingMat = new THREE.MeshStandardMaterial({ color: 0x141010, roughness: 0.9 });
+const moldingMat = new THREE.MeshStandardMaterial({ color: 0xc9a84c, roughness: 0.6, metalness: 0.4 });
+const frameMat = new THREE.MeshStandardMaterial({ color: 0x8a6820, roughness: 0.4, metalness: 0.5 });
+
+// ══════════════════════════════════════════
+// CONSTRUCTION DE LA GALERIE
+// ══════════════════════════════════════════
+function buildGallery() {
+  const W = 18, H = 4.5, D = 30;
+
+  // Sol avec motif de parquet simulé
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(W, D, 18, 30), floorMat);
+  floor.rotation.x = -Math.PI / 2;
+  floor.receiveShadow = true;
+  scene.add(floor);
+
+  // Plafond
+  const ceiling2 = new THREE.Mesh(new THREE.PlaneGeometry(W, D), ceilingMat);
+  ceiling2.rotation.x = Math.PI / 2;
+  ceiling2.position.y = H;
+  scene.add(ceiling2);
+
+  // Murs
+  function addWall(geo, pos, rotY = 0) {
+    const m = new THREE.Mesh(geo, wallMat);
+    m.position.copy(pos);
+    m.rotation.y = rotY;
+    m.receiveShadow = true;
+    scene.add(m);
+    return m;
+  }
+
+  // Mur gauche
+  addWall(new THREE.PlaneGeometry(D, H), new THREE.Vector3(-W/2, H/2, 0), Math.PI/2);
+  // Mur droit
+  addWall(new THREE.PlaneGeometry(D, H), new THREE.Vector3(W/2, H/2, 0), -Math.PI/2);
+  // Mur fond
+  addWall(new THREE.PlaneGeometry(W, H), new THREE.Vector3(0, H/2, -D/2));
+  // Mur entrée
+  addWall(new THREE.PlaneGeometry(W, H), new THREE.Vector3(0, H/2, D/2), Math.PI);
+
+  // Cimaise (baguette décorative sur les murs)
+  function addMolding(length, pos, rotY = 0) {
+    const g = new THREE.BoxGeometry(length, 0.06, 0.06);
+    const m = new THREE.Mesh(g, moldingMat);
+    m.position.copy(pos);
+    m.rotation.y = rotY;
+    scene.add(m);
+  }
+
+  const cimH = 2.4;
+  addMolding(D - 0.1, new THREE.Vector3(-W/2 + 0.04, cimH, 0), 0);
+  addMolding(D - 0.1, new THREE.Vector3(W/2 - 0.04, cimH, 0), 0);
+  addMolding(W - 0.1, new THREE.Vector3(0, cimH, -D/2 + 0.04), 0);
+
+  // Plinthe
+  function addBaseboard(length, pos, rotY = 0) {
+    const g = new THREE.BoxGeometry(length, 0.12, 0.05);
+    const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0xc9a84c, roughness: 0.7, metalness: 0.3 }));
+    m.position.copy(pos);
+    m.rotation.y = rotY;
+    scene.add(m);
+  }
+
+  addBaseboard(D, new THREE.Vector3(-W/2 + 0.03, 0.06, 0));
+  addBaseboard(D, new THREE.Vector3(W/2 - 0.03, 0.06, 0));
+  addBaseboard(W, new THREE.Vector3(0, 0.06, -D/2 + 0.03));
+
+  // Colonnes décoratives
+  const colGeo = new THREE.CylinderGeometry(0.12, 0.14, H, 12);
+  const colMat = new THREE.MeshStandardMaterial({ color: 0x1a1612, roughness: 0.8 });
+  const capGeo = new THREE.BoxGeometry(0.35, 0.1, 0.35);
+
+  [-5, 5].forEach(z => {
+    [-1, 1].forEach(side => {
+      const x = side * (W/2 - 0.2);
+      const col = new THREE.Mesh(colGeo, colMat);
+      col.position.set(x, H/2, z);
+      col.castShadow = true;
+      scene.add(col);
+      const cap = new THREE.Mesh(capGeo, moldingMat);
+      cap.position.set(x, H - 0.05, z);
+      scene.add(cap);
+      const base = new THREE.Mesh(capGeo, moldingMat);
+      base.position.set(x, 0.05, z);
+      scene.add(base);
+    });
+  });
+
+  // Banc central
+  const benchGeo = new THREE.BoxGeometry(3, 0.12, 0.55);
+  const benchMat = new THREE.MeshStandardMaterial({ color: 0x3a2a18, roughness: 0.6 });
+  const bench = new THREE.Mesh(benchGeo, benchMat);
+  bench.position.set(0, 0.42, 0);
+  bench.castShadow = true;
+  scene.add(bench);
+  const legGeo = new THREE.BoxGeometry(0.08, 0.42, 0.08);
+  [[-1.35, 0.21], [1.35, 0.21]].forEach(([bx, by]) => {
+    [-0.2, 0.2].forEach(bz => {
+      const leg = new THREE.Mesh(legGeo, benchMat);
+      leg.position.set(bx, by, bz);
+      scene.add(leg);
+    });
+  });
+
+  // Éclairage de voûte
+  for (let z = -12; z <= 12; z += 6) {
+    const lGeo = new THREE.BoxGeometry(0.6, 0.06, 0.06);
+    const lMat = new THREE.MeshStandardMaterial({ color: 0xfff5d0, emissive: 0xfff5d0, emissiveIntensity: 0.5 });
+    const lgt = new THREE.Mesh(lGeo, lMat);
+    lgt.position.set(0, H - 0.1, z);
+    scene.add(lgt);
+
+    const pl = new THREE.PointLight(0xfff5d0, 0.3, 8);
+    pl.position.set(0, H - 0.15, z);
+    scene.add(pl);
+  }
+}
+
+// ══════════════════════════════════════════
+// CRÉATION DES ŒUVRES PROCÉDURALES
+// ══════════════════════════════════════════
+function createArtworkTexture(artwork) {
+  const size = 512;
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d');
+
+  const colors = artwork.palette.map(hex => {
+    const r = (hex >> 16) & 255;
+    const g = (hex >> 8) & 255;
+    const b = hex & 255;
+    return `rgb(${r},${g},${b})`;
+  });
+
+  ctx.fillStyle = colors[0];
+  ctx.fillRect(0, 0, size, size);
+
+  // Style selon la catégorie
+  if (artwork.category === 'Art abstrait' || artwork.id === 2) {
+    // Formes géométriques abstraites
+    for (let i = 0; i < 8; i++) {
+      const cx = Math.random() * size, cy = Math.random() * size;
+      const r = 30 + Math.random() * 120;
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      grad.addColorStop(0, colors[Math.floor(Math.random() * colors.length)]);
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    for (let i = 0; i < 5; i++) {
+      ctx.strokeStyle = colors[Math.floor(Math.random() * colors.length)];
+      ctx.lineWidth = 2 + Math.random() * 8;
+      ctx.beginPath();
+      ctx.moveTo(Math.random() * size, Math.random() * size);
+      ctx.lineTo(Math.random() * size, Math.random() * size);
+      ctx.stroke();
+    }
+  } else if (artwork.category === 'Paysage' || artwork.id === 4) {
+    // Paysage avec dégradé ciel/eau
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, size * 0.6);
+    skyGrad.addColorStop(0, colors[0]);
+    skyGrad.addColorStop(1, colors[2]);
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, size, size * 0.6);
+
+    const waterGrad = ctx.createLinearGradient(0, size * 0.6, 0, size);
+    waterGrad.addColorStop(0, colors[1]);
+    waterGrad.addColorStop(1, colors[4]);
+    ctx.fillStyle = waterGrad;
+    ctx.fillRect(0, size * 0.6, size, size * 0.4);
+
+    // Vagues
+    ctx.strokeStyle = colors[3];
+    ctx.lineWidth = 1.5;
+    for (let y = size * 0.62; y < size; y += 12) {
+      ctx.beginPath();
+      for (let x = 0; x <= size; x += 20) {
+        ctx.lineTo(x, y + Math.sin(x * 0.05) * 4);
+      }
+      ctx.stroke();
+    }
+    // Nuages
+    ctx.fillStyle = colors[2] + 'aa';
+    for (let i = 0; i < 4; i++) {
+      const cx = Math.random() * size, cy = 50 + Math.random() * 150;
+      for (let j = 0; j < 5; j++) {
+        ctx.beginPath();
+        ctx.arc(cx + j * 20 - 40, cy + Math.random() * 20, 20 + Math.random() * 25, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  } else if (artwork.category === 'Dessin') {
+    // Fond clair avec traits
+    ctx.fillStyle = '#e8ddd0';
+    ctx.fillRect(0, 0, size, size);
+    ctx.strokeStyle = colors[1];
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 60; i++) {
+      ctx.globalAlpha = 0.2 + Math.random() * 0.5;
+      ctx.lineWidth = 0.5 + Math.random() * 2;
+      ctx.beginPath();
+      const sx = Math.random() * size * 0.6 + size * 0.2;
+      const sy = Math.random() * size * 0.6 + size * 0.2;
+      ctx.moveTo(sx, sy);
+      ctx.bezierCurveTo(
+        sx + (Math.random() - 0.5) * 150, sy + (Math.random() - 0.5) * 150,
+        sx + (Math.random() - 0.5) * 150, sy + (Math.random() - 0.5) * 150,
+        sx + (Math.random() - 0.5) * 100, sy + (Math.random() - 0.5) * 100
+      );
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    // Silhouette humaine stylisée
+    ctx.strokeStyle = colors[0];
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(size / 2, size * 0.3, 55, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(size / 2, size * 0.3 + 55);
+    ctx.lineTo(size / 2, size * 0.65);
+    ctx.lineTo(size * 0.35, size * 0.85);
+    ctx.moveTo(size / 2, size * 0.65);
+    ctx.lineTo(size * 0.65, size * 0.85);
+    ctx.moveTo(size / 2, size * 0.5);
+    ctx.lineTo(size * 0.3, size * 0.62);
+    ctx.moveTo(size / 2, size * 0.5);
+    ctx.lineTo(size * 0.7, size * 0.62);
+    ctx.stroke();
+  } else if (artwork.category === 'Portrait') {
+    // Portrait stylisé
+    const bgGrad = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size * 0.7);
+    bgGrad.addColorStop(0, colors[1]);
+    bgGrad.addColorStop(1, colors[3]);
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, size, size);
+
+    ctx.fillStyle = colors[0];
+    ctx.beginPath();
+    ctx.arc(size/2, size * 0.38, 85, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = colors[2];
+    ctx.beginPath();
+    ctx.arc(size/2, size * 0.38, 70, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = colors[4];
+    ctx.beginPath();
+    ctx.ellipse(size/2, size * 0.75, 90, 130, 0, 0, Math.PI, true);
+    ctx.fill();
+
+    ctx.strokeStyle = colors[3];
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(size * 0.42, size * 0.35, 10, 6, -0.2, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(size * 0.58, size * 0.35, 10, 6, 0.2, 0, Math.PI * 2);
+    ctx.stroke();
+  } else if (artwork.category === 'Sculpture') {
+    // Sculpture — fond uni, formes géométriques blanches
+    ctx.fillStyle = '#c8c2ba';
+    ctx.fillRect(0, 0, size, size);
+    ctx.fillStyle = '#e8e3dc';
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, 120, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#b8b0a8';
+    ctx.fillRect(size * 0.3, size * 0.3, 120, 120);
+    ctx.fillStyle = '#d4cfc8';
+    ctx.beginPath();
+    ctx.moveTo(size * 0.55, size * 0.25);
+    ctx.lineTo(size * 0.8, size * 0.75);
+    ctx.lineTo(size * 0.3, size * 0.75);
+    ctx.closePath();
+    ctx.fill();
+  } else {
+    // Peinture générique — touche impressionniste
+    for (let i = 0; i < 1200; i++) {
+      const x = Math.random() * size;
+      const y = Math.random() * size;
+      const w = 8 + Math.random() * 20;
+      const h = 3 + Math.random() * 8;
+      const angle = (Math.random() - 0.5) * 0.8;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+      ctx.globalAlpha = 0.3 + Math.random() * 0.6;
+      ctx.fillRect(-w/2, -h/2, w, h);
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Vieillissement / texture
+  ctx.globalAlpha = 0.04;
+  for (let i = 0; i < 8000; i++) {
+    ctx.fillStyle = Math.random() > 0.5 ? '#fff' : '#000';
+    ctx.fillRect(Math.random() * size, Math.random() * size, 1, 1);
+  }
+  ctx.globalAlpha = 1;
+
+  return new THREE.CanvasTexture(c);
+}
+
+function createCartelTexture(artwork) {
+  const W = 320, H = 180;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+
+  ctx.fillStyle = '#f5f0e8';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.strokeStyle = '#c9a84c';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(4, 4, W - 8, H - 8);
+
+  ctx.fillStyle = '#c9a84c';
+  ctx.fillRect(16, 16, 30, 1);
+
+  ctx.fillStyle = '#0d0b08';
+  ctx.font = 'bold 13px serif';
+  ctx.fillText(artwork.title, 16, 42);
+
+  ctx.font = 'italic 11px serif';
+  ctx.fillStyle = '#555';
+  ctx.fillText(artwork.artist, 16, 60);
+
+  ctx.fillStyle = '#888';
+  ctx.font = '9px sans-serif';
+  ctx.fillText(artwork.date + ' — ' + artwork.medium, 16, 82);
+  ctx.fillText(artwork.size, 16, 97);
+
+  ctx.fillStyle = '#c9a84c';
+  ctx.fillRect(16, 108, 288, 0.5);
+
+  ctx.fillStyle = '#444';
+  ctx.font = '8.5px sans-serif';
+  const words = artwork.desc.split(' ');
+  let line = '', ly = 124;
+  for (const w of words) {
+    const test = line + w + ' ';
+    if (ctx.measureText(test).width > 285 && line) {
+      ctx.fillText(line, 16, ly);
+      line = w + ' ';
+      ly += 13;
+      if (ly > 168) { ctx.fillText(line + '…', 16, ly); break; }
+    } else line = test;
+  }
+  if (ly <= 168) ctx.fillText(line, 16, ly);
+
+  return new THREE.CanvasTexture(c);
+}
+
+function placeArtwork(artwork, wallSide, zPos) {
+  const wallX = wallSide === 'left' ? -8.95 : 8.95;
+  const normalDir = wallSide === 'left' ? 1 : -1;
+  const artH = 0.9 + Math.random() * 0.6;
+  const artW = artH * (0.7 + Math.random() * 0.6);
+  const frameThick = 0.06;
+  const frameDepth = 0.04;
+  const hangH = 1.8;
+
+  // Cadre
+  const frameGroup = new THREE.Group();
+  frameGroup.position.set(wallX + normalDir * (frameDepth / 2 + 0.02), hangH, zPos);
+  frameGroup.rotation.y = wallSide === 'left' ? Math.PI / 2 : -Math.PI / 2;
+
+  // Bords du cadre
+  const frameColor = Math.random() > 0.4 ? 0x8a6820 : 0x1a1510;
+  const fMat = new THREE.MeshStandardMaterial({ color: frameColor, roughness: 0.4, metalness: 0.5 });
+  const borders = [
+    [artW + frameThick * 2, frameThick, frameDepth, 0, artH / 2 + frameThick / 2, 0],
+    [artW + frameThick * 2, frameThick, frameDepth, 0, -artH / 2 - frameThick / 2, 0],
+    [frameThick, artH, frameDepth, -artW / 2 - frameThick / 2, 0, 0],
+    [frameThick, artH, frameDepth,  artW / 2 + frameThick / 2, 0, 0],
+  ];
+  borders.forEach(([w, h, d, x, y, z]) => {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), fMat);
+    b.position.set(x, y, z);
+    frameGroup.add(b);
+  });
+
+  // Toile
+  const tex = createArtworkTexture(artwork);
+  const canvasMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(artW, artH),
+    new THREE.MeshStandardMaterial({ map: tex, roughness: 0.85, metalness: 0 })
+  );
+  canvasMesh.position.z = frameDepth / 2 + 0.001;
+  frameGroup.add(canvasMesh);
+
+  // Spot d'éclairage
+  const spot = new THREE.SpotLight(0xfff5d0, 1.8, 10, Math.PI / 8, 0.6, 1.8);
+  spot.position.set(wallX + normalDir * 1.5, 4.1, zPos);
+  spot.target.position.set(wallX + normalDir * 0.1, hangH, zPos);
+  spot.castShadow = false;
+  scene.add(spot); scene.add(spot.target);
+
+  scene.add(frameGroup);
+  state.artworkMeshes.push({ mesh: frameGroup, artwork, wallSide, wallX, zPos, normalDir });
+
+  // Cartel
+  const cartelTex = createCartelTexture(artwork);
+  const cartelW = 1.0, cartelH = 0.56;
+  const cartelMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(cartelW, cartelH),
+    new THREE.MeshStandardMaterial({ map: cartelTex, roughness: 0.9 })
+  );
+  cartelMesh.position.set(
+    wallX + normalDir * 0.025,
+    hangH - artH / 2 - 0.45,
+    zPos + artW / 2 + cartelW / 2 + 0.15
+  );
+  cartelMesh.rotation.y = wallSide === 'left' ? Math.PI / 2 : -Math.PI / 2;
+  scene.add(cartelMesh);
+  state.cartelMeshes.push(cartelMesh);
+}
+
+// ══════════════════════════════════════════
+// PLACEMENT DES ŒUVRES
+// ══════════════════════════════════════════
+function placeAllArtworks() {
+  const positions = [
+    ['left',  -11], ['right', -11],
+    ['left',  -5],  ['right', -5],
+    ['left',   1],  ['right',  1],
+    ['left',   7],  ['right',  7],
+  ];
+  ARTWORKS.forEach((aw, i) => {
+    if (i < positions.length) placeArtwork(aw, positions[i][0], positions[i][1]);
+  });
+
+  // Œuvre sur le mur du fond
+  const backTex = createArtworkTexture(ARTWORKS[0]);
+  const backMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(2.5, 1.8),
+    new THREE.MeshStandardMaterial({ map: backTex, roughness: 0.85 })
+  );
+  backMesh.position.set(0, 2.1, -14.95);
+  scene.add(backMesh);
+  state.artworkMeshes.push({ mesh: backMesh, artwork: ARTWORKS[0], special: true });
+}
+
+// ══════════════════════════════════════════
+// CONTRÔLES FPS
+// ══════════════════════════════════════════
+function startControls() {
+  document.addEventListener('keydown', e => { state.keys[e.code] = true; });
+  document.addEventListener('keyup', e => {
+    state.keys[e.code] = false;
+    if (e.code === 'KeyE') interactWithArtwork();
+    if (e.code === 'Escape') closePanel();
+  });
+
+  canvas.addEventListener('click', () => {
+    if (!state.running) return;
+    canvas.requestPointerLock();
+  });
+
+  document.addEventListener('pointerlockchange', () => {
+    if (document.pointerLockElement === canvas) {
+      document.addEventListener('mousemove', onMouseMove);
+    } else {
+      document.removeEventListener('mousemove', onMouseMove);
+    }
+  });
+}
+
+function onMouseMove(e) {
+  const sens = 0.0018;
+  state.yaw -= e.movementX * sens;
+  state.pitch -= e.movementY * sens;
+  state.pitch = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, state.pitch));
+}
+
+function updateMovement(dt) {
+  if (!state.running || state.panelOpen) return;
+
+  const speed = 3.5 * dt;
+  const dir = new THREE.Vector3();
+  const forward = new THREE.Vector3(-Math.sin(state.yaw), 0, -Math.cos(state.yaw));
+  const right   = new THREE.Vector3( Math.cos(state.yaw), 0, -Math.sin(state.yaw));
+
+  if (state.keys['KeyW'] || state.keys['KeyZ']) dir.addScaledVector(forward,  1);
+  if (state.keys['KeyS'])                       dir.addScaledVector(forward, -1);
+  if (state.keys['KeyA'] || state.keys['KeyQ']) dir.addScaledVector(right,   -1);
+  if (state.keys['KeyD'])                       dir.addScaledVector(right,    1);
+
+  if (dir.length() > 0) {
+    dir.normalize();
+    const next = state.playerPos.clone().addScaledVector(dir, speed);
+    // Collision murs
+    if (Math.abs(next.x) < 8.2 && Math.abs(next.z) < 14.5) {
+      state.playerPos.copy(next);
+    }
+  }
+
+  // Caméra
+  const euler = new THREE.Euler(state.pitch, state.yaw, 0, 'YXZ');
+  camera.quaternion.setFromEuler(euler);
+  camera.position.copy(state.playerPos);
+}
+
+// ══════════════════════════════════════════
+// DÉTECTION DE PROXIMITÉ
+// ══════════════════════════════════════════
+const raycaster = new THREE.Raycaster();
+
+function checkProximity() {
+  raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+
+  const meshes = state.artworkMeshes.map(a => a.mesh).filter(Boolean);
+  const hits = raycaster.intersectObjects(meshes, true);
+
+  const hint = document.getElementById('interact-hint');
+
+  if (hits.length > 0 && hits[0].distance < 4.5) {
+    const hitObj = hits[0].object;
+    const entry = state.artworkMeshes.find(a => {
+      if (a.mesh === hitObj) return true;
+      if (a.mesh.children) return a.mesh.children.includes(hitObj);
+      return false;
+    });
+    if (entry) {
+      state.nearArtwork = entry.artwork;
+      hint.classList.add('visible');
+      return;
+    }
+  }
+  state.nearArtwork = null;
+  hint.classList.remove('visible');
+}
+
+function interactWithArtwork() {
+  if (!state.nearArtwork) return;
+  openPanel(state.nearArtwork);
+}
+
+function openPanel(artwork) {
+  document.getElementById('p-category').textContent   = artwork.category;
+  document.getElementById('p-title').textContent      = artwork.title;
+  document.getElementById('p-artist').textContent     = artwork.artist;
+  document.getElementById('p-date').textContent       = artwork.date;
+  document.getElementById('p-medium').textContent     = artwork.medium;
+  document.getElementById('p-size').textContent       = artwork.size;
+  document.getElementById('p-collection').textContent = artwork.collection;
+  document.getElementById('p-desc').textContent       = artwork.desc;
+  document.getElementById('artwork-panel').classList.add('open');
+  state.panelOpen = true;
+  document.exitPointerLock();
+}
+
+function closePanel() {
+  document.getElementById('artwork-panel').classList.remove('open');
+  state.panelOpen = false;
+}
+
+document.getElementById('panel-close').addEventListener('click', closePanel);
+
+// ══════════════════════════════════════════
+// MINIMAP
+// ══════════════════════════════════════════
+function drawMinimap() {
+  const mc = document.getElementById('mapCanvas');
+  const ctx = mc.getContext('2d');
+  const W = mc.width, H = mc.height;
+  const scale = W / 20;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#1a1610';
+  ctx.fillRect(0, 0, W, H);
+
+  // Salle
+  ctx.strokeStyle = 'rgba(201,168,76,0.3)';
+  ctx.lineWidth = 0.5;
+  ctx.strokeRect(1, 1, W - 2, H - 2);
+
+  // Joueur
+  const px = W/2 + state.playerPos.x * scale / 1.5;
+  const pz = H/2 + state.playerPos.z * scale / 2.5;
+  ctx.fillStyle = '#c9a84c';
+  ctx.beginPath();
+  ctx.arc(px, pz, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Direction
+  const dx = Math.sin(state.yaw) * -8;
+  const dz = Math.cos(state.yaw) * -8;
+  ctx.strokeStyle = 'rgba(201,168,76,0.6)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(px, pz);
+  ctx.lineTo(px - dx * 0.3, pz + dz * 0.3);
+  ctx.stroke();
+
+  // Œuvres
+  ctx.fillStyle = 'rgba(201,168,76,0.4)';
+  state.artworkMeshes.forEach(a => {
+    if (a.wallSide) {
+      const ax = W/2 + (a.wallX) * scale / 1.5;
+      const az = H/2 + (a.zPos) * scale / 2.5;
+      ctx.fillRect(ax - 1.5, az - 1.5, 3, 3);
+    }
+  });
+}
+
+// ══════════════════════════════════════════
+// BOUCLE DE RENDU
+// ══════════════════════════════════════════
+let lastT = performance.now();
+function animate() {
+  requestAnimationFrame(animate);
+  const now = performance.now();
+  const dt = Math.min((now - lastT) / 1000, 0.05);
+  lastT = now;
+
+  if (state.running) {
+    updateMovement(dt);
+    checkProximity();
+    drawMinimap();
+  }
+
+  renderer.render(scene, camera);
+}
+
+// ══════════════════════════════════════════
+// ENTRÉE DANS LA GALERIE
+// ══════════════════════════════════════════
+document.getElementById('btn-enter').addEventListener('click', () => {
+  document.getElementById('welcome').classList.add('hidden');
+  setTimeout(() => {
+    document.getElementById('welcome').style.display = 'none';
+    state.running = true;
+    document.getElementById('hud').classList.add('visible');
+    document.getElementById('crosshair').classList.add('visible');
+    document.getElementById('room-name').classList.add('visible');
+    document.getElementById('minimap').classList.add('visible');
+    canvas.requestPointerLock();
+  }, 1000);
+});
+
+// ══════════════════════════════════════════
+// RESIZE
+// ══════════════════════════════════════════
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+buildGallery();
+placeAllArtworks();
+startControls();
+animate();
+</script>
+</body>
+</html>

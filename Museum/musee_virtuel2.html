@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Musée Numérique — Galerie Virtuelle</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;600&family=Inter:wght@300;400&display=swap');
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--gold:#c9a84c;--gold-light:#e8c97a;--cream:#f8f4ef;--dark:#1a1612;--muted:#8a7d6a}
+body{background:#1a1612;color:var(--cream);font-family:'Inter',sans-serif;overflow:hidden;height:100vh;width:100vw}
+#canvas{display:block;width:100vw;height:100vh}
+#loading{position:fixed;inset:0;background:#1a1612;z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;transition:opacity .8s ease}
+#loading.hidden{opacity:0;pointer-events:none}
+.load-title{font-family:'Cinzel',serif;font-size:1.1rem;letter-spacing:.3em;color:var(--gold)}
+.load-bar-wrap{width:220px;height:1px;background:rgba(201,168,76,.15)}
+.load-bar{height:100%;background:var(--gold);width:0%;transition:width .3s ease}
+.load-text{font-size:.65rem;letter-spacing:.25em;text-transform:uppercase;color:var(--muted)}
+#welcome{position:fixed;inset:0;z-index:200;background:#1a1612;display:none;flex-direction:column;align-items:center;justify-content:center;transition:opacity .8s ease}
+#welcome.visible{display:flex}
+#welcome.hidden{opacity:0;pointer-events:none}
+.orn{width:100px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:1.2rem auto}
+.w-sup{font-size:.65rem;letter-spacing:.35em;text-transform:uppercase;color:var(--gold)}
+.w-title{font-family:'Cinzel',serif;font-size:clamp(2.2rem,5vw,4rem);font-weight:600;letter-spacing:.08em;text-align:center;line-height:1.1;color:var(--cream)}
+.w-desc{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-style:italic;color:var(--muted);text-align:center;max-width:460px;line-height:1.7;margin-top:.5rem}
+.w-keys{margin-top:2rem;display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;max-width:500px}
+.w-key{text-align:center;border:.5px solid rgba(201,168,76,.2);padding:.8rem .5rem;border-radius:4px}
+.k-lbl{font-size:1.2rem;font-family:'Cinzel',serif;color:var(--gold);display:block;margin-bottom:.2rem}
+.k-desc{font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
+.btn-enter{margin-top:2rem;padding:.9rem 2.8rem;background:transparent;border:1px solid var(--gold);color:var(--gold);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.25em;text-transform:uppercase;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
+.btn-enter::before{content:'';position:absolute;inset:0;background:var(--gold);transform:translateX(-100%);transition:transform .3s;z-index:-1}
+.btn-enter:hover{color:#1a1612}.btn-enter:hover::before{transform:translateX(0)}
+#hud{position:fixed;bottom:0;left:0;right:0;padding:1.2rem 2rem;display:flex;align-items:center;justify-content:center;gap:2.5rem;background:linear-gradient(to top,rgba(26,22,18,.85),transparent);pointer-events:none;opacity:0;transition:opacity .5s}
+#hud.visible{opacity:1}
+.hc{display:flex;align-items:center;gap:.5rem;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(26,22,18,.7)}
+.hk{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border:1px solid rgba(201,168,76,.5);border-radius:3px;font-size:.7rem;color:var(--gold)}
+#artwork-panel{position:fixed;right:0;top:0;bottom:0;width:370px;background:rgba(26,22,18,.97);border-left:.5px solid rgba(201,168,76,.15);padding:3rem 1.8rem;transform:translateX(100%);transition:transform .45s cubic-bezier(.22,1,.36,1);overflow-y:auto;z-index:50;display:flex;flex-direction:column}
+#artwork-panel.open{transform:translateX(0)}
+.p-orn{width:36px;height:1px;background:var(--gold);margin-bottom:1.8rem}
+.p-cat{font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:.8rem}
+.p-title{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:300;line-height:1.2;color:var(--cream);margin-bottom:.4rem}
+.p-artist{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.05rem;color:var(--muted);margin-bottom:1.8rem}
+.p-div{height:.5px;background:rgba(201,168,76,.2);margin-bottom:1.3rem}
+.p-meta{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-bottom:1.3rem}
+.ml{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:.15rem}
+.mv{font-family:'Cormorant Garamond',serif;font-size:.95rem;color:var(--cream)}
+.p-desc{font-family:'Cormorant Garamond',serif;font-size:1rem;line-height:1.8;color:rgba(248,244,239,.72);flex:1}
+.p-close{position:absolute;top:1.3rem;left:1.3rem;width:34px;height:34px;background:transparent;border:.5px solid rgba(201,168,76,.2);border-radius:50%;color:var(--muted);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.p-close:hover{border-color:var(--gold);color:var(--gold)}
+#crosshair{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:18px;height:18px;pointer-events:none;opacity:0;transition:opacity .5s}
+#crosshair.visible{opacity:.5}
+#crosshair::before,#crosshair::after{content:'';position:absolute;background:rgba(30,25,18,.75)}
+#crosshair::before{width:1px;height:100%;left:50%}
+#crosshair::after{height:1px;width:100%;top:50%}
+#interact-hint{position:fixed;top:50%;left:50%;transform:translate(-50%,calc(-50% + 22px));font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);pointer-events:none;opacity:0;transition:opacity .3s;background:rgba(26,22,18,.65);padding:.3rem .8rem;border-radius:2px}
+#interact-hint.visible{opacity:1}
+#stair-hint{position:fixed;top:50%;left:50%;transform:translate(-50%,calc(-50% + 22px));font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:#7ab8c9;pointer-events:none;opacity:0;transition:opacity .3s;background:rgba(26,22,18,.7);padding:.3rem .9rem;border-radius:2px}
+#stair-hint.visible{opacity:1}
+#floor-indicator{position:fixed;top:1.5rem;left:50%;transform:translateX(-50%);font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.32em;text-transform:uppercase;color:rgba(50,38,22,.55);pointer-events:none;opacity:0;transition:opacity .5s;text-align:center;background:rgba(248,244,239,.75);padding:.4rem 1.2rem;border-radius:2px;border:.5px solid rgba(201,168,76,.2)}
+#floor-indicator.visible{opacity:1}
+#minimap-container{position:fixed;bottom:5rem;right:1.5rem;opacity:0;transition:opacity .5s;z-index:40}
+#minimap-container.visible{opacity:1}
+#minimap-wrap{background:rgba(248,244,239,.92);border:.5px solid rgba(201,168,76,.35);border-radius:4px;padding:.5rem;width:180px;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+.mm-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem;padding:0 .1rem}
+.mm-title{font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(201,168,76,.7)}
+.mm-floors{display:flex;gap:.3rem}
+.floor-btn{background:transparent;border:.5px solid rgba(201,168,76,.35);color:rgba(160,130,60,.6);font-size:.55rem;font-family:'Cinzel',serif;letter-spacing:.1em;padding:.18rem .45rem;cursor:pointer;border-radius:2px;transition:all .2s}
+.floor-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.1)}
+#mapCanvas{display:block;width:160px;height:120px;border-radius:2px}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="load-title">Musée Numérique</div>
+  <div class="load-bar-wrap"><div class="load-bar" id="load-bar"></div></div>
+  <div class="load-text" id="load-text">Initialisation…</div>
+</div>
+
+<div id="welcome">
+  <div class="w-sup">Collection Permanente — 2 Niveaux</div>
+  <div class="orn"></div>
+  <div class="w-title">Galerie<br>Virtuelle</div>
+  <div class="w-desc">Promenade immersive à travers deux niveaux d'exposition — suivez le parcours doré ou explorez librement.</div>
+  <div class="orn"></div>
+  <div class="w-keys">
+    <div class="w-key"><span class="k-lbl">ZQSD</span><span class="k-desc">Déplacer</span></div>
+    <div class="w-key"><span class="k-lbl">↔</span><span class="k-desc">Regarder</span></div>
+    <div class="w-key"><span class="k-lbl">E</span><span class="k-desc">Examiner</span></div>
+    <div class="w-key"><span class="k-lbl">F</span><span class="k-desc">Escalier</span></div>
+  </div>
+  <button class="btn-enter" id="btn-enter">Entrer dans la galerie</button>
+</div>
+
+<canvas id="canvas"></canvas>
+<div id="crosshair"></div>
+<div id="interact-hint">Appuyer sur E — examiner l'œuvre</div>
+<div id="stair-hint"></div>
+<div id="floor-indicator"></div>
+
+<div id="hud">
+  <div class="hc"><div class="hk">Z</div><div class="hk">Q</div><div class="hk">S</div><div class="hk">D</div><span>Se déplacer</span></div>
+  <div class="hc"><span>Souris</span><span>—</span><span>Regarder</span></div>
+  <div class="hc"><div class="hk">E</div><span>Examiner</span></div>
+  <div class="hc"><div class="hk">F</div><span>Escalier</span></div>
+</div>
+
+<div id="artwork-panel">
+  <button class="p-close" id="panel-close">✕</button>
+  <div class="p-orn"></div>
+  <div class="p-cat" id="p-category">Peinture</div>
+  <div class="p-title" id="p-title">Sans titre</div>
+  <div class="p-artist" id="p-artist">Artiste</div>
+  <div class="p-div"></div>
+  <div class="p-meta">
+    <div><div class="ml">Date</div><div class="mv" id="p-date">—</div></div>
+    <div><div class="ml">Technique</div><div class="mv" id="p-medium">—</div></div>
+    <div><div class="ml">Dimensions</div><div class="mv" id="p-size">—</div></div>
+    <div><div class="ml">Collection</div><div class="mv" id="p-collection">—</div></div>
+  </div>
+  <div class="p-div"></div>
+  <div class="p-desc" id="p-desc"></div>
+</div>
+
+<div id="minimap-container">
+  <div id="minimap-wrap">
+    <div class="mm-header">
+      <div class="mm-title">Plan</div>
+      <div class="mm-floors">
+        <button class="floor-btn active" id="map-btn-0" onclick="switchMinimapFloor(0)">N1</button>
+        <button class="floor-btn" id="map-btn-1" onclick="switchMinimapFloor(1)">N2</button>
+      </div>
+    </div>
+    <canvas id="mapCanvas" width="160" height="120"></canvas>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════
+// DONNÉES
+// ═══════════════════════════════════════════════════
+const ARTWORKS = {
+  0:[
+    {id:0,title:"Harmonie en Bleu Nuit",artist:"Élise Vauclaire",date:"1923",medium:"Huile sur toile",size:"92 × 73 cm",collection:"Fonds Dupont",category:"Peinture",palette:[0x1a3a5c,0x2d5d8a,0x4a7fab,0x0d1f33,0x3c6e9e],desc:"Chef-d'œuvre de la maturité d'Élise Vauclaire, cette composition explore la profondeur chromatique du bleu de nuit en superposant de multiples couches de glacis translucides. L'artiste déploie une maîtrise exceptionnelle de la lumière diffuse, évoquant les dernières heures avant l'aube sur les toits de Marseille."},
+    {id:1,title:"Étude pour la Mélancolie",artist:"Anton Reberg",date:"1887",medium:"Fusain et sanguine",size:"65 × 50 cm",collection:"Legs Moreau",category:"Dessin",palette:[0x8b6347,0x6b4a35,0x9a7459,0x4a3020,0xb8997a],desc:"Cette étude préparatoire révèle le processus créatif d'Anton Reberg dans toute sa spontanéité. Les traits de fusain vigoureusement posés se mêlent aux rehauts de sanguine pour construire une figure de femme en proie à une méditation intérieure profonde."},
+    {id:2,title:"Composition Solaire IV",artist:"Marthe Escoffier",date:"1967",medium:"Acrylique sur toile",size:"120 × 120 cm",collection:"Collection Permanente",category:"Art abstrait",palette:[0xd4821a,0xf0a832,0xc4601a,0x8b3e0a,0xf5c84a],desc:"Appartenant à la série emblématique des Compositions solaires, ce tableau de grand format marque le tournant vers l'abstraction géométrique pure dans l'œuvre de Marthe Escoffier. Les formes circulaires rayonnent depuis un centre lumineux dans une progression de couleurs chaudes maîtrisée."},
+    {id:3,title:"Portrait de Madame N.",artist:"Jean-Paul Deschênes",date:"1902",medium:"Huile sur toile",size:"85 × 68 cm",collection:"Donation Lambert",category:"Portrait",palette:[0x2d4a1e,0x3d6428,0x4d7a32,0x1e3214,0x5a8f3e],desc:"Portrait de commande exécuté à l'apogée de la carrière de Jean-Paul Deschênes. L'identité de Madame N. reste mystérieuse — certains historiens l'identifient à la pianiste Nathalie Voronoff. Le regard, d'une intensité troublante, continue de fasciner."},
+    {id:4,title:"Tempête sur le Lac Gris",artist:"Hendrika Voort",date:"1854",medium:"Huile sur panneau",size:"78 × 110 cm",collection:"Fonds des Amis",category:"Paysage",palette:[0x3a3a4a,0x555570,0x2a2a3a,0x6a6a85,0x1a1a28],desc:"Peinture de marine romantique d'une intensité dramatique rare. Hendrika Voort représente une tempête nocturne sur un lac du Jutland. Une embarcation minuscule au premier plan souligne l'infinie puissance de la nature face à la fragilité humaine."},
+    {id:5,title:"Trois Formes en Dialogue",artist:"César Montoya",date:"1978",medium:"Marbre et acier",size:"42 × 28 × 35 cm",collection:"Acquisition 2001",category:"Sculpture",palette:[0xd4cfc8,0xb8b0a8,0xe8e3dc,0x9a9088,0xf0ece6],desc:"Trois volumes géométriques — deux masses de marbre blanc et une tige d'acier — semblent entretenir une conversation silencieuse autour d'un vide central. L'ensemble respire une tension sereine et méditative entre le naturel et l'industriel."},
+    {id:6,title:"Jardin de Nuit",artist:"Amara Senghor",date:"2018",medium:"Techniques mixtes",size:"100 × 140 cm",collection:"Acquisition Récente",category:"Contemporain",palette:[0x0a2a0a,0x1a4a1a,0x0d3d0d,0x2a6a2a,0x082008],desc:"Œuvre phare de la jeune artiste dakaroise Amara Senghor. Les formes végétales émergent d'un fond obscur dans un ballet de verts profonds. L'artiste déploie sa vision d'une nature vivante, habitée d'une intelligence propre, à la fois familière et étrange."},
+    {id:7,title:"Fugue en Gris Mineur",artist:"Lise Hartmann",date:"1955",medium:"Encre de Chine",size:"55 × 72 cm",collection:"Fonds Hartmann",category:"Dessin",palette:[0x2a2a2a,0x444444,0x1a1a1a,0x5a5a5a,0x383838],desc:"Composée d'un entrelacement de traits fins à l'encre de Chine, cette œuvre est une méditation graphique sur la musique de Bach. Les lignes se superposent et résonnent comme des voix contrapuntiques, créant une profondeur visuelle saisissante."}
+  ],
+  1:[
+    {id:8,title:"Éclat Vermillon",artist:"Sophie Larivier",date:"2005",medium:"Huile et résine",size:"150 × 200 cm",collection:"Fonds Art Vif",category:"Peinture contemporaine",palette:[0xc41e1e,0xe83a3a,0x8b0000,0xf56060,0x6b0000],desc:"Œuvre monumentale de Sophie Larivier. La surface enduite de multiples couches de résine crée des profondeurs optiques où le rouge semble vibrer de l'intérieur. Une méditation sur l'intensité et la perte de contrôle pictural."},
+    {id:9,title:"Archipel Blanc",artist:"Noa Bergström",date:"2019",medium:"Verre soufflé et néon",size:"Variable",collection:"Commande Musée",category:"Installation",palette:[0xe8f4f8,0xb0d8e8,0x7ab8c9,0x4a9ab0,0x1a6a80],desc:"Installation immersive de l'artiste suédoise Noa Bergström. Des formes de verre soufflé translucides, traversées de tubes néon bleutés, recréent la sensation d'un archipel flottant dans un air laiteux."},
+    {id:10,title:"La Mémoire des Pierres",artist:"Karim Ouali",date:"1998",medium:"Photographie grand format",size:"120 × 160 cm",collection:"Collection Photo",category:"Photographie",palette:[0x8a8070,0xa09080,0x6a6055,0xb0a090,0x504540],desc:"Tirage chromogène d'une précision exceptionnelle. Cette image capture la surface d'un mur de pierres sèches provençales sous une lumière rasante d'hiver. La texture devient paysage, l'infiniment petit révèle l'infiniment vaste."},
+    {id:11,title:"Onde de Choc I",artist:"Tatiana Mors",date:"2011",medium:"Acrylique sur toile",size:"90 × 90 cm",collection:"Don Anonyme",category:"Art abstrait",palette:[0x1a1a5c,0x2a2a8a,0x4040c0,0x6060d0,0x0a0a3a],desc:"Tatiana Mors explore la propagation d'une impulsion à travers des couches de matière picturale. Des cercles concentriques d'un bleu nuit profond, rendus avec une précision presque scientifique, créent une tension visuelle hypnotique."},
+    {id:12,title:"Autoportrait en Éclats",artist:"Yuki Tanaka",date:"2014",medium:"Mosaïque de miroirs",size:"80 × 80 cm",collection:"Fonds Contemporain",category:"Technique mixte",palette:[0xc0c0c0,0xa0a0a0,0xe0e0e0,0x808080,0xf0f0f0],desc:"L'artiste japonaise Yuki Tanaka fragmente son propre visage en centaines d'éclats de miroir. L'œuvre pose une question radicale sur la nature du portrait : qu'est-ce qu'un visage quand le regard même qui le perçoit s'y reflète en morceaux ?"},
+    {id:13,title:"Forêt Boréale, Août",artist:"Erik Lindqvist",date:"1932",medium:"Aquarelle",size:"70 × 95 cm",collection:"Legs Nordique",category:"Paysage",palette:[0x2a5a2a,0x3a7a3a,0x1a3a1a,0x4a8a4a,0x0a2a0a],desc:"Aquarelle d'une fraîcheur remarquable d'Erik Lindqvist. La lumière d'août filtrant à travers les bouleaux et épicéas est restituée avec une économie de moyens et une vérité atmosphérique qui n'ont pas vieilli."},
+    {id:14,title:"Rituel du Seuil",artist:"Fatou Diallo",date:"2022",medium:"Vidéo sur textile",size:"Variable",collection:"Acquisition 2023",category:"Art vidéo",palette:[0x8a3a0a,0xb05a1a,0x6a2a08,0xd07030,0x4a1a04],desc:"Projection vidéo sur une surface de tissu flottant. Fatou Diallo documente et réinterprète les rites de passage des femmes de sa famille. La texture du tissu fragmente l'image et l'enrichit d'une dimension tactile et mémorielle."},
+    {id:15,title:"Géographie Intérieure",artist:"Marc Lefebvre",date:"1989",medium:"Encre et gouache",size:"65 × 85 cm",collection:"Fonds Graphique",category:"Dessin",palette:[0x4a3a2a,0x6a5a4a,0x2a1a0a,0x8a7a6a,0x3a2a1a],desc:"À mi-chemin entre cartographie et abstraction lyrique, cette œuvre propose une topographie imaginaire d'une précision maniaque. Des milliers de traits dessinent des reliefs et des routes qui ne mènent nulle part — la carte d'un monde intérieur."}
+  ]
+};
+
+// ═══════════════════════════════════════════════════
+// CONSTANTES SPATIALES
+// ═══════════════════════════════════════════════════
+const F0=0, F1=5.5, CH=4.5, GW=18, GD=32;
+const STAIR={x:6,z0:-12,width:3.4,steps:11};
+STAIR.stepH=F1/STAIR.steps; STAIR.stepD=.72;
+STAIR.zTop=STAIR.z0+STAIR.steps*STAIR.stepD;
+
+const PATH={
+  0:[{x:0,z:12},{x:-5,z:6},{x:0,z:0},{x:5,z:-6},{x:STAIR.x,z:STAIR.z0+.5}],
+  1:[{x:STAIR.x,z:STAIR.zTop+1},{x:0,z:10},{x:-5,z:3},{x:0,z:-4},{x:5,z:-11}]
+};
+
+// ═══════════════════════════════════════════════════
+// ÉTAT
+// ═══════════════════════════════════════════════════
+const state={
+  running:false,keys:{},
+  artworkMeshes:[],nearArtwork:null,panelOpen:false,
+  nearStair:false,nearStairDir:null,
+  yaw:0,pitch:0,
+  playerPos:new THREE.Vector3(0,F0+1.7,12),
+  currentFloor:0
+};
+let minimapViewFloor=0;
+
+// ═══════════════════════════════════════════════════
+// CHARGEMENT
+// ═══════════════════════════════════════════════════
+const STEPS_LOAD=[[8,"Génération des volumes…"],[25,"Murs et parquet…"],[45,"Accrochage des œuvres…"],[62,"Construction de l'escalier…"],[78,"Tracé du parcours…"],[92,"Éclairage…"],[100,"Prêt."]];
+let si=0;
+function nextStep(){
+  const lb=document.getElementById('load-bar'),lt=document.getElementById('load-text');
+  if(si<STEPS_LOAD.length){lb.style.width=STEPS_LOAD[si][0]+'%';lt.textContent=STEPS_LOAD[si][1];si++;setTimeout(nextStep,si===STEPS_LOAD.length?400:320);}
+  else{setTimeout(()=>{document.getElementById('loading').classList.add('hidden');document.getElementById('welcome').classList.add('visible');},500);}
+}
+setTimeout(nextStep,200);
+
+// ═══════════════════════════════════════════════════
+// RENDERER
+// ═══════════════════════════════════════════════════
+const canvas=document.getElementById('canvas');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.setSize(window.innerWidth,window.innerHeight);
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputEncoding=THREE.sRGBEncoding;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+//renderer.toneMappingExposure=1.05; //0.8
+renderer.toneMappingExposure=0.5; //0.8
+//renderer.toneMapping = THREE.NoToneMapping;
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0xf0ece4);
+scene.fog=new THREE.FogExp2(0xf0ece4,.018);
+const camera=new THREE.PerspectiveCamera(72,window.innerWidth/window.innerHeight,.05,80);
+camera.position.copy(state.playerPos);
+
+// ═══════════════════════════════════════════════════
+// TEXTURES
+// ═══════════════════════════════════════════════════
+
+const loader = new THREE.TextureLoader();
+
+const floorTexture = loader.load('bois.png', (tex) => {
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+
+  // nombre de répétitions (important !)
+  tex.repeat.set(8, 12);
+
+  tex.anisotropy = renderer.capabilities.getMaxAnisotropy(); // + net
+});
+
+function makeParquet(){
+  const sz=512,c=document.createElement('canvas');c.width=c.height=sz;
+  const ctx=c.getContext('2d');
+  const woodColors=['#c09a52','#b48848','#ca9f58','#b89050','#c8a060','#aa8040'];
+  ctx.fillStyle='#b89050';ctx.fillRect(0,0,sz,sz);
+  const pw=sz/6,ph=sz/2.5;
+  for(let row=0;row<8;row++){
+    const off=row%2===0?0:pw/2;
+    for(let col=-1;col<8;col++){
+      const px=(col*pw+off)%sz,py=row*ph*.42;
+      ctx.fillStyle=woodColors[Math.floor(Math.random()*woodColors.length)];
+      ctx.fillRect(px,py,pw-1.8,ph*.42-1.2);
+      // grain du bois
+      ctx.save();ctx.globalAlpha=.06;
+      for(let g=0;g<6;g++){
+        ctx.strokeStyle='#6a4020';ctx.lineWidth=.4;
+        ctx.beginPath();ctx.moveTo(px,py+g*(ph*.42/6));ctx.lineTo(px+pw-2,py+g*(ph*.42/6));ctx.stroke();
+      }
+      ctx.restore();
+      ctx.fillStyle='rgba(0,0,0,.09)';ctx.fillRect(px,py,pw-1.8,1.2);
+      ctx.fillRect(px,py,1.2,ph*.42-1.2);
+    }
+  }
+  const tex=new THREE.CanvasTexture(c);
+  tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(5,10);return tex;
+}
+
+function makeWall(){
+  const sz=256,c=document.createElement('canvas');c.width=c.height=sz;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#f0ebe2';ctx.fillRect(0,0,sz,sz);
+  ctx.fillStyle='rgba(0,0,0,.012)';
+  for(let i=0;i<3000;i++)ctx.fillRect(Math.random()*sz,Math.random()*sz,1,1);
+  const tex=new THREE.CanvasTexture(c);
+  tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(4,2);return tex;
+}
+
+function makeWall2(){
+  const sz=256,c=document.createElement('canvas');c.width=c.height=sz;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#eae5da';ctx.fillRect(0,0,sz,sz);
+  ctx.fillStyle='rgba(0,0,0,.01)';
+  for(let i=0;i<2000;i++)ctx.fillRect(Math.random()*sz,Math.random()*sz,1,1);
+  const tex=new THREE.CanvasTexture(c);
+  tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(4,2);return tex;
+}
+
+const parquetTex=makeParquet(),wallTex=makeWall(),wallTex2=makeWall2();
+
+const MAT={
+  wall:new THREE.MeshStandardMaterial({map:wallTex,color:0xf0ebe2,roughness:.9}),
+  wall2:new THREE.MeshStandardMaterial({map:wallTex2,color:0xeae5da,roughness:.9}),
+  plinth: new THREE.MeshStandardMaterial({
+  color: 0xe9e2d6,
+  roughness: 0.85,
+  metalness: 0.0
+}),
+  /*floor:new THREE.MeshStandardMaterial({map:parquetTex,color:0xc09a52,roughness:.28,metalness:.03}),*/
+  floor: new THREE.MeshStandardMaterial({
+  map: floorTexture,
+  roughness: 0.6,
+  metalness: 0.05
+}),
+  ceil:new THREE.MeshStandardMaterial({color:0xf8f5f0,roughness:.95}),
+  molding:new THREE.MeshStandardMaterial({color:0xc9a84c,roughness:.45,metalness:.55}),
+  stair:new THREE.MeshStandardMaterial({map:parquetTex,color:0xc4985a,roughness:.3}),
+  rail:new THREE.MeshStandardMaterial({color:0xc0a030,roughness:.3,metalness:.75}),
+  path:new THREE.MeshStandardMaterial({color:0xc9a84c,roughness:.35,transparent:true,opacity:.5,depthWrite:false}),
+  pathDot:new THREE.MeshStandardMaterial({color:0xd4aa40,roughness:.3,transparent:true,opacity:.75,depthWrite:false}),
+  frame:new THREE.MeshStandardMaterial({color:0x8a6820,roughness:.4,metalness:.5}),
+  frameWhite:new THREE.MeshStandardMaterial({color:0xe0d8c8,roughness:.5,metalness:.1}),
+};
+
+// ═══════════════════════════════════════════════════
+// CONSTRUCTION D'UN NIVEAU
+// ═══════════════════════════════════════════════════
+function buildLevel(floorY,isTop){
+  const W=GW,D=GD,H=CH;
+  const wm=isTop?MAT.wall2:MAT.wall;
+
+  // Sol
+  const fl=new THREE.Mesh(new THREE.PlaneGeometry(W,D),MAT.floor);
+  fl.rotation.x=-Math.PI/2;fl.position.y=floorY;fl.receiveShadow=true;scene.add(fl);
+  // Plafond
+  const ce=new THREE.Mesh(new THREE.PlaneGeometry(W,D),MAT.ceil);
+  ce.rotation.x=Math.PI/2;ce.position.y=floorY+H;scene.add(ce);
+
+  function addWall(geo,pos,rotY=0){const m=new THREE.Mesh(geo,wm);m.position.copy(pos);m.rotation.y=rotY;m.receiveShadow=true;scene.add(m);}
+  addWall(new THREE.PlaneGeometry(D,H),new THREE.Vector3(-W/2,floorY+H/2,0),Math.PI/2);
+  addWall(new THREE.PlaneGeometry(D,H),new THREE.Vector3( W/2,floorY+H/2,0),-Math.PI/2);
+  addWall(new THREE.PlaneGeometry(W,H),new THREE.Vector3(0,floorY+H/2,-D/2));
+  addWall(new THREE.PlaneGeometry(W,H),new THREE.Vector3(0,floorY+H/2, D/2),Math.PI);
+
+  
+  // Plinthe
+  function base(len, pos, rotY = 0) {
+    const m = new THREE.Mesh(
+      new THREE.BoxGeometry(len, 0.14, 0.05),
+      MAT.plinth
+      );
+      m.position.copy(pos);
+      m.rotation.y = rotY;
+      scene.add(m);
+  }
+
+  // Gauche
+  base(GD, new THREE.Vector3(-GW / 2 + 0.025, floorY + 0.07, 0), Math.PI / 2);
+  // Droite
+  base(GD, new THREE.Vector3(GW / 2 - 0.025, floorY + 0.07, 0), Math.PI / 2);
+  // Fond
+  base(GW, new THREE.Vector3(0, floorY + 0.07, -GD / 2 + 0.025), 0);
+  // Avant
+  base(GW, new THREE.Vector3(0, floorY + 0.07, GD / 2 - 0.025), 0);
+
+  // Corniche plafond
+  const cornMat=new THREE.MeshStandardMaterial({color:0xe8e2d5,roughness:.85});
+  [['-',1],['+',1]].forEach(([s],k)=>{
+    const cx=(k===0?-W/2:W/2)+(k===0?.07:-.07);
+    const corn=new THREE.Mesh(new THREE.BoxGeometry(.12,D,.1),cornMat);
+    corn.position.set(cx,floorY+H-.07,0);scene.add(corn);
+  });
+
+  // Éclairage plafond
+  for(let z=-13;z<=13;z+=6.5){
+    const lm=new THREE.MeshStandardMaterial({color:0xfff8ee,emissive:0xfff8ee,emissiveIntensity:.7});
+    const lg=new THREE.Mesh(new THREE.BoxGeometry(.9,.05,.05),lm);
+    lg.position.set(0,floorY+H-.07,z);scene.add(lg);
+    const pl=new THREE.PointLight(0xfff8ee,.3,9);pl.position.set(0,floorY+H-.12,z);scene.add(pl);
+  }
+  const al=new THREE.AmbientLight(0xfff8f0,.18);scene.add(al);
+}
+
+// ═══════════════════════════════════════════════════
+// ESCALIER
+// ═══════════════════════════════════════════════════
+function buildStair(){
+  const {x,z0,steps,stepH,stepD,width}=STAIR;
+
+  for(let i=0;i<steps;i++){
+    // Contre-marche
+    const riser=new THREE.Mesh(new THREE.BoxGeometry(width,stepH,.05),MAT.stair);
+    riser.position.set(x,F0+stepH*(i+.5),z0+stepD*i);scene.add(riser);
+    // Giron
+    const tread=new THREE.Mesh(new THREE.BoxGeometry(width+.04,.06,stepD+.04),MAT.stair);
+    tread.position.set(x,F0+stepH*(i+1),z0+stepD*i+stepD*.5);scene.add(tread);
+    // Nez doré
+    const nose=new THREE.Mesh(new THREE.BoxGeometry(width+.04,.04,.04),MAT.molding);
+    nose.position.set(x,F0+stepH*(i+1)+.01,z0+stepD*i+.02);scene.add(nose);
+  }
+
+  // Palier haut
+  const landing=new THREE.Mesh(new THREE.BoxGeometry(width+.04,.07,1.4),MAT.stair);
+  landing.position.set(x,F1,STAIR.zTop+.7);scene.add(landing);
+  // Nez palier
+  const lnose=new THREE.Mesh(new THREE.BoxGeometry(width+.04,.04,.04),MAT.molding);
+  lnose.position.set(x,F1+.04,STAIR.zTop+.02);scene.add(lnose);
+
+
+
+// ===== GARDE-CORPS ESCALIER =====
+const railH = 0.95;
+const sideX = x - width / 2 + 0.06; // bord propre
+
+// Poteaux suivant la pente réelle
+for (let i = 0; i <= steps; i++) {
+  const t = i / steps;
+
+  const px = sideX;
+  const py = F0 + stepH * i + railH / 2;
+  const pz = z0 + stepD * i;
+
+  const post = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.022, 0.022, railH, 10),
+    MAT.rail
+  );
+
+  post.position.set(px, py, pz);
+  scene.add(post);
+}
+
+// ===== MAIN COURANTE (alignée sur la pente) =====
+const start = new THREE.Vector3(sideX, F0 + railH, z0);
+const end   = new THREE.Vector3(sideX, F1 + railH, STAIR.zTop);
+
+// direction + longueur
+const dir = new THREE.Vector3().subVectors(end, start);
+const len = dir.length();
+
+// cylindre horizontal de base (axe Y)
+const handrail = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.024, 0.024, len, 10),
+  MAT.rail
+);
+
+// rotation pour aligner sur vecteur
+handrail.quaternion.setFromUnitVectors(
+  new THREE.Vector3(0, 1, 0),
+  dir.clone().normalize()
+);
+
+// position au milieu exact
+handrail.position.copy(start).addScaledVector(dir, 0.5);
+
+scene.add(handrail);
+
+
+  // Garde-corps palier 1er étage
+  const brailGeo=new THREE.BoxGeometry(width+.1,.06,.06);
+  const brail=new THREE.Mesh(brailGeo,MAT.rail);
+  brail.position.set(x,F1+railH,STAIR.z0-.05);scene.add(brail);
+  // Poteaux balcon
+  for(let bx=x-width/2;bx<=x+width/2;bx+=width/3){
+    const bp=new THREE.Mesh(new THREE.CylinderGeometry(.022,.022,railH,8),MAT.rail);
+    bp.position.set(bx,F1+railH/2,STAIR.z0-.05);scene.add(bp);
+  }
+
+
+  // Dalles du plancher (partie ouverte au-dessus escalier)
+  // Dalles des deux côtés de l'ouverture au 1er étage
+  const plankMat=MAT.floor;
+  // dalle côté droit de l'ouverture
+  const dk=new THREE.Mesh(new THREE.BoxGeometry(GW/2-x-width/2-.1,.15,steps*stepD+2),plankMat);
+  dk.position.set(x+width/2+.05+(GW/2-x-width/2-.1)/2,F1-.08,z0+steps*stepD/2-.5);scene.add(dk);
+  // dalle fond gauche
+  const dk2=new THREE.Mesh(new THREE.BoxGeometry(x-width/2-.05+GW/2,.15,steps*stepD+2),plankMat);
+  dk2.position.set(-GW/2+(x-width/2-.05+GW/2)/2,F1-.08,z0+steps*stepD/2-.5);scene.add(dk2);
+}
+
+// ═══════════════════════════════════════════════════
+// PARCOURS AU SOL
+// ═══════════════════════════════════════════════════
+function buildPath(floorY,waypoints){
+  for(let i=0;i<waypoints.length-1;i++){
+    const a=waypoints[i],b=waypoints[i+1];
+    const dx=b.x-a.x,dz=b.z-a.z,len=Math.sqrt(dx*dx+dz*dz);
+    const mx=(a.x+b.x)/2,mz=(a.z+b.z)/2;
+    const seg=new THREE.Mesh(new THREE.PlaneGeometry(.42,len),MAT.path);
+    seg.rotation.x=-Math.PI/2;
+    seg.rotation.z=Math.atan2(dx,dz);
+    seg.position.set(mx,floorY+.006,mz);scene.add(seg);
+    // Flèche
+    const shape=new THREE.Shape();
+    shape.moveTo(0,.22);shape.lineTo(.13,-.1);shape.lineTo(-.13,-.1);shape.closePath();
+    const ag=new THREE.ShapeGeometry(shape);
+    const arMat=new THREE.MeshStandardMaterial({color:0xd4a030,roughness:.3,transparent:true,opacity:.85,depthWrite:false});
+    const ar=new THREE.Mesh(ag,arMat);
+    ar.rotation.x=-Math.PI/2;ar.rotation.z=-Math.atan2(dx,dz);
+    ar.position.set(mx,floorY+.008,mz);scene.add(ar);
+  }
+  waypoints.forEach((w,i)=>{
+    const dot=new THREE.Mesh(new THREE.CircleGeometry(i===0||i===waypoints.length-1?.26:.18,20),MAT.pathDot);
+    dot.rotation.x=-Math.PI/2;dot.position.set(w.x,floorY+.007,w.z);scene.add(dot);
+    const ring=new THREE.Mesh(
+      new THREE.RingGeometry(.18,.24,20),
+      new THREE.MeshStandardMaterial({color:0xc9a84c,roughness:.3,transparent:true,opacity:.6,depthWrite:false,side:THREE.DoubleSide}));
+    ring.rotation.x=-Math.PI/2;ring.position.set(w.x,floorY+.009,w.z);scene.add(ring);
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// TEXTURE OEUVRE
+// ═══════════════════════════════════════════════════
+function makeArtTex(aw){
+  const sz=512,c=document.createElement('canvas');c.width=c.height=sz;
+  const ctx=c.getContext('2d');
+  const co=aw.palette.map(h=>`rgb(${(h>>16)&255},${(h>>8)&255},${h&255})`);
+  ctx.fillStyle=co[0];ctx.fillRect(0,0,sz,sz);
+  const cat=aw.category.toLowerCase();
+  if(cat.includes('abstrait')||cat.includes('onde')||cat.includes('install')){
+    for(let i=0;i<12;i++){const cx=Math.random()*sz,cy=Math.random()*sz,r=20+Math.random()*140;const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r);g.addColorStop(0,co[Math.floor(Math.random()*co.length)]);g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();}
+    for(let i=0;i<8;i++){ctx.globalAlpha=.4+Math.random()*.5;ctx.strokeStyle=co[Math.floor(Math.random()*co.length)];ctx.lineWidth=2+Math.random()*12;ctx.beginPath();ctx.moveTo(Math.random()*sz,Math.random()*sz);ctx.bezierCurveTo(Math.random()*sz,Math.random()*sz,Math.random()*sz,Math.random()*sz,Math.random()*sz,Math.random()*sz);ctx.stroke();}ctx.globalAlpha=1;
+  }else if(cat.includes('paysage')||cat.includes('forêt')){
+    const sk=ctx.createLinearGradient(0,0,0,sz*.55);sk.addColorStop(0,co[0]);sk.addColorStop(1,co[2]);ctx.fillStyle=sk;ctx.fillRect(0,0,sz,sz*.55);
+    const gd=ctx.createLinearGradient(0,sz*.55,0,sz);gd.addColorStop(0,co[1]);gd.addColorStop(1,co[4]);ctx.fillStyle=gd;ctx.fillRect(0,sz*.55,sz,sz*.45);
+    ctx.strokeStyle=co[3]+'99';ctx.lineWidth=1.3;for(let y=sz*.57;y<sz;y+=10){ctx.beginPath();for(let x=0;x<=sz;x+=15)ctx.lineTo(x,y+Math.sin(x*.04)*5);ctx.stroke();}
+    for(let i=0;i<5;i++){const cx=Math.random()*sz,cy=40+Math.random()*sz*.3;ctx.fillStyle=co[2]+'88';for(let j=0;j<5;j++){ctx.beginPath();ctx.arc(cx+j*18-36,cy+Math.random()*15,14+Math.random()*22,0,Math.PI*2);ctx.fill();}}
+  }else if(cat.includes('dessin')||cat.includes('fusain')||cat.includes('encre')||cat.includes('géograph')){
+    ctx.fillStyle='#ede8dc';ctx.fillRect(0,0,sz,sz);
+    for(let i=0;i<90;i++){ctx.globalAlpha=.12+Math.random()*.5;ctx.strokeStyle=co[0];ctx.lineWidth=.5+Math.random()*2.5;ctx.beginPath();const sx=sz*.12+Math.random()*sz*.76,sy=sz*.12+Math.random()*sz*.76;ctx.moveTo(sx,sy);ctx.bezierCurveTo(sx+(Math.random()-.5)*200,sy+(Math.random()-.5)*200,sx+(Math.random()-.5)*200,sy+(Math.random()-.5)*200,sx+(Math.random()-.5)*150,sy+(Math.random()-.5)*150);ctx.stroke();}
+    ctx.globalAlpha=1;ctx.strokeStyle=co[1]||'#333';ctx.lineWidth=2.8;
+    ctx.beginPath();ctx.arc(sz/2,sz*.32,62,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(sz/2,sz*.32+62);ctx.lineTo(sz/2,sz*.68);ctx.lineTo(sz*.34,sz*.88);ctx.moveTo(sz/2,sz*.68);ctx.lineTo(sz*.66,sz*.88);ctx.moveTo(sz/2,sz*.5);ctx.lineTo(sz*.28,sz*.62);ctx.moveTo(sz/2,sz*.5);ctx.lineTo(sz*.72,sz*.62);ctx.stroke();
+  }else if(cat.includes('portrait')){
+    const bg=ctx.createRadialGradient(sz/2,sz/2,0,sz/2,sz/2,sz*.75);bg.addColorStop(0,co[1]);bg.addColorStop(1,co[3]);ctx.fillStyle=bg;ctx.fillRect(0,0,sz,sz);
+    ctx.fillStyle=co[0];ctx.beginPath();ctx.arc(sz/2,sz*.37,90,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=co[2];ctx.beginPath();ctx.arc(sz/2,sz*.37,74,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=co[4];ctx.beginPath();ctx.ellipse(sz/2,sz*.76,92,132,0,0,Math.PI,true);ctx.fill();
+    ctx.strokeStyle=co[3];ctx.lineWidth=2.5;ctx.beginPath();ctx.ellipse(sz*.41,sz*.34,11,7,-.2,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.ellipse(sz*.59,sz*.34,11,7,.2,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(sz/2,sz*.41,5,0,Math.PI);ctx.stroke();
+  }else if(cat.includes('sculpt')||cat.includes('mosaïque')){
+    ctx.fillStyle='#c2bcb5';ctx.fillRect(0,0,sz,sz);ctx.fillStyle='#ddd8d0';ctx.beginPath();ctx.arc(sz*.5,sz*.44,112,0,Math.PI*2);ctx.fill();ctx.fillStyle='#aeaaa4';ctx.fillRect(sz*.27,sz*.27,115,115);ctx.fillStyle='#ccc8c0';ctx.beginPath();ctx.moveTo(sz*.55,sz*.22);ctx.lineTo(sz*.82,sz*.72);ctx.lineTo(sz*.28,sz*.72);ctx.closePath();ctx.fill();
+  }else if(cat.includes('photo')){
+    const gr=ctx.createLinearGradient(0,0,0,sz);gr.addColorStop(0,co[2]);gr.addColorStop(1,co[0]);ctx.fillStyle=gr;ctx.fillRect(0,0,sz,sz);
+    for(let i=0;i<2500;i++){const gv=Math.floor(Math.random()*60);ctx.fillStyle=`rgba(${gv},${gv},${gv},${.03+Math.random()*.09})`;ctx.fillRect(Math.random()*sz,Math.random()*sz,1+Math.random()*3,1+Math.random()*3);}
+  }else{
+    for(let i=0;i<1500;i++){const px=Math.random()*sz,py=Math.random()*sz,pw=5+Math.random()*24,ph=3+Math.random()*10;ctx.save();ctx.translate(px,py);ctx.rotate((Math.random()-.5)*.9);ctx.fillStyle=co[Math.floor(Math.random()*co.length)];ctx.globalAlpha=.22+Math.random()*.6;ctx.fillRect(-pw/2,-ph/2,pw,ph);ctx.restore();}ctx.globalAlpha=1;
+  }
+  ctx.globalAlpha=.035;for(let i=0;i<7000;i++){ctx.fillStyle=Math.random()>.5?'#fff':'#000';ctx.fillRect(Math.random()*sz,Math.random()*sz,1,1);}ctx.globalAlpha=1;
+  return new THREE.CanvasTexture(c);
+}
+
+function makeCartelTex(aw){
+  const W=340,H=192,c=document.createElement('canvas');c.width=W;c.height=H;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#f8f4ef';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#c9a84c';ctx.lineWidth=.8;ctx.strokeRect(4,4,W-8,H-8);
+  ctx.fillStyle='#c9a84c';ctx.fillRect(16,16,28,1);
+  ctx.fillStyle='#1a1612';ctx.font='bold 13px Georgia,serif';
+  let t=aw.title;while(ctx.measureText(t).width>295&&t.length>4)t=t.slice(0,-1)+'…';
+  ctx.fillText(t,16,42);
+  ctx.font='italic 11px Georgia,serif';ctx.fillStyle='#555';ctx.fillText(aw.artist,16,60);
+  ctx.font='9px Arial,sans-serif';ctx.fillStyle='#888';ctx.fillText(aw.date+' — '+aw.medium,16,78);ctx.fillText(aw.size,16,93);
+  ctx.fillStyle='#c9a84c';ctx.fillRect(16,103,W-32,.5);
+  ctx.fillStyle='#444';ctx.font='8.5px Arial,sans-serif';
+  const words=aw.desc.split(' ');let line='',ly=119;
+  for(const w of words){const tt=line+w+' ';if(ctx.measureText(tt).width>302&&line){ctx.fillText(line,16,ly);line=w+' ';ly+=13;if(ly>180){ctx.fillText(line+'…',16,ly);break;}}else line=tt;}
+  if(ly<=180)ctx.fillText(line,16,ly);
+  return new THREE.CanvasTexture(c);
+}
+
+// ═══════════════════════════════════════════════════
+// PLACEMENT ŒUVRES
+// ═══════════════════════════════════════════════════
+function placeArtwork(aw,wallSide,zPos,floorY){
+  const wx=wallSide==='left'?-GW/2+.02:GW/2-.02;
+  const nd=wallSide==='left'?1:-1;
+  const ah=.82+Math.random()*.58,aw2=ah*(.72+Math.random()*.6);
+  const fd=.04,ft=.06,hangH=floorY+1.82;
+  const grp=new THREE.Group();
+  grp.position.set(wx+nd*(fd/2+.02),hangH,zPos);
+  grp.rotation.y=wallSide==='left'?Math.PI/2:-Math.PI/2;
+  const fm=Math.random()>.45?MAT.frame:MAT.frameWhite;
+  [[aw2+ft*2,ft,fd,0,ah/2+ft/2,0],[aw2+ft*2,ft,fd,0,-ah/2-ft/2,0],[ft,ah,fd,-aw2/2-ft/2,0,0],[ft,ah,fd,aw2/2+ft/2,0,0]].forEach(([w,h,d,x,y,z])=>{
+    const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),fm);b.position.set(x,y,z);grp.add(b);
+  });
+  const cv=new THREE.Mesh(new THREE.PlaneGeometry(aw2,ah),new THREE.MeshStandardMaterial({map:makeArtTex(aw),roughness:.88}));
+  cv.position.z=fd/2+.001;grp.add(cv);
+  const spot=new THREE.SpotLight(0xfff8e8,1.7,10,Math.PI/8,.62,1.8);
+  spot.position.set(wx+nd*1.9,floorY+CH-.25,zPos);spot.target.position.set(wx+nd*.12,hangH,zPos);
+  scene.add(spot);scene.add(spot.target);
+  scene.add(grp);
+  state.artworkMeshes.push({mesh:grp,artwork:aw,wallSide,wallX:wx,zPos,normalDir:nd,floorY,floor:floorY===F0?0:1});
+  // Cartel
+  const cw=1.05,ch=.6;
+  const cm=new THREE.Mesh(new THREE.PlaneGeometry(cw,ch),new THREE.MeshStandardMaterial({map:makeCartelTex(aw),roughness:.9}));
+  cm.position.set(wx+nd*.028,hangH-ah/2-.44,zPos+aw2/2+cw/2+.14);
+  cm.rotation.y=wallSide==='left'?Math.PI/2:-Math.PI/2;scene.add(cm);
+}
+
+function placeAllArtworks(){
+  const P=[['left',-13],['right',-13],['left',-6],['right',-6],['left',1],['right',1],['left',8],['right',8]];
+  ARTWORKS[0].forEach((a,i)=>{if(i<P.length)placeArtwork(a,P[i][0],P[i][1],F0);});
+  ARTWORKS[1].forEach((a,i)=>{if(i<P.length)placeArtwork(a,P[i][0],P[i][1],F1);});
+}
+
+// ═══════════════════════════════════════════════════
+// LUMIÈRES
+// ═══════════════════════════════════════════════════
+function setupLights(){
+  scene.add(new THREE.AmbientLight(0xfff8f0,.6));
+  const sun=new THREE.DirectionalLight(0xfff5e8,.4);sun.position.set(8,15,5);sun.castShadow=true;scene.add(sun);
+}
+
+// ═══════════════════════════════════════════════════
+// CONTRÔLES
+// ═══════════════════════════════════════════════════
+function startControls(){
+  document.addEventListener('keydown',e=>{state.keys[e.code]=true;});
+  document.addEventListener('keyup',e=>{
+    state.keys[e.code]=false;
+    if(e.code==='KeyE')tryInteract();
+    if(e.code==='KeyF')tryStair();
+    if(e.code==='Escape')closePanel();
+  });
+  canvas.addEventListener('click',()=>{if(state.running)canvas.requestPointerLock();});
+  document.addEventListener('pointerlockchange',()=>{
+    if(document.pointerLockElement===canvas){document.addEventListener('mousemove',onMM);}
+    else{document.removeEventListener('mousemove',onMM);}
+  });
+}
+function onMM(e){
+  state.yaw-=e.movementX*.0018;state.pitch-=e.movementY*.0018;
+  state.pitch=Math.max(-Math.PI/3,Math.min(Math.PI/3,state.pitch));
+}
+
+// ═══════════════════════════════════════════════════
+// MOUVEMENT
+// ═══════════════════════════════════════════════════
+function updateMovement(dt){
+  if(!state.running||state.panelOpen)return;
+  const sp=3.6*dt;
+  const dir=new THREE.Vector3();
+  const fwd=new THREE.Vector3(-Math.sin(state.yaw),0,-Math.cos(state.yaw));
+  const rgt=new THREE.Vector3( Math.cos(state.yaw),0,-Math.sin(state.yaw));
+  if(state.keys['KeyW']||state.keys['KeyZ'])dir.addScaledVector(fwd, 1);
+  if(state.keys['KeyS'])                   dir.addScaledVector(fwd,-1);
+  if(state.keys['KeyA']||state.keys['KeyQ'])dir.addScaledVector(rgt,-1);
+  if(state.keys['KeyD'])                   dir.addScaledVector(rgt, 1);
+  if(dir.length()>0){
+    dir.normalize();
+    const nx=state.playerPos.x+dir.x*sp,nz=state.playerPos.z+dir.z*sp;
+    const hw=GW/2-.38,hd=GD/2-.38;
+    if(Math.abs(nx)<hw)state.playerPos.x=nx;
+    if(Math.abs(nz)<hd)state.playerPos.z=nz;
+  }
+  const groundY=state.currentFloor===0?F0:F1;
+  state.playerPos.y=groundY+1.7;
+  const eu=new THREE.Euler(state.pitch,state.yaw,0,'YXZ');
+  camera.quaternion.setFromEuler(eu);camera.position.copy(state.playerPos);
+  updateFloorUI();
+}
+
+function updateFloorUI(){
+  const names=['Rez-de-chaussée — Galerie Classique','1er Étage — Art Moderne & Contemporain'];
+  document.getElementById('floor-indicator').textContent=names[state.currentFloor];
+}
+
+// ═══════════════════════════════════════════════════
+// ESCALIER
+// ═══════════════════════════════════════════════════
+function checkStair(){
+  const p=state.playerPos,sh=document.getElementById('stair-hint');
+  const dBot=Math.hypot(p.x-STAIR.x,p.z-STAIR.z0);
+  const dTop=Math.hypot(p.x-STAIR.x,p.z-(STAIR.zTop+1));
+  if(state.currentFloor===0&&dBot<2.8){
+    state.nearStair=true;state.nearStairDir='up';
+    sh.textContent='F — Monter au 1er étage ↑';sh.classList.add('visible');
+  }else if(state.currentFloor===1&&dTop<2.8){
+    state.nearStair=true;state.nearStairDir='down';
+    sh.textContent='F — Descendre au rez-de-chaussée ↓';sh.classList.add('visible');
+  }else{state.nearStair=false;state.nearStairDir=null;sh.classList.remove('visible');}
+}
+function tryStair(){
+  if(!state.nearStair)return;
+  if(state.nearStairDir==='up'){
+    state.currentFloor=1;
+    state.playerPos.set(STAIR.x,F1+1.7,STAIR.zTop+1.8);
+    minimapViewFloor=1;
+  }else{
+    state.currentFloor=0;
+    state.playerPos.set(STAIR.x,F0+1.7,STAIR.z0+1.5);
+    minimapViewFloor=0;
+  }
+  camera.position.copy(state.playerPos);
+  updateMinimapButtons();
+}
+
+// ═══════════════════════════════════════════════════
+// ŒUVRES
+// ═══════════════════════════════════════════════════
+const ray=new THREE.Raycaster();
+function checkProximity(){
+  ray.setFromCamera(new THREE.Vector2(0,0),camera);
+  const meshes=state.artworkMeshes.map(a=>a.mesh).filter(Boolean);
+  const hits=ray.intersectObjects(meshes,true);
+  const hint=document.getElementById('interact-hint');
+  if(hits.length>0&&hits[0].distance<4.8){
+    const h=hits[0].object;
+    const en=state.artworkMeshes.find(a=>a.mesh===h||a.mesh.children.includes(h));
+    if(en&&en.floor===state.currentFloor){state.nearArtwork=en.artwork;hint.classList.add('visible');return;}
+  }
+  state.nearArtwork=null;hint.classList.remove('visible');
+}
+function tryInteract(){if(state.nearArtwork)openPanel(state.nearArtwork);}
+function openPanel(aw){
+  ['category','title','artist','date','medium','size','collection','desc'].forEach(k=>{
+    document.getElementById('p-'+k).textContent=aw[k==='category'?'category':k];
+  });
+  document.getElementById('p-category').textContent=aw.category;
+  document.getElementById('p-title').textContent=aw.title;
+  document.getElementById('p-artist').textContent=aw.artist;
+  document.getElementById('p-date').textContent=aw.date;
+  document.getElementById('p-medium').textContent=aw.medium;
+  document.getElementById('p-size').textContent=aw.size;
+  document.getElementById('p-collection').textContent=aw.collection;
+  document.getElementById('p-desc').textContent=aw.desc;
+  document.getElementById('artwork-panel').classList.add('open');
+  state.panelOpen=true;document.exitPointerLock();
+}
+function closePanel(){document.getElementById('artwork-panel').classList.remove('open');state.panelOpen=false;}
+document.getElementById('panel-close').addEventListener('click',closePanel);
+
+// ═══════════════════════════════════════════════════
+// MINIMAP
+// ═══════════════════════════════════════════════════
+function switchMinimapFloor(f){minimapViewFloor=f;updateMinimapButtons();}
+window.switchMinimapFloor=switchMinimapFloor;
+function updateMinimapButtons(){
+  document.getElementById('map-btn-0').classList.toggle('active',minimapViewFloor===0);
+  document.getElementById('map-btn-1').classList.toggle('active',minimapViewFloor===1);
+}
+
+function drawMinimap(){
+  const mc=document.getElementById('mapCanvas'),ctx=mc.getContext('2d');
+  const W=mc.width,H=mc.height;
+  ctx.clearRect(0,0,W,H);
+
+  // Fond
+  ctx.fillStyle='#f2ede4';ctx.fillRect(0,0,W,H);
+  // Salle
+  ctx.strokeStyle='rgba(201,168,76,.5)';ctx.lineWidth=1.5;ctx.strokeRect(3,3,W-6,H-6);
+  ctx.fillStyle='rgba(201,168,76,.04)';ctx.fillRect(3,3,W-6,H-6);
+
+  const scx=W/GW,scz=H/GD,ox=W/2,oz=H/2;
+
+  // Escalier
+  const sx=ox+STAIR.x*scx,szb=oz+STAIR.z0*scz,szt=oz+STAIR.zTop*scz;
+  ctx.fillStyle='rgba(180,140,40,.28)';
+  ctx.fillRect(sx-STAIR.width*scx/2,szb,STAIR.width*scx,szt-szb);
+  ctx.strokeStyle='rgba(201,168,76,.6)';ctx.lineWidth=.7;
+  ctx.strokeRect(sx-STAIR.width*scx/2,szb,STAIR.width*scx,szt-szb);
+  ctx.fillStyle='rgba(201,168,76,.7)';ctx.font='bold 6px sans-serif';ctx.textAlign='center';
+  ctx.fillText('↕ ESC',sx,(szb+szt)/2+2);
+
+  // Parcours
+  const wp=PATH[minimapViewFloor];
+  if(wp){
+    ctx.strokeStyle='rgba(201,168,76,.55)';ctx.lineWidth=1.8;ctx.setLineDash([4,3]);
+    ctx.beginPath();wp.forEach((w,i)=>{i===0?ctx.moveTo(ox+w.x*scx,oz+w.z*scz):ctx.lineTo(ox+w.x*scx,oz+w.z*scz);});
+    ctx.stroke();ctx.setLineDash([]);
+    wp.forEach((w,i)=>{
+      ctx.fillStyle=i===0||i===wp.length-1?'rgba(201,168,76,.9)':'rgba(201,168,76,.55)';
+      ctx.beginPath();ctx.arc(ox+w.x*scx,oz+w.z*scz,i===0||i===wp.length-1?3:1.8,0,Math.PI*2);ctx.fill();
+    });
+  }
+
+  // Œuvres
+  state.artworkMeshes.forEach(a=>{
+    if(!a.wallSide||a.floor!==minimapViewFloor)return;
+    const ax=ox+a.wallX*scx,az=oz+a.zPos*scz;
+    ctx.fillStyle='#b8952a';ctx.fillRect(ax-1.8,az-2.5,3.6,5);
+  });
+
+  // Joueur
+  if(state.currentFloor===minimapViewFloor){
+    const px=ox+state.playerPos.x*scx,pz=oz+state.playerPos.z*scz;
+    // Cône de vision
+    ctx.fillStyle='rgba(201,168,76,.12)';
+    ctx.beginPath();ctx.moveTo(px,pz);
+    ctx.arc(px,pz,16,-state.yaw-Math.PI*.28-Math.PI/2,-state.yaw+Math.PI*.28-Math.PI/2);
+    ctx.closePath();ctx.fill();
+    // Point
+    ctx.fillStyle='#c9a84c';ctx.strokeStyle='white';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(px,pz,3.8,0,Math.PI*2);ctx.fill();ctx.stroke();
+    // Direction
+    const fa=-state.yaw-Math.PI/2;
+    ctx.strokeStyle='#c9a84c';ctx.lineWidth=1.8;
+    ctx.beginPath();ctx.moveTo(px,pz);ctx.lineTo(px+Math.cos(fa)*8,pz+Math.sin(fa)*8);ctx.stroke();
+  }else{
+    // Indicateur "pas sur ce niveau"
+    ctx.fillStyle='rgba(100,100,100,.35)';ctx.font='7px sans-serif';ctx.textAlign='center';
+    ctx.fillText('(autre niveau)',W/2,H/2+16);
+  }
+  ctx.textAlign='start';
+}
+
+// ═══════════════════════════════════════════════════
+// BOUCLE
+// ═══════════════════════════════════════════════════
+let lastT=performance.now();
+function animate(){
+  requestAnimationFrame(animate);
+  const now=performance.now(),dt=Math.min((now-lastT)/1000,.05);lastT=now;
+  if(state.running){updateMovement(dt);checkProximity();checkStair();drawMinimap();}
+  renderer.render(scene,camera);
+}
+
+// ═══════════════════════════════════════════════════
+// DÉMARRAGE
+// ═══════════════════════════════════════════════════
+document.getElementById('btn-enter').addEventListener('click',()=>{
+  document.getElementById('welcome').classList.add('hidden');
+  setTimeout(()=>{
+    document.getElementById('welcome').style.display='none';
+    state.running=true;
+    ['hud','crosshair','floor-indicator'].forEach(id=>document.getElementById(id).classList.add('visible'));
+    document.getElementById('minimap-container').classList.add('visible');
+    updateFloorUI();canvas.requestPointerLock();
+  },900);
+});
+
+window.addEventListener('resize',()=>{
+  camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth,window.innerHeight);
+});
+
+// ── INIT ──
+setupLights();
+buildLevel(F0,false);
+buildLevel(F1,true);
+buildStair();
+buildPath(F0+.006,PATH[0]);
+buildPath(F1+.006,PATH[1]);
+placeAllArtworks();
+startControls();
+animate();
+</script>
+</body>
+</html>

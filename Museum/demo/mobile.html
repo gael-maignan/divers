@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Musée virtuel - Three.js</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; overflow: hidden; font-family: sans-serif; touch-action: none; }
+    canvas { display: block; }
+
+    /* ── Overlay ─────────────────────────────────────────────────────────── */
+    #overlay {
+      position: fixed; inset: 0;
+      display: grid; place-items: center;
+      background: rgba(0,0,0,0.55);
+      color: white; text-align: center;
+      z-index: 10; user-select: none; cursor: pointer;
+    }
+    #overlay .box {
+      max-width: 520px; padding: 24px 28px;
+      border: 1px solid rgba(255,255,255,0.25); border-radius: 16px;
+      background: rgba(20,20,20,0.65); backdrop-filter: blur(8px);
+    }
+    #overlay h1 { margin: 0 0 12px; font-size: 22px; }
+    #overlay p  { margin: 6px 0; line-height: 1.45; font-size: 15px; opacity: 0.95; }
+
+    /* ── HUD commun ──────────────────────────────────────────────────────── */
+    .hud {
+      position: fixed; left: 12px;
+      z-index: 5; color: white;
+      background: rgba(0,0,0,0.45);
+      padding: 8px 10px; border-radius: 10px;
+      font-size: 12px; pointer-events: none; font-family: monospace;
+    }
+    #hint      { bottom: 12px;  font-family: sans-serif; font-size: 13px; }
+    #cameraPos { bottom: 52px;  }
+    #fps       { bottom: 92px;  }
+
+    /* ── Joystick gauche (déplacement) ───────────────────────────────────── */
+    #joystick-zone {
+      position: fixed;
+      left: 0; bottom: 0;
+      width: 45vw; height: 45vw;
+      max-width: 200px; max-height: 200px;
+      z-index: 6;
+      display: none; /* affiché uniquement en mobile */
+    }
+    #joystick-base {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      width: 110px; height: 110px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.12);
+      border: 2px solid rgba(255,255,255,0.3);
+    }
+    #joystick-thumb {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.55);
+      border: 2px solid rgba(255,255,255,0.8);
+      transition: background 0.1s;
+    }
+
+    /* ── Boutons verticaux (altitude) ────────────────────────────────────── */
+    #vertical-btns {
+      position: fixed;
+      right: 16px; bottom: 16px;
+      z-index: 6;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .vbtn {
+      width: 54px; height: 54px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.18);
+      border: 2px solid rgba(255,255,255,0.4);
+      color: white; font-size: 22px;
+      display: grid; place-items: center;
+      cursor: pointer; user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: none;
+    }
+    .vbtn:active { background: rgba(255,255,255,0.38); }
+
+    /* ── Bouton collisions (mobile) ──────────────────────────────────────── */
+    #collision-btn {
+      position: fixed;
+      right: 16px; top: 16px;
+      z-index: 6;
+      padding: 8px 14px;
+      border-radius: 20px;
+      background: rgba(0,0,0,0.45);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: white; font-size: 12px;
+      cursor: pointer; user-select: none;
+      display: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+  </style>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+
+  <!-- Overlay d'accueil -->
+  <div id="overlay">
+    <div class="box">
+      <h1 id="overlay-title">Toucher pour entrer</h1>
+      <div id="overlay-desktop">
+        <p>Déplacement : ZQSD ou WASD</p>
+        <p>Altitude : flèches Haut / Bas</p>
+        <p>Souris : regarder autour</p>
+        <p>Échap : quitter le mode caméra libre</p>
+        <p>Collisions : touche C</p>
+      </div>
+      <div id="overlay-mobile" style="display:none">
+        <p>Joystick gauche : se déplacer</p>
+        <p>Glisser à droite : regarder autour</p>
+        <p>Boutons ↑↓ : monter / descendre</p>
+        <p>Bouton C : activer/désactiver les collisions</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- HUD -->
+  <div id="hint"      class="hud">Caméra libre + collisions activées</div>
+  <div id="cameraPos" class="hud"></div>
+  <div id="fps"       class="hud"></div>
+
+  <!-- Contrôles mobiles -->
+  <div id="joystick-zone">
+    <div id="joystick-base">
+      <div id="joystick-thumb"></div>
+    </div>
+  </div>
+
+  <div id="vertical-btns">
+    <div class="vbtn" id="btn-up">↑</div>
+    <div class="vbtn" id="btn-down">↓</div>
+  </div>
+
+  <div id="collision-btn">C · Collisions ON</div>
+
+  <script type="module">
+    import * as THREE from "three";
+    import { GLTFLoader }          from "three/addons/loaders/GLTFLoader.js";
+    import { DRACOLoader }         from "three/addons/loaders/DRACOLoader.js";
+    import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
+
+    // ─── Détection mobile ─────────────────────────────────────────────────────
+    const IS_MOBILE = /Mobi|Android|iPhone|iPad|iPod|Touch/i.test(navigator.userAgent)
+                   || ('ontouchstart' in window);
+
+    // ─── DOM refs ─────────────────────────────────────────────────────────────
+    const overlay       = document.getElementById("overlay");
+    const hint          = document.getElementById("hint");
+    const cameraPosDiv  = document.getElementById("cameraPos");
+    const fpsDiv        = document.getElementById("fps");
+    const joystickZone  = document.getElementById("joystick-zone");
+    const joystickThumb = document.getElementById("joystick-thumb");
+    const collisionBtn  = document.getElementById("collision-btn");
+
+    // ─── FPS counter ─────────────────────────────────────────────────────────
+    let fpsFrameCount = 0;
+    let fpsLastTime   = performance.now();
+
+    // ─── Constantes physiques ─────────────────────────────────────────────────
+    const MOVE_SPEED     = 4.5;
+    const VERTICAL_SPEED = 3.0;
+    const SKIN           = 0.35;
+    const HEIGHT         = 1.7;
+    const V_OFFSETS      = [-HEIGHT * 0.5];
+
+    // Joystick : rayon max du thumb en px
+    const JOY_RADIUS = 38;
+
+    // ─── Directions cardinales ────────────────────────────────────────────────
+    const DIR = {
+      px: new THREE.Vector3( 1,  0,  0),
+      nx: new THREE.Vector3(-1,  0,  0),
+      pz: new THREE.Vector3( 0,  0,  1),
+      nz: new THREE.Vector3( 0,  0, -1),
+      py: new THREE.Vector3( 0,  1,  0),
+      ny: new THREE.Vector3( 0, -1,  0),
+    };
+
+    // ─── État global ──────────────────────────────────────────────────────────
+    let scene, camera, renderer, controls, clock;
+    const collisionMeshes = [];
+    const raycaster       = new THREE.Raycaster();
+    raycaster.firstHitOnly = true;
+    let collisionsEnabled  = true;
+
+    // Vecteurs pré-alloués
+    const _direction  = new THREE.Vector3();
+    const _right      = new THREE.Vector3();
+    const _horizontal = new THREE.Vector3();
+    const _origin     = new THREE.Vector3();
+
+    // Input clavier
+    const keys = { forward: false, backward: false, left: false, right: false, up: false, down: false };
+
+    // ─── État mobile ──────────────────────────────────────────────────────────
+    // Joystick : vecteur normalisé [-1..1, -1..1]
+    const joy = { x: 0, y: 0 };
+    let joyTouchId    = null;  // identifiant du touch joystick
+    let joyOriginX    = 0;
+    let joyOriginY    = 0;
+
+    // Camera look : touch sur la partie droite de l'écran
+    let lookTouchId   = null;
+    let lookLastX     = 0;
+    let lookLastY     = 0;
+    // Euler stocké manuellement pour la caméra mobile (PointerLock n'est pas utilisé sur mobile)
+    let mobileYaw     = 0;   // rotation horizontale (rad)
+    let mobilePitch   = 0;   // rotation verticale (rad)
+    const LOOK_SENS   = 0.004;
+
+    // Position caméra mobile gérée directement
+    const mobilePos   = new THREE.Vector3(0, HEIGHT, 0);
+
+    // ─── Collision helpers ────────────────────────────────────────────────────
+    function blockedInDirection(origin, dir, dist) {
+      raycaster.far = dist;
+      for (const vOff of V_OFFSETS) {
+        _origin.set(origin.x, origin.y + vOff, origin.z);
+        raycaster.set(_origin, dir);
+        if (raycaster.intersectObjects(collisionMeshes, false).length > 0) return true;
+      }
+      return false;
+    }
+
+    function tryMoveAxis(pos, axis, delta) {
+      if (delta === 0) return pos;
+      const dir =
+        axis === "x" ? (delta > 0 ? DIR.px : DIR.nx) :
+        axis === "z" ? (delta > 0 ? DIR.pz : DIR.nz) :
+                       (delta > 0 ? DIR.py : DIR.ny);
+      if (collisionsEnabled && blockedInDirection(pos, dir, SKIN + Math.abs(delta))) return pos;
+      const next = pos.clone();
+      next[axis] += delta;
+      return next;
+    }
+
+    // ─── Mise à jour collision display ───────────────────────────────────────
+    function updateCollisionHint() {
+      const label = collisionsEnabled ? "ON" : "OFF";
+      hint.innerText        = `Caméra libre + collisions ${collisionsEnabled ? "activées" : "désactivées"}`;
+      collisionBtn.innerText = `C · Collisions ${label}`;
+    }
+
+    function toggleCollisions() {
+      collisionsEnabled = !collisionsEnabled;
+      updateCollisionHint();
+    }
+
+    // ─── Init ─────────────────────────────────────────────────────────────────
+    function init() {
+      // Adapter overlay selon le device
+      if (IS_MOBILE) {
+        document.getElementById("overlay-title").textContent = "Toucher pour entrer";
+        document.getElementById("overlay-mobile").style.display = "block";
+        document.getElementById("overlay-desktop").style.display = "none";
+        joystickZone.style.display  = "block";
+        document.getElementById("vertical-btns").style.display = "flex";
+        collisionBtn.style.display  = "block";
+      } else {
+        document.getElementById("overlay-title").textContent = "Cliquer pour entrer";
+      }
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x111111);
+      scene.fog        = new THREE.Fog(0x111111, 12, 60);
+
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+      // Sur mobile on réduit légèrement le pixel ratio pour les performances
+      const pixelRatio = IS_MOBILE
+        ? Math.min(window.devicePixelRatio, 1.5)
+        : Math.min(window.devicePixelRatio, 2);
+
+      renderer = new THREE.WebGLRenderer({ antialias: !IS_MOBILE });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(pixelRatio);
+      renderer.outputEncoding         = THREE.sRGBEncoding;
+      renderer.physicallyCorrectLights = true;
+      renderer.toneMapping            = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure    = 1.1;
+      // Ombres désactivées sur mobile (trop coûteux)
+      renderer.shadowMap.enabled      = !IS_MOBILE;
+      renderer.shadowMap.type         = THREE.PCFSoftShadowMap;
+      document.body.appendChild(renderer.domElement);
+
+      clock = new THREE.Clock();
+
+      // Lumières
+      scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+      scene.add(new THREE.HemisphereLight(0xffffff, 0x222233, 0.8));
+      const sun = new THREE.DirectionalLight(0xffffff, 2.0);
+      sun.position.set(5, 10, 7);
+      sun.castShadow = !IS_MOBILE;
+      scene.add(sun);
+
+      // Panorama
+      new THREE.TextureLoader().load("panorama.png", (tex) => {
+        tex.mapping    = THREE.EquirectangularReflectionMapping;
+        scene.background = tex;
+      });
+
+      // Modèle GLB
+      const dracoLoader = new DRACOLoader();
+      dracoLoader.setDecoderPath(
+        "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/draco/"
+      );
+      const gltfLoader = new GLTFLoader();
+      gltfLoader.setDRACOLoader(dracoLoader);
+
+      gltfLoader.load(
+        "sponza-palace/source/scene.glb",
+        (gltf) => {
+          const model = gltf.scene;
+          scene.add(model);
+          model.updateMatrixWorld(true);
+          collisionMeshes.length = 0;
+          model.traverse((obj) => {
+            if (obj.isMesh) { obj.updateMatrixWorld(true); collisionMeshes.push(obj); }
+          });
+          console.log(`Collision meshes : ${collisionMeshes.length}`);
+        },
+        undefined,
+        (err) => console.error("Erreur GLB :", err)
+      );
+
+      // ── Contrôles Desktop (PointerLock) ────────────────────────────────────
+      if (!IS_MOBILE) {
+        controls = new PointerLockControls(camera, document.body);
+        controls.getObject().position.copy(mobilePos);
+        scene.add(controls.getObject());
+
+        document.addEventListener("keydown", onKeyDown);
+        document.addEventListener("keyup",   onKeyUp);
+        document.addEventListener("click", () => { if (!controls.isLocked) controls.lock(); });
+        controls.addEventListener("lock",   () => { overlay.style.display = "none"; });
+        controls.addEventListener("unlock", () => { overlay.style.display = "grid"; });
+
+      } else {
+        // ── Contrôles Mobile (touch) ──────────────────────────────────────────
+
+        // Caméra positionnée et orientée manuellement
+        camera.position.copy(mobilePos);
+        scene.add(camera);
+
+        // Joystick touches
+        joystickZone.addEventListener("touchstart",  onJoyStart,  { passive: false });
+        joystickZone.addEventListener("touchmove",   onJoyMove,   { passive: false });
+        joystickZone.addEventListener("touchend",    onJoyEnd,    { passive: false });
+        joystickZone.addEventListener("touchcancel", onJoyEnd,    { passive: false });
+
+        // Look (glisser sur la partie droite)
+        renderer.domElement.addEventListener("touchstart",  onLookStart,  { passive: false });
+        renderer.domElement.addEventListener("touchmove",   onLookMove,   { passive: false });
+        renderer.domElement.addEventListener("touchend",    onLookEnd,    { passive: false });
+        renderer.domElement.addEventListener("touchcancel", onLookEnd,    { passive: false });
+
+        // Boutons altitude
+        const btnUp   = document.getElementById("btn-up");
+        const btnDown = document.getElementById("btn-down");
+        btnUp.addEventListener("touchstart",  (e) => { e.preventDefault(); keys.up   = true;  }, { passive: false });
+        btnUp.addEventListener("touchend",    (e) => { e.preventDefault(); keys.up   = false; }, { passive: false });
+        btnDown.addEventListener("touchstart",(e) => { e.preventDefault(); keys.down = true;  }, { passive: false });
+        btnDown.addEventListener("touchend",  (e) => { e.preventDefault(); keys.down = false; }, { passive: false });
+
+        // Bouton collisions
+        collisionBtn.addEventListener("touchstart", (e) => { e.preventDefault(); toggleCollisions(); }, { passive: false });
+
+        // Entrée : tap sur l'overlay
+        overlay.addEventListener("touchstart", (e) => {
+          e.preventDefault();
+          overlay.style.display = "none";
+        }, { passive: false });
+      }
+
+      window.addEventListener("resize", onWindowResize);
+      animate();
+    }
+
+    // ─── Joystick handlers ────────────────────────────────────────────────────
+    function onJoyStart(e) {
+      e.preventDefault();
+      if (joyTouchId !== null) return; // déjà actif
+      const t = e.changedTouches[0];
+      joyTouchId = t.identifier;
+      const rect = joystickZone.getBoundingClientRect();
+      joyOriginX = rect.left + rect.width  / 2;
+      joyOriginY = rect.top  + rect.height / 2;
+      updateJoy(t);
+    }
+
+    function onJoyMove(e) {
+      e.preventDefault();
+      for (const t of e.changedTouches) {
+        if (t.identifier === joyTouchId) { updateJoy(t); break; }
+      }
+    }
+
+    function onJoyEnd(e) {
+      e.preventDefault();
+      for (const t of e.changedTouches) {
+        if (t.identifier === joyTouchId) {
+          joyTouchId = null;
+          joy.x = 0; joy.y = 0;
+          joystickThumb.style.transform = "translate(-50%, -50%)";
+          break;
+        }
+      }
+    }
+
+    function updateJoy(touch) {
+      let dx = touch.clientX - joyOriginX;
+      let dy = touch.clientY - joyOriginY;
+      const len = Math.sqrt(dx*dx + dy*dy);
+      if (len > JOY_RADIUS) { dx = dx/len * JOY_RADIUS; dy = dy/len * JOY_RADIUS; }
+      joy.x = dx / JOY_RADIUS;
+      joy.y = dy / JOY_RADIUS;
+      joystickThumb.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+    }
+
+    // ─── Look handlers (partie droite de l'écran) ─────────────────────────────
+    function isRightSide(touch) {
+      return touch.clientX > window.innerWidth * 0.45;
+    }
+
+    function onLookStart(e) {
+      e.preventDefault();
+      for (const t of e.changedTouches) {
+        // Ignorer si c'est le joystick ou les boutons
+        if (lookTouchId !== null) continue;
+        if (!isRightSide(t)) continue;
+        lookTouchId = t.identifier;
+        lookLastX   = t.clientX;
+        lookLastY   = t.clientY;
+      }
+    }
+
+    function onLookMove(e) {
+      e.preventDefault();
+      for (const t of e.changedTouches) {
+        if (t.identifier !== lookTouchId) continue;
+        const dx = t.clientX - lookLastX;
+        const dy = t.clientY - lookLastY;
+        lookLastX = t.clientX;
+        lookLastY = t.clientY;
+        mobileYaw   -= dx * LOOK_SENS;
+        mobilePitch -= dy * LOOK_SENS;
+        // Limiter le pitch pour éviter le retournement
+        mobilePitch = Math.max(-Math.PI / 2 + 0.05, Math.min(Math.PI / 2 - 0.05, mobilePitch));
+      }
+    }
+
+    function onLookEnd(e) {
+      e.preventDefault();
+      for (const t of e.changedTouches) {
+        if (t.identifier === lookTouchId) { lookTouchId = null; break; }
+      }
+    }
+
+    // ─── Keyboard handlers (desktop) ─────────────────────────────────────────
+    function onKeyDown(e) {
+      switch (e.code) {
+        case "KeyZ": case "KeyW": keys.forward  = true;  break;
+        case "KeyS":              keys.backward = true;  break;
+        case "KeyQ": case "KeyA": keys.left     = true;  break;
+        case "KeyD":              keys.right    = true;  break;
+        case "ArrowUp":   keys.up   = true;  e.preventDefault(); break;
+        case "ArrowDown": keys.down = true;  e.preventDefault(); break;
+        case "KeyC": toggleCollisions(); break;
+      }
+    }
+
+    function onKeyUp(e) {
+      switch (e.code) {
+        case "KeyZ": case "KeyW": keys.forward  = false; break;
+        case "KeyS":              keys.backward = false; break;
+        case "KeyQ": case "KeyA": keys.left     = false; break;
+        case "KeyD":              keys.right    = false; break;
+        case "ArrowUp":   keys.up   = false; e.preventDefault(); break;
+        case "ArrowDown": keys.down = false; e.preventDefault(); break;
+      }
+    }
+
+    // ─── Boucle d'animation ───────────────────────────────────────────────────
+    function animate() {
+      requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+
+      if (IS_MOBILE) {
+        // ── Orientation caméra mobile ─────────────────────────────────────────
+        camera.rotation.order = "YXZ";
+        camera.rotation.y     = mobileYaw;
+        camera.rotation.x     = mobilePitch;
+
+        // ── Déplacement mobile ────────────────────────────────────────────────
+        const hasMove = (joy.x !== 0 || joy.y !== 0 || keys.up || keys.down);
+        if (hasMove) {
+          // Direction regard horizontale
+          _direction.set(Math.sin(mobileYaw), 0, Math.cos(mobileYaw)).negate().normalize();
+          _right.set(Math.cos(mobileYaw), 0, -Math.sin(mobileYaw)).negate().normalize();
+
+          let next = mobilePos.clone();
+
+          if (joy.x !== 0 || joy.y !== 0) {
+            _horizontal.set(0, 0, 0);
+            // joy.y négatif = poussé vers le haut = avancer
+            _horizontal.addScaledVector(_direction, -joy.y);
+            _horizontal.addScaledVector(_right,      joy.x);
+            if (_horizontal.lengthSq() > 0) {
+              _horizontal.normalize().multiplyScalar(MOVE_SPEED * delta);
+              next = tryMoveAxis(next, "x", _horizontal.x);
+              next = tryMoveAxis(next, "z", _horizontal.z);
+            }
+          }
+
+          if (keys.up)   next = tryMoveAxis(next, "y",  VERTICAL_SPEED * delta);
+          if (keys.down) next = tryMoveAxis(next, "y", -VERTICAL_SPEED * delta);
+
+          mobilePos.copy(next);
+        }
+
+        camera.position.copy(mobilePos);
+
+      } else {
+        // ── Desktop (PointerLock) ─────────────────────────────────────────────
+        if (controls.isLocked) {
+          const obj     = controls.getObject();
+          const current = obj.position.clone();
+
+          controls.getDirection(_direction);
+          _direction.y = 0;
+          _direction.normalize();
+          _right.crossVectors(_direction, obj.up).normalize();
+
+          let moveX = 0, moveZ = 0, moveY = 0;
+          if (keys.forward)  moveZ += 1;
+          if (keys.backward) moveZ -= 1;
+          if (keys.right)    moveX += 1;
+          if (keys.left)     moveX -= 1;
+          if (keys.up)       moveY += 1;
+          if (keys.down)     moveY -= 1;
+
+          let next = current;
+
+          if (moveX !== 0 || moveZ !== 0) {
+            _horizontal.set(0, 0, 0);
+            if (moveX !== 0) _horizontal.addScaledVector(_right,     moveX);
+            if (moveZ !== 0) _horizontal.addScaledVector(_direction, moveZ);
+            _horizontal.normalize().multiplyScalar(MOVE_SPEED * delta);
+            next = tryMoveAxis(next, "x", _horizontal.x);
+            next = tryMoveAxis(next, "z", _horizontal.z);
+          }
+
+          if (moveY !== 0) next = tryMoveAxis(next, "y", moveY * VERTICAL_SPEED * delta);
+
+          obj.position.copy(next);
+        }
+      }
+
+      // ── HUD ───────────────────────────────────────────────────────────────
+      const p = IS_MOBILE ? mobilePos : controls.getObject().position;
+      cameraPosDiv.innerText = `x: ${p.x.toFixed(2)}, y: ${p.y.toFixed(2)}, z: ${p.z.toFixed(2)}`;
+
+      fpsFrameCount++;
+      const now = performance.now();
+      const elapsed = now - fpsLastTime;
+      if (elapsed >= 1000) {
+        fpsDiv.innerText = `FPS : ${Math.round(fpsFrameCount * 1000 / elapsed)}`;
+        fpsFrameCount = 0;
+        fpsLastTime   = now;
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    // ─── Resize ───────────────────────────────────────────────────────────────
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    init();
+  </script>
+</body>
+</html>

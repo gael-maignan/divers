@@ -446,12 +446,13 @@
     function onLookStart(e) {
       e.preventDefault();
       for (const t of e.changedTouches) {
-        // Ignorer si c'est le joystick ou les boutons
-        if (lookTouchId !== null) continue;
         if (!isRightSide(t)) continue;
+        // Toujours prendre le touch le plus récent côté droit,
+        // même si un lookTouchId est déjà actif (remplace l'ancien stale)
         lookTouchId = t.identifier;
         lookLastX   = t.clientX;
         lookLastY   = t.clientY;
+        break;
       }
     }
 
@@ -463,9 +464,8 @@
         const dy = t.clientY - lookLastY;
         lookLastX = t.clientX;
         lookLastY = t.clientY;
-        mobileYaw   -= dx * LOOK_SENS;
-        mobilePitch -= dy * LOOK_SENS;
-        // Limiter le pitch pour éviter le retournement
+        mobileYaw   += dx * LOOK_SENS;   // inversé
+        mobilePitch += dy * LOOK_SENS;   // inversé
         mobilePitch = Math.max(-Math.PI / 2 + 0.05, Math.min(Math.PI / 2 - 0.05, mobilePitch));
       }
     }
@@ -525,7 +525,7 @@
             _horizontal.set(0, 0, 0);
             // joy.y négatif = poussé vers le haut = avancer
             _horizontal.addScaledVector(_direction, -joy.y);
-            _horizontal.addScaledVector(_right,      joy.x);
+            _horizontal.addScaledVector(_right,     -joy.x);
             if (_horizontal.lengthSq() > 0) {
               _horizontal.normalize().multiplyScalar(MOVE_SPEED * delta);
               next = tryMoveAxis(next, "x", _horizontal.x);

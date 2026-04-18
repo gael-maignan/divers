@@ -439,15 +439,20 @@
     }
 
     // ─── Look handlers (partie droite de l'écran) ─────────────────────────────
-    function isRightSide(touch) {
-      return touch.clientX > window.innerWidth * 0.45;
+    function isInJoystickZone(touch) {
+      const rect = joystickZone.getBoundingClientRect();
+      return (
+        touch.clientX >= rect.left && touch.clientX <= rect.right &&
+        touch.clientY >= rect.top  && touch.clientY <= rect.bottom
+      );
     }
 
     function onLookStart(e) {
       e.preventDefault();
       for (const t of e.changedTouches) {
-        if (!isRightSide(t)) continue;
-        // Toujours prendre le touch le plus récent côté droit,
+        if (isInJoystickZone(t)) continue;        // réservé au joystick
+        if (t.identifier === joyTouchId) continue; // touch joystick actif
+        // Toujours prendre le touch le plus récent hors joystick,
         // même si un lookTouchId est déjà actif (remplace l'ancien stale)
         lookTouchId = t.identifier;
         lookLastX   = t.clientX;

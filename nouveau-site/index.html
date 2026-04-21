@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gaël Maignan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Neue+Haas+Grotesk+Display+Pro:wght@400;500&display=swap" rel="stylesheet" />
+  <!-- fallback for Neue Haas -->
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─── RESET & BASE ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --col: calc((100% - 11 * var(--gap)) / 12);
+      --gap: 20px;
+      --gutter: 48px;
+
+      --bg: #f5f2ec;
+      --ink: #1a1814;
+      --muted: #8c887f;
+      --accent: #c8a96e;
+      --overlay: rgba(26, 24, 20, 0.82);
+
+      --font-display: 'Cormorant Garamond', Georgia, serif;
+      --font-body: 'DM Sans', sans-serif;
+
+      --header-h: 64px;
+      --radius: 2px;
+      --transition: 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── GRID UTILITY ──────────────────────────────────────────────── */
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 var(--gutter);
+    }
+
+    /* ─── HEADER ────────────────────────────────────────────────────── */
+    header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      height: var(--header-h);
+      background: var(--bg);
+      border-bottom: 1px solid rgba(26,24,20,.1);
+      display: flex;
+      align-items: center;
+    }
+
+    header .container {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      color: var(--ink);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .logo em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    /* burger */
+    .burger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 6px;
+      background: none;
+      border: none;
+    }
+    .burger span {
+      display: block;
+      width: 24px;
+      height: 1.5px;
+      background: var(--ink);
+      transition: var(--transition);
+    }
+
+    nav {
+      display: flex;
+      gap: 32px;
+      align-items: center;
+    }
+
+    nav a {
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      position: relative;
+      padding-bottom: 2px;
+      transition: color var(--transition);
+    }
+
+    nav a::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 0; height: 1px;
+      background: var(--accent);
+      transition: width var(--transition);
+    }
+
+    nav a:hover { color: var(--ink); }
+    nav a:hover::after { width: 100%; }
+    nav a.active { color: var(--ink); }
+    nav a.active::after { width: 100%; }
+
+    /* Contact link — légèrement mis en valeur */
+    nav a.nav-contact {
+      color: var(--ink);
+      border: 1px solid rgba(26,24,20,.2);
+      padding: 6px 14px 6px;
+      border-radius: 2px;
+      transition: background var(--transition), color var(--transition), border-color var(--transition);
+    }
+    nav a.nav-contact::after { display: none; }
+    nav a.nav-contact:hover  { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+    nav a.nav-contact.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+    @media (max-width: 768px) {
+      nav a.nav-contact { border: none; border-radius: 0; padding: 14px var(--gutter); }
+    }
+
+    /* ─── CONTACT / BIO PAGE ────────────────────────────────────────── */
+
+    /* Layout principal : 3 colonnes sur desktop */
+    .bio-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr 340px;
+      grid-template-columns: 240px 2fr 260px;
+      gap: 48px;
+      align-items: start;
+    }
+
+    /* Tablette paysage */
+    @media (max-width: 1100px) {
+      .bio-layout {
+        grid-template-columns: 200px 1fr;
+        grid-template-rows: auto auto;
+        gap: 36px 40px;
+      }
+      .bio-photo-col  { grid-column: 1; grid-row: 1; }
+      .bio-text-col   { grid-column: 2; grid-row: 1; }
+      .bio-events-col { grid-column: 1 / -1; grid-row: 2; }
+    }
+
+    /* Mobile */
+    @media (max-width: 640px) {
+      .bio-layout {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .bio-photo-col,
+      .bio-text-col,
+      .bio-events-col { grid-column: 1; grid-row: auto; }
+    }
+
+    /* ── Photo ───────────────────────────────────────────────────────── */
+    .bio-photo-wrap {
+      position: relative;
+    }
+
+    .bio-photo {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      object-fit: cover;
+      border-radius: 3px;
+      display: block;
+      background: #d4cfc6;
+    }
+
+    /* Trait décoratif doré derrière la photo */
+    .bio-photo-wrap::before {
+      content: '';
+      position: absolute;
+      inset: -8px -8px 8px 8px;
+      border: 1px solid var(--accent);
+      border-radius: 3px;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    @media (max-width: 640px) {
+      .bio-photo-wrap { max-width: 220px; }
+      .bio-photo-wrap::before { display: none; }
+    }
+
+    /* ── Texte bio ───────────────────────────────────────────────────── */
+    .bio-name {
+      font-family: var(--font-display);
+      font-size: clamp(34px, 3.5vw, 52px);
+      font-weight: 300;
+      line-height: 1.05;
+      letter-spacing: -0.01em;
+      margin-bottom: 8px;
+    }
+    .bio-name em { font-style: italic; color: var(--accent); }
+
+    .bio-tagline {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 32px;
+    }
+
+    .bio-divider {
+      width: 32px;
+      height: 1px;
+      background: var(--accent);
+      margin-bottom: 28px;
+    }
+
+    .bio-text p {
+      font-size: 15px;
+      line-height: 1.85;
+      color: #3a3832;
+      margin-bottom: 18px;
+    }
+    .bio-text p:last-child { margin-bottom: 0; }
+
+    /* Bloc contact */
+    .bio-contact-block {
+      margin-top: 40px;
+      padding-top: 32px;
+      border-top: 1px solid rgba(26,24,20,.1);
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .bio-contact-label {
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+
+    .bio-contact-line {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 0;
+      border-bottom: 1px solid rgba(26,24,20,.07);
+      font-size: 14px;
+    }
+    .bio-contact-line:last-child { border-bottom: none; }
+
+    .bio-contact-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid rgba(26,24,20,.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: var(--muted);
+      flex-shrink: 0;
+      transition: background var(--transition), border-color var(--transition), color var(--transition);
+    }
+
+    .bio-contact-line:hover .bio-contact-icon {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .bio-contact-line a {
+      color: var(--ink);
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+    .bio-contact-line:hover a { color: var(--accent); }
+
+    /* ── Événements ──────────────────────────────────────────────────── */
+    .events-block {
+      padding-top: 48px;
+    }
+
+    /* Sur tablette/mobile : 2 colonnes pour les events */
+    @media (max-width: 1100px) {
+      .events-inner {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 0 48px;
+      }
+      /* Les titres d'années span toute la grille */
+      .events-year-group { break-inside: avoid; }
+    }
+
+    @media (max-width: 640px) {
+      .events-inner { display: block; }
+    }
+
+    .events-heading {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 300;
+      letter-spacing: 0.01em;
+      margin-bottom: 28px;
+    }
+    .events-heading em { font-style: italic; color: var(--muted); }
+
+    .events-year-group {
+      margin-bottom: 8px;
+    }
+
+    .events-year {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink);
+      margin: 28px 0 4px;
+    }
+    .events-year:first-child { margin-top: 0; }
+
+    .events-year::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(26,24,20,.1);
+    }
+
+    .event-item {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: 0 16px;
+      padding: 11px 0;
+      border-bottom: 1px solid rgba(26,24,20,.06);
+      align-items: baseline;
+    }
+    .event-item:last-child { border-bottom: none; }
+
+    .event-month {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      text-transform: capitalize;
+      padding-top: 1px;
+    }
+
+    .event-desc {
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: #3a3832;
+    }
+    .event-desc em { font-style: italic; color: var(--ink); }
+
+    @media (max-width: 480px) {
+      .event-item {
+        grid-template-columns: 1fr;
+        gap: 3px;
+        padding: 12px 0;
+      }
+      .event-month { font-size: 10px; color: var(--accent); }
+    }
+
+    /* Mobile nav */
+    @media (max-width: 768px) {
+      :root { --gutter: 24px; --gap: 12px; }
+
+      .burger { display: flex; }
+
+      nav {
+        position: fixed;
+        top: var(--header-h); left: 0; right: 0;
+        flex-direction: column;
+        gap: 0;
+        background: var(--bg);
+        border-bottom: 1px solid rgba(26,24,20,.1);
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease;
+      }
+      nav.open { max-height: 360px; }
+      nav a {
+        width: 100%;
+        padding: 14px var(--gutter);
+        font-size: 13px;
+        border-top: 1px solid rgba(26,24,20,.06);
+      }
+      nav a::after { display: none; }
+    }
+
+    /* ─── MAIN CONTENT ──────────────────────────────────────────────── */
+    main {
+      padding-top: calc(var(--header-h) + 72px);
+      padding-bottom: 96px;
+    }
+
+    /* ─── SECTION ───────────────────────────────────────────────────── */
+    .section {
+      display: none;
+      animation: fadeIn 0.5s ease both;
+    }
+    .section.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-header {
+      margin-bottom: 56px;
+    }
+
+    .section-eyebrow {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(42px, 6vw, 72px);
+      font-weight: 300;
+      line-height: 1.05;
+      letter-spacing: -0.01em;
+    }
+
+    .section-title em {
+      font-style: italic;
+      color: var(--muted);
+    }
+
+    /* ─── GRID ──────────────────────────────────────────────────────── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: var(--gap);
+    }
+
+    /* Cards spanning different column counts */
+    .card-wide  { grid-column: span 5; }
+    .card-med   { grid-column: span 4; }
+    .card-small { grid-column: span 3; }
+    .card-half  { grid-column: span 6; }
+    .card-third { grid-column: span 4; }
+
+    @media (max-width: 1024px) {
+      .card-wide, .card-med, .card-small { grid-column: span 6; }
+      .card-half { grid-column: span 6; }
+    }
+
+    @media (max-width: 768px) {
+      .grid { grid-template-columns: 1fr; gap: 0; }
+      .card-wide, .card-med, .card-small, .card-half, .card-third { grid-column: span 1; }
+    }
+
+    /* ─── CARD ──────────────────────────────────────────────────────── */
+    .card {
+      position: relative;
+      overflow: hidden;
+      background: #e8e4dc;
+      border-radius: var(--radius);
+      cursor: pointer;
+    }
+
+    /* Desktop: aspect ratio square-ish */
+    .card-img-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+    }
+
+    .card-img-wrap img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    /* overlay (desktop hover) */
+    .card-overlay {
+      position: absolute;
+      inset: 0;
+      background: var(--overlay);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 28px;
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+
+    .card:hover .card-img-wrap img { transform: scale(1.04); }
+    .card:hover .card-overlay { opacity: 1; }
+
+    .card-overlay-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 300;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 6px;
+    }
+
+    .card-overlay-sub {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    /* Mobile: stacked layout */
+    .card-info {
+      display: none;
+      padding: 18px 0 32px;
+      border-bottom: 1px solid rgba(26,24,20,.1);
+    }
+
+    .card-info-title {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 300;
+      margin-bottom: 4px;
+      line-height: 1.2;
+    }
+
+    .card-info-sub {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .card-info-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 18px;
+    }
+
+    .btn {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink);
+      text-decoration: none;
+      border: 1px solid var(--ink);
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      transition: background var(--transition), color var(--transition);
+    }
+    .btn:hover { background: var(--ink); color: var(--bg); }
+
+    /* Mobile card shows info block instead of overlay */
+    @media (max-width: 768px) {
+      .card { border-radius: 0; }
+      .card-img-wrap { aspect-ratio: 4 / 3; }
+      .card-overlay { display: none !important; }
+      .card-info { display: block; }
+      .card + .card { margin-top: 0; }
+    }
+
+    /* ─── PLACEHOLDER IMAGES (colored blocks) ───────────────────────── */
+    .placeholder {
+      width: 100%; height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ─── FOOTER ────────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid rgba(26,24,20,.1);
+      padding: 32px 0;
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     HEADER
+═══════════════════════════════════════════════════════════════════ -->
+<header>
+  <div class="container">
+    <a href="#" class="logo" onclick="showSection('ville', this)">Gaël <em>Maignan</em></a>
+
+    <button class="burger" id="burger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav id="nav">
+      <a href="#" data-section="ville"  onclick="navClick(event,'ville')" >En ville</a>
+      <a href="#" data-section="voix"   onclick="navClick(event,'voix')"  >En voix</a>
+      <a href="#" data-section="scene"  onclick="navClick(event,'scene')" >En scène</a>
+      <a href="#" data-section="images" onclick="navClick(event,'images')">En images</a>
+      <a href="#" data-section="mots"   onclick="navClick(event,'mots')"  >En mots</a>
+      <a href="#" data-section="contact" onclick="navClick(event,'contact')" class="nav-contact">Contact &amp; Bio</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     MAIN
+═══════════════════════════════════════════════════════════════════ -->
+<main>
+  <div class="container">
+
+    <!-- ── EN VILLE ──────────────────────────────────────────────────── -->
+    <section class="section active" id="section-ville">
+      <div class="section-header">
+        <!--<p class="section-eyebrow">01 — Urbanité</p>-->
+        <h2 class="section-title">En <em>ville</em></h2>
+      </div>
+
+      <div class="grid">
+
+        <div class="card card-med">
+          <div class="card-img-wrap">
+            <!--<div class="placeholder" style="background:#d4cfc6;"></div>-->
+            <img src="images/ville-sonore.webp" alt="Couverture d'illustration du projet Ville Sonore">
+            <div class="card-overlay">
+              <p class="card-overlay-sub">2025 - Aujourd'hui</p>
+              <h3 class="card-overlay-title">Ville Sonore</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Paris, 2023</p>
+            <h3 class="card-info-title">Traversées nocturnes</h3>
+            <p class="card-info-desc">Déambulations dans les artères de Paris, entre ombre et lumière artificielle.</p>
+            <a href="#" class="btn">Voir le projet</a>
+          </div>
+        </div>
+
+        <div class="card card-med">
+          <div class="card-img-wrap">
+            <!--<div class="placeholder" style="background:#c5bfb4;"></div>-->
+            <img src="images/le-jour-des-13h.webp" alt="Couverture d'illustration du projet Athens Urban Observations Archive">
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Lyon, 2022</p>
+              <h3 class="card-overlay-title">Murs parlants</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Lyon, 2022</p>
+            <h3 class="card-info-title">Murs parlants</h3>
+            <p class="card-info-desc">Les traces laissées sur les façades, mémoire collective du quotidien.</p>
+            <a href="#" class="btn">Voir le projet</a>
+          </div>
+        </div>
+
+        <div class="card card-med">
+          <div class="card-img-wrap">
+            <!--<div class="placeholder" style="background:#c5bfb4;"></div>-->
+            <img src="images/urbanivore.webp" alt="Couverture d'illustration du projet Ville Sonore">
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Marseille, 2023</p>
+              <h3 class="card-overlay-title">Bord du port</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Marseille, 2023</p>
+            <h3 class="card-info-title">Bord du port</h3>
+            <p class="card-info-desc">Entre mer et béton, la frontière douce de la ville méditerranéenne.</p>
+            <a href="#" class="btn">Voir le projet</a>
+          </div>
+        </div>
+
+        <div class="card card-third">
+          <div class="card-img-wrap">
+            <!--<div class="placeholder" style="background:#c5bfb4;"></div>-->
+            <img src="images/sous les yeux.webp" alt="Couverture d'illustration du projet Ville Sonore">
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Bordeaux, 2021</p>
+              <h3 class="card-overlay-title">Miroir d'eau</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Bordeaux, 2021</p>
+            <h3 class="card-info-title">Miroir d'eau</h3>
+            <p class="card-info-desc">Reflets et doubles dans la ville aquatique.</p>
+            <a href="#" class="btn">Voir le projet</a>
+          </div>
+        </div>
+        <div class="card card-third">
+          <div class="card-img-wrap">
+            <!--<div class="placeholder" style="background:#c5bfb4;"></div>-->
+            <img src="images/athens urban observations.webp" alt="Couverture d'illustration du projet Ville Sonore">
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Nantes, 2022</p>
+              <h3 class="card-overlay-title">Passage de Loire</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Nantes, 2022</p>
+            <h3 class="card-info-title">Passage de Loire</h3>
+            <p class="card-info-desc">La ville qui traverse l'eau, l'eau qui traverse la ville.</p>
+            <a href="#" class="btn">Voir le projet</a>
+          </div>
+        </div>
+
+        <div class="card card-third">
+          <div class="card-img-wrap">
+            <!--<div class="placeholder" style="background:#c5bfb4;"></div>-->
+            <img src="images/bievre.webp" alt="Couverture d'illustration du projet Ville Sonore">
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Rennes, 2023</p>
+              <h3 class="card-overlay-title">Géométrie froide</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Rennes, 2023</p>
+            <h3 class="card-info-title">Géométrie froide</h3>
+            <p class="card-info-desc">Architecture moderniste et vide humain, dialogue du métal et de la pierre.</p>
+            <a href="#" class="btn">Voir le projet</a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── EN VOIX ────────────────────────────────────────────────────── -->
+    <section class="section" id="section-voix">
+      <div class="section-header">
+        <!--<p class="section-eyebrow">02 — Sonore</p>-->
+        <h2 class="section-title">En <em>voix</em></h2>
+      </div>
+
+      <div class="grid">
+
+        <div class="card card-half">
+          <div class="card-img-wrap">
+            <!--<div class="placeholder" style="background:#c5bfb4;"></div>-->
+            <img src="images/mahyar.png" alt="Couverture d'illustration du projet Ville Sonore">
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Podcast, 2023</p>
+              <h3 class="card-overlay-title">Voix du dedans</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Podcast, 2023</p>
+            <h3 class="card-info-title">Voix du dedans</h3>
+            <p class="card-info-desc">Série de portraits sonores intimistes, captés dans des espaces confinés.</p>
+            <a href="#" class="btn">Écouter</a>
+          </div>
+        </div>
+
+        <div class="card card-half">
+          <div class="card-img-wrap">
+            <!--<div class="placeholder" style="background:#c5bfb4;"></div>-->
+            <img src="images/poete-a-grande-vitesse.png" alt="Couverture d'illustration du projet Ville Sonore">
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Création radio, 2022</p>
+              <h3 class="card-overlay-title">L'écho des rues</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Création radio, 2022</p>
+            <h3 class="card-info-title">L'écho des rues</h3>
+            <p class="card-info-desc">Paysage sonore urbain, documentaire audio sur la rumeur de la ville.</p>
+            <a href="#" class="btn">Écouter</a>
+          </div>
+        </div>
+
+        <div class="card card-third">
+          <div class="card-img-wrap">
+            <div class="placeholder" style="background:#d1ccc1;"></div>
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Performance, 2023</p>
+              <h3 class="card-overlay-title">Monologue nu</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Performance, 2023</p>
+            <h3 class="card-info-title">Monologue nu</h3>
+            <p class="card-info-desc">Texte dit à voix nue, sans amplification, dans un lieu vide.</p>
+            <a href="#" class="btn">En savoir plus</a>
+          </div>
+        </div>
+
+        <div class="card card-third">
+          <div class="card-img-wrap">
+            <div class="placeholder" style="background:#c0bab0;"></div>
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Album, 2021</p>
+              <h3 class="card-overlay-title">Resonances</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Album, 2021</p>
+            <h3 class="card-info-title">Resonances</h3>
+            <p class="card-info-desc">Compositions vocales expérimentales, entre spoken word et musique concrète.</p>
+            <a href="#" class="btn">Écouter</a>
+          </div>
+        </div>
+
+        <div class="card card-third">
+          <div class="card-img-wrap">
+            <div class="placeholder" style="background:#d6d0c6;"></div>
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Lecture, 2022</p>
+              <h3 class="card-overlay-title">À voix haute</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Lecture, 2022</p>
+            <h3 class="card-info-title">À voix haute</h3>
+            <p class="card-info-desc">Lecture publique de textes contemporains dans des lieux non-dédiés.</p>
+            <a href="#" class="btn">En savoir plus</a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── EN SCÈNE ───────────────────────────────────────────────────── -->
+    <section class="section" id="section-scene">
+      <div class="section-header">
+        <!--<p class="section-eyebrow">03 — Théâtre</p>-->
+        <h2 class="section-title">En <em>scène</em></h2>
+      </div>
+
+      <div class="grid">
+
+        <div class="card card-small">
+          <div class="card-img-wrap">
+            <div class="placeholder" style="background:#c3bdb2;"></div>
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Mise en scène, 2023</p>
+              <h3 class="card-overlay-title">Corps étrangers</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Mise en scène, 2023</p>
+            <h3 class="card-info-title">Corps étrangers</h3>
+            <p class="card-info-desc">Pièce chorégraphiée autour de la notion d'altérité et du rapport à l'autre.</p>
+            <a href="#" class="btn">Voir</a>
+          </div>
+        </div>
+
+        <div class="card card-med">
+          <div class="card-img-wrap">
+            <div class="placeholder" style="background:#b9b3a8;"></div>
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Spectacle, 2022</p>
+              <h3 class="card-overlay-title">L'archipel des absents</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Spectacle, 2022</p>
+            <h3 class="card-info-title">L'archipel des absents</h3>
+            <p class="card-info-desc">Performance documentaire sur la mémoire et le deuil collectif.</p>
+            <a href="#" class="btn">Voir</a>
+          </div>
+        </div>
+
+        <div class="card card-wide">
+          <div class="card-img-wrap">
+            <div class="placeholder" style="background:#d4cfc6;"></div>
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Création, 2023</p>
+              <h3 class="card-overlay-title">Terrain vague</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Création, 2023</p>
+            <h3 class="card-info-title">Terrain vague</h3>
+            <p class="card-info-desc">Installation-performance in situ dans un espace industriel désaffecté.</p>
+            <a href="#" class="btn">Voir</a>
+          </div>
+        </div>
+
+        <div class="card card-half">
+          <div class="card-img-wrap">
+            <div class="placeholder" style="background:#cac4b9;"></div>
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Lecture scénarisée, 2021</p>
+              <h3 class="card-overlay-title">Fragments</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Lecture scénarisée, 2021</p>
+            <h3 class="card-info-title">Fragments</h3>
+            <p class="card-info-desc">Textes brisés, mis en corps et en espace avec trois performers.</p>
+            <a href="#" class="btn">Voir</a>
+          </div>
+        </div>
+
+        <div class="card card-half">
+          <div class="card-img-wrap">
+            <div class="placeholder" style="background:#bdb7ac;"></div>
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Résidence, 2022</p>
+              <h3 class="card-overlay-title">Dehors/Dedans</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Résidence, 2022</p>
+            <h3 class="card-info-title">Dehors/Dedans</h3>
+            <p class="card-info-desc">Exploration de la frontière entre espace public et espace intime au plateau.</p>
+            <a href="#" class="btn">Voir</a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── EN IMAGES ──────────────────────────────────────────────────── -->
+    <section class="section" id="section-images">
+      <div class="section-header">
+        <!--<p class="section-eyebrow">04 — Photographie & Vidéo</p>-->
+        <h2 class="section-title">En <em>images</em></h2>
+      </div>
+
+      <div class="grid">
+
+        <div class="card card-third">
+          <div class="card-img-wrap">
+            <div class="placeholder" style="background:#c8c2b7;"></div>
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Série photo, 2023</p>
+              <h3 class="card-overlay-title">Seuils</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Série photo, 2023</p>
+            <h3 class="card-info-title">Seuils</h3>
+            <p class="card-info-desc">Portes, fenêtres, passages : les lieux de transition photographiés à l'aube.</p>
+            <a href="#" class="btn">Voir la série</a>
+          </div>
+        </div>
+
+        <div class="card card-third">
+          <div class="card-img-wrap">
+            <div class="placeholder" style="background:#b4ae a4;"></div>
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Vidéo, 2022</p>
+              <h3 class="card-overlay-title">Ralenti</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Vidéo, 2022</p>
+            <h3 class="card-info-title">Ralenti</h3>
+            <p class="card-info-desc">Court-métrage expérimental sur la perception du temps dans l'espace urbain.</p>
+            <a href="#" class="btn">Visionner</a>
+          </div>
+        </div>
+
+        <div class="card card-third">
+          <div class="card-img-wrap">
+            <div class="placeholder" style="background:#d7d1c7;"></div>
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Série photo, 2021</p>
+              <h3 class="card-overlay-title">Intérieurs</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Série photo, 2021</p>
+            <h3 class="card-info-title">Intérieurs</h3>
+            <p class="card-info-desc">Portraits d'espaces vides, habités par la lumière et le silence.</p>
+            <a href="#" class="btn">Voir la série</a>
+          </div>
+        </div>
+
+        <div class="card card-wide">
+          <div class="card-img-wrap">
+            <div class="placeholder" style="background:#c1bbb1;"></div>
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Documentaire, 2023</p>
+              <h3 class="card-overlay-title">La mémoire des lieux</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Documentaire, 2023</p>
+            <h3 class="card-info-title">La mémoire des lieux</h3>
+            <p class="card-info-desc">Documentaire photographique sur les espaces de l'oubli en milieu rural.</p>
+            <a href="#" class="btn">Voir le projet</a>
+          </div>
+        </div>
+
+        <div class="card card-med">
+          <div class="card-img-wrap">
+            <div class="placeholder" style="background:#cdc7bc;"></div>
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Film, 2022</p>
+              <h3 class="card-overlay-title">Archipel</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Film, 2022</p>
+            <h3 class="card-info-title">Archipel</h3>
+            <p class="card-info-desc">Vidéo poème, fragments de territoires insulaires filmés en super 8.</p>
+            <a href="#" class="btn">Visionner</a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── EN MOTS ────────────────────────────────────────────────────── -->
+    <section class="section" id="section-mots">
+      <div class="section-header">
+        <!--<p class="section-eyebrow">05 — Écriture</p>-->
+        <h2 class="section-title">En <em>mots</em></h2>
+      </div>
+
+      <div class="grid">
+
+        <div class="card card-half">
+          <div class="card-img-wrap">
+            <div class="placeholder" style="background:#d0cac0;"></div>
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Poésie, 2023</p>
+              <h3 class="card-overlay-title">Brèves géographies</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Poésie, 2023</p>
+            <h3 class="card-info-title">Brèves géographies</h3>
+            <p class="card-info-desc">Recueil de poèmes-espaces, cartographies intérieures d'un territoire imaginaire.</p>
+            <a href="#" class="btn">Lire un extrait</a>
+          </div>
+        </div>
+
+        <div class="card card-half">
+          <div class="card-img-wrap">
+            <div class="placeholder" style="background:#bab4a9;"></div>
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Essai, 2022</p>
+              <h3 class="card-overlay-title">L'espace du silence</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Essai, 2022</p>
+            <h3 class="card-info-title">L'espace du silence</h3>
+            <p class="card-info-desc">Réflexion sur le vide comme matière artistique dans la création contemporaine.</p>
+            <a href="#" class="btn">Lire un extrait</a>
+          </div>
+        </div>
+
+        <div class="card card-third">
+          <div class="card-img-wrap">
+            <div class="placeholder" style="background:#c6c0b5;"></div>
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Fiction, 2021</p>
+              <h3 class="card-overlay-title">Les absentes</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Fiction, 2021</p>
+            <h3 class="card-info-title">Les absentes</h3>
+            <p class="card-info-desc">Nouvelles autour de figures qui traversent sans laisser de trace visible.</p>
+            <a href="#" class="btn">Lire un extrait</a>
+          </div>
+        </div>
+
+        <div class="card card-third">
+          <div class="card-img-wrap">
+            <div class="placeholder" style="background:#d3cdc3;"></div>
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Journal, 2022–23</p>
+              <h3 class="card-overlay-title">Carnets de résidence</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Journal, 2022–23</p>
+            <h3 class="card-info-title">Carnets de résidence</h3>
+            <p class="card-info-desc">Notes de travail, dessins, fragments de texte issus de résidences artistiques.</p>
+            <a href="#" class="btn">Feuilleter</a>
+          </div>
+        </div>
+
+        <div class="card card-third">
+          <div class="card-img-wrap">
+            <div class="placeholder" style="background:#c0baa f;"></div>
+            <div class="card-overlay">
+              <p class="card-overlay-sub">Texte performatif, 2023</p>
+              <h3 class="card-overlay-title">Lignes de fuite</h3>
+            </div>
+          </div>
+          <div class="card-info">
+            <p class="card-info-sub">Texte performatif, 2023</p>
+            <h3 class="card-info-title">Lignes de fuite</h3>
+            <p class="card-info-desc">Partition textuelle conçue pour être lue seul ou à plusieurs voix simultanées.</p>
+            <a href="#" class="btn">Lire un extrait</a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── CONTACT & BIO ─────────────────────────────────────────────── -->
+    <section class="section" id="section-contact">
+      <div class="section-header">
+        <!--<p class="section-eyebrow">06 — Présentation</p>-->
+        <h2 class="section-title">Contact <em>&amp; Bio</em></h2>
+      </div>
+
+      <div class="bio-layout">
+
+        <!-- Photo -->
+        <div class="bio-photo-col">
+          <div class="bio-photo-wrap">
+            <img  class="bio-photo" src="images/gael-maignan.png" alt="Gaël Maignan, 2026">
+          </div>
+        </div>
+
+        <!-- Texte bio + contact -->
+        <div class="bio-text-col">
+          <h2 class="bio-name">Gaël <em>Maignan</em></h2>
+          <p class="bio-tagline">Autrice &middot; Artiste pluridisciplinaire</p>
+          <div class="bio-divider"></div>
+
+          <div class="bio-text">
+            <p>Gaël Maignan est autrice et artiste pluridisciplinaire. Son travail traverse l'écriture, la voix, la scène et l'image, autour de questions liées au corps, au territoire et à la mémoire collective.</p>
+            <p>Elle développe des projets à la croisée de la littérature contemporaine et des arts vivants, en collaboration avec des structures culturelles, des établissements scolaires et des espaces publics. Elle mène également des résidences de création et des ateliers d'écriture à destination de tous les publics.</p>
+            <p>Son travail a été soutenu par le Centre national du Livre, et présenté dans divers contextes, de la petite salle de théâtre à la rue.</p>
+          </div>
+
+          <div class="bio-contact-block">
+            <p class="bio-contact-label">Contact</p>
+            <div class="bio-contact-line">
+              <span class="bio-contact-icon">✉</span>
+              <a href="mailto:contact@gaelmaignan.fr">contact@gaelmaignan.fr</a>
+            </div>
+            <div class="bio-contact-line">
+              <span class="bio-contact-icon">↗</span>
+              <a href="https://gaelmaignan.fr" target="_blank">gaelmaignan.fr</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Événements -->
+        
+
+      </div>
+
+       <!-- Événements -->
+        <div class="bio-events-col">
+          <div class="events-block">
+            <h3 class="events-heading">Agenda &amp; <em>parcours</em></h3>
+
+            <div class="events-inner">
+
+              <div class="events-year-group">
+                <p class="events-year">2025</p>
+                <div class="event-item">
+                  <span class="event-month">Juillet 2025</span>
+                  <span class="event-desc">Bourse de création du Centre national du Livre.</span>
+                </div>
+                <div class="event-item">
+                  <span class="event-month">Avril 2025</span>
+                  <span class="event-desc">Résidence d'autrice à l'école du CNL, école polyvalente Pujol, classe de maternelle multiniveaux (Paris 18e).</span>
+                </div>
+                <div class="event-item">
+                  <span class="event-month">Février 2025</span>
+                  <span class="event-desc">Résidence d'autrice à l'école du CNL, collège François Mitterrand, Arras (62).</span>
+                </div>
+              </div>
+
+              <div class="events-year-group">
+                <p class="events-year">2024</p>
+                <div class="event-item">
+                  <span class="event-month">Novembre 2024</span>
+                  <span class="event-desc">Lecture publique au Festival des Écritures contemporaines, Montpellier.</span>
+                </div>
+                <div class="event-item">
+                  <span class="event-month">Mars 2024</span>
+                  <span class="event-desc">Résidence de création au Théâtre de la Bastille, Paris.</span>
+                </div>
+              </div>
+
+              <div class="events-year-group">
+                <p class="events-year">2023</p>
+                <div class="event-item">
+                  <span class="event-month">Octobre 2023</span>
+                  <span class="event-desc">Publication de <em>Brèves géographies</em>, éditions Contre-pied.</span>
+                </div>
+                <div class="event-item">
+                  <span class="event-month">Mai 2023</span>
+                  <span class="event-desc">Performance <em>Terrain vague</em>, Halle Tropisme, Montpellier.</span>
+                </div>
+              </div>
+
+              <div class="events-year-group">
+                <p class="events-year">2022</p>
+                <div class="event-item">
+                  <span class="event-month">Septembre 2022</span>
+                  <span class="event-desc">Création sonore <em>L'écho des rues</em>, commande de France Culture.</span>
+                </div>
+                <div class="event-item">
+                  <span class="event-month">Janvier 2022</span>
+                  <span class="event-desc">Atelier d'écriture, Maison de la Poésie, Paris.</span>
+                </div>
+              </div>
+
+            </div><!-- /events-inner -->
+          </div><!-- /events-block -->
+        </div>
+
+    </section>
+
+  </div><!-- /container -->
+</main>
+
+<footer>
+  <div class="container">
+    <p>© 2024 Gaël Maignan — Tous droits réservés</p>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     JS
+═══════════════════════════════════════════════════════════════════ -->
+<script>
+  /* ── Navigation ─────────────────────────────────────────────────── */
+  function showSection(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+
+    const section = document.getElementById('section-' + id);
+    if (section) section.classList.add('active');
+
+    const link = document.querySelector('nav a[data-section="' + id + '"]');
+    if (link) link.classList.add('active');
+  }
+
+  function navClick(e, id) {
+    e.preventDefault();
+    showSection(id);
+    // close mobile menu
+    document.getElementById('nav').classList.remove('open');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* ── Burger ──────────────────────────────────────────────────────── */
+  document.getElementById('burger').addEventListener('click', function () {
+    document.getElementById('nav').classList.toggle('open');
+  });
+
+  /* ── Init: activate first nav link ──────────────────────────────── */
+  document.querySelector('nav a[data-section="ville"]').classList.add('active');
+</script>
+
+</body>
+</html>

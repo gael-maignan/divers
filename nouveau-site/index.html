@@ -10,6 +10,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&amp;family=Neue+Haas+Grotesk+Display+Pro:wght@400;500&amp;display=swap" rel="stylesheet"/>
 <!-- fallback for Neue Haas -->
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&amp;family=DM+Sans:wght@300;400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;600;700&display=swap" rel="stylesheet">
+
 <style>
     /* ─── RESET & BASE ──────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -25,8 +27,8 @@
       --accent: #c8a96e;
       --overlay: rgba(26, 24, 20, 0.82);
 
-      --font-display: 'Cormorant Garamond', Georgia, serif;
-      --font-body: 'DM Sans', sans-serif;
+      --font-display: 'Raleway', Georgia, sans-serif;
+      --font-body: 'Raleway', sans-serif;
 
       --header-h: 64px;
       --radius: 2px;
@@ -72,9 +74,9 @@
 
     .logo {
       font-family: var(--font-display);
-      font-size: 22px;
+      font-size: 18px;
       font-weight: 400;
-      letter-spacing: 0.02em;
+      letter-spacing: 0.07em;
       color: var(--ink);
       text-decoration: none;
       white-space: nowrap;
@@ -453,15 +455,11 @@
 
     .section-title {
       font-family: var(--font-display);
-      font-size: clamp(42px, 6vw, 72px);
+      font-size: clamp(43px, 6vw, 50px);
       font-weight: 300;
       line-height: 1.05;
-      letter-spacing: -0.01em;
-    }
-
-    .section-title em {
-      font-style: italic;
-      color: var(--muted);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
     }
 
     /* ─── GRID ──────────────────────────────────────────────────────── */
@@ -528,6 +526,53 @@
     .card:hover .card-img-wrap img { transform: scale(1.04); }
     .card:hover .card-overlay { opacity: 1; }
 
+    /* Bandeau titre toujours visible sur desktop */
+    @media (min-width: 769px) {
+      .card-img-wrap {
+        position: relative;
+      }
+
+      .card-title-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(26,24,20,0.82) 0%, rgba(26,24,20,0.0) 100%);
+        padding: 32px 20px 16px;
+        pointer-events: none;
+        z-index: 1;
+        transition: opacity var(--transition);
+      }
+
+      /* On masque le bandeau quand l'overlay complet est visible */
+      .card:hover .card-title-bar {
+        opacity: 0;
+      }
+
+      .card-title-bar-sub {
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #fff;
+        margin-bottom: 4px;
+      }
+
+      .card-title-bar-text {
+        font-family: var(--font-display);
+        font-size: 16px;
+        font-weight: 300;
+        color: #fff;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .card-title-bar { display: none; }
+    }
+
     .card-overlay-title {
       font-family: var(--font-display);
       font-size: 22px;
@@ -586,6 +631,7 @@
       padding: 10px 20px;
       border-radius: var(--radius);
       transition: background var(--transition), color var(--transition);
+      background: var(--ink); color: var(--bg);
     }
     .btn:hover { background: var(--ink); color: var(--bg); }
 
@@ -839,7 +885,7 @@
 ═══════════════════════════════════════════════════════════════════ -->
 <header>
 <div class="container">
-<a class="logo" href="#" onclick="navClick(event,'accueil')">Gaël Maignan</a>
+<a class="logo" href="#" onclick="navClick(event,'accueil')">GAËL MAIGNAN</a>
 <button aria-label="Menu" class="burger" id="burger">
 <span></span><span></span><span></span>
 </button>
@@ -895,7 +941,7 @@
 <section class="section" id="section-cartes">
 <div class="section-header">
 <!--<p class="section-eyebrow">05 — Écriture</p>-->
-<h2 class="section-title">En Cartes</h2>
+<h2 class="section-title">En cartes</h2>
 </div>
 <div class="grid"></div>
 </section>
@@ -1015,6 +1061,22 @@
           badgeWrap.appendChild(badge);
         });
         wrap.appendChild(badgeWrap);
+      }
+    }
+
+    // Bandeau titre toujours visible sur desktop
+    const titleWrap = clone.querySelector('.card-img-wrap');
+    if (titleWrap) {
+      const subEl    = card.querySelector('.card-overlay-sub');
+      const titleEl  = card.querySelector('.card-overlay-title');
+      const subText   = subEl   ? subEl.textContent.trim()   : '';
+      const titleText = titleEl ? titleEl.textContent.trim() : '';
+      if (titleText) {
+        const bar = document.createElement('div');
+        bar.className = 'card-title-bar';
+        bar.innerHTML = (subText ? `<p class="card-title-bar-sub">${subText}</p>` : '')
+                      + `<p class="card-title-bar-text">${titleText}</p>`;
+        titleWrap.appendChild(bar);
       }
     }
 
@@ -1216,7 +1278,7 @@
     <div class="popup-body">
       <p class="popup-sub" id="popup-sub"></p>
       <h2 class="popup-title" id="popup-title"></h2>
-      <div class="popup-divider"></div>
+      <!--<div class="popup-divider"></div>-->
       <p class="popup-desc" id="popup-desc"></p>
       <div id="popup-btn-wrap"></div>
     </div>

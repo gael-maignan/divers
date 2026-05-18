@@ -99,48 +99,6 @@ body.drawing #cursor{
   transform:translate(-50%,-50%) scale(0.6);
 }
 
-/* ── TOOLBAR ── */
-#toolbar{
-  position:fixed;
-  top:16px;left:50%;
-  transform:translateX(-50%);
-  z-index:30;
-  display:flex;align-items:center;gap:10px;
-  background:rgba(24,24,28,0.88);
-  border:1px solid var(--c-border);
-  border-radius:40px;
-  padding:8px 16px;
-  backdrop-filter:blur(12px);
-  box-shadow:0 4px 32px rgba(0,0,0,0.5);
-}
-#toolbar input{
-  background:transparent;
-  border:none;outline:none;
-  color:var(--c-text);
-  font-family:inherit;
-  font-size:12px;
-  width:220px;
-  padding:0 6px;
-  opacity:0.7;
-}
-#toolbar input::placeholder{color:var(--c-muted);}
-.sep{width:1px;height:20px;background:var(--c-border);}
-.btn{
-  background:transparent;
-  border:1px solid var(--c-border);
-  color:var(--c-text);
-  font-family:inherit;
-  font-size:12px;
-  padding:5px 12px;
-  border-radius:20px;
-  cursor:pointer;
-  display:flex;align-items:center;gap:5px;
-  transition:background 0.15s, border-color 0.15s, color 0.15s;
-  white-space:nowrap;
-}
-.btn:hover{background:var(--c-border);border-color:var(--c-accent);color:var(--c-accent);}
-.btn.danger:hover{border-color:var(--c-accent2);color:var(--c-accent2);}
-
 /* ── STATUS ── */
 #status{
   position:fixed;
@@ -181,15 +139,6 @@ body.drawing #cursor{
 <!-- Curseur custom -->
 <div id="cursor"></div>
 
-<!-- Toolbar -->
-<div id="toolbar">
-  <i class="ti ti-topology-star-3" style="color:var(--c-accent);font-size:16px"></i>
-  <input type="text" id="dataset-url" placeholder="URL drawings.json…" value="data/drawings.json"/>
-  <div class="sep"></div>
-  <button class="btn" id="btn-load"><i class="ti ti-download"></i>Charger</button>
-  <button class="btn danger" id="btn-clear"><i class="ti ti-trash"></i>Effacer</button>
-</div>
-
 <!-- Status -->
 <div id="status"><i class="ti ti-hand-finger" id="status-icon"></i><span id="status-text">Charge un dataset, puis clique pour tracer.</span></div>
 
@@ -199,6 +148,7 @@ body.drawing #cursor{
 ═══════════════════════════════════════════════ */
 const RESAMPLE_N = 64;
 const DRAW_SIZE  = 268; // taille réelle du canvas de dessin (dans le cercle)
+const MAX_PTS    = 30; // nombre maximum de points dans le tracé courant
 
 /* ═══════════════════════════════════════════════
    REFS DOM
@@ -250,8 +200,7 @@ function setStatus(msg, icon='ti-info-circle'){
 }
 
 
-async function loadDataset(){
-  const url = urlInput.value.trim();
+async function loadDataset(url){
 
   if(!url){
     setStatus('Entrez une URL valide.','ti-alert-triangle');
@@ -402,6 +351,10 @@ window.addEventListener('mousemove', e => {
     // point en coordonnées locales du draw-canvas
     const lp = pageToLocal(e.clientX, e.clientY);
     currentPts.push(lp);
+    // Limiter la taille du tracé : supprimer le point le plus ancien
+    if(currentPts.length > MAX_PTS){
+      currentPts.shift();
+    }
     renderDrawCanvas();
   }
 });
@@ -471,18 +424,32 @@ window.addEventListener('mouseup', e => {
 /* Snapshot du print-canvas avant le premier point du tracé en cours */
 let printSnapshot = null;
 
+/* Dessine le tracé segment par segment avec un fondu progressif en début de queue */
+function drawFadingStroke(ctx, pts, localToPage){
+  if(pts.length < 2) return;
+
+  for(let i = 1; i < pts.length; i++){
+
+    const [x0, y0] = localToPage ? localToPage(pts[i-1]) : pts[i-1];
+    const [x1, y1] = localToPage ? localToPage(pts[i])   : pts[i];
+
+    ctx.beginPath();
+    ctx.lineWidth   = 2.5;
+    ctx.lineCap     = 'round';
+    ctx.lineJoin    = 'round';
+    ctx.strokeStyle = `rgba(255,255,255,${(1).toFixed(3)})`;
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x1, y1);
+    ctx.stroke();
+  }
+}
+
 function renderDrawCanvas(){
   dctx.clearRect(0, 0, DRAW_SIZE, DRAW_SIZE);
   if(currentPts.length < 2) return;
 
   /* ── Tracé dans la pastille ── */
-  dctx.beginPath();
-  dctx.lineWidth   = 2.5;
-  dctx.strokeStyle = '#ffffff';
-  dctx.lineCap     = 'round';
-  dctx.lineJoin    = 'round';
-  currentPts.forEach((p,i) => i===0 ? dctx.moveTo(p[0],p[1]) : dctx.lineTo(p[0],p[1]));
-  dctx.stroke();
+  drawFadingStroke(dctx, currentPts, null);
 
   /* ── Tracé live sur le print-canvas (pleine page, sans clip) ── */
   const R = DRAW_SIZE / 2;
@@ -494,16 +461,7 @@ function renderDrawCanvas(){
     pctx.drawImage(printSnapshot, 0, 0);
   }
 
-  pctx.beginPath();
-  pctx.lineWidth   = 2.5;
-  pctx.strokeStyle = 'rgba(255,255,255,0.9)';
-  pctx.lineCap     = 'round';
-  pctx.lineJoin    = 'round';
-  currentPts.forEach((p,i)=>{
-    const [px,py] = localToPage(p);
-    i===0 ? pctx.moveTo(px,py) : pctx.lineTo(px,py);
-  });
-  pctx.stroke();
+  drawFadingStroke(pctx, currentPts, localToPage);
 }
 
 /* ═══════════════════════════════════════════════
@@ -704,27 +662,11 @@ function loadAndPrintImage(path, srcPts, dstPts, cx, cy){
   img.src=path;
 }
 
-/* ═══════════════════════════════════════════════
-   BOUTONS TOOLBAR
-═══════════════════════════════════════════════ */
-/* bouton */
-document.getElementById('btn-load')
-  .addEventListener('click', loadDataset);
-
 /* autoload au démarrage */
 window.addEventListener('DOMContentLoaded', () => {
-  loadDataset();
+  loadDataset('data/drawings.json');
 });
 
-document.getElementById('btn-clear').addEventListener('click',()=>{
-  pctx.clearRect(0,0,printCanvas.width,printCanvas.height);
-  dctx.clearRect(0,0,DRAW_SIZE,DRAW_SIZE);
-  cancelFade();
-  overlayAlpha = 0;
-  overlayImage = null;
-  renderOverlay();
-  setStatus('Canvas effacé.','ti-check');
-});
 
 /* Init position du ring */
 drawRing.style.left = ringX + 'px';

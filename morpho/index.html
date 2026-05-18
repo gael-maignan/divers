@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Traceur — Canvas flottant</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --c-bg:#0e0e10;
+  --c-surface:#18181c;
+  --c-border:#2a2a32;
+  --c-accent:#5b8fff;
+  --c-accent2:#ff7c3e;
+  --c-text:#e8e8f0;
+  --c-muted:#6b6b7e;
+  --r:8px;
+}
+html,body{
+  width:100%;height:100%;
+  background:var(--c-bg);
+  color:var(--c-text);
+  font-family:'Courier New',monospace;
+  overflow:hidden;
+  user-select:none;
+}
+
+/* ── CANVAS D'IMPRESSION (pleine page) ── */
+#print-canvas{
+  position:fixed;
+  inset:0;
+  width:100%;height:100%;
+  z-index:1;
+  cursor:none;
+}
+
+/* ── CANVAS TRACÉS FINALISÉS ── */
+#strokes-canvas{
+  position:fixed;
+  inset:0;
+  width:100%;height:100%;
+  z-index:2;
+  pointer-events:none;
+}
+
+/* ── CANVAS OVERLAY IMAGES ── */
+#overlay-canvas{
+  position:fixed;
+  inset:0;
+  width:100%;height:100%;
+  z-index:3;
+  pointer-events:none;
+}
+
+/* ── CANVAS DE DESSIN FLOTTANT ── */
+#draw-ring{
+  position:fixed;
+  width:280px;height:280px;
+  border-radius:50%;
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+  z-index:10;
+  transition:transform 0.05s linear;
+}
+#draw-ring.pinned{ pointer-events:auto; }
+
+#draw-ring::after{
+  content:'';
+  position:absolute;
+  inset:3px;
+  border-radius:50%;
+  z-index:1;
+}
+
+#draw-canvas{
+  position:absolute;
+  inset:6px;
+  border-radius:50%;
+  z-index:2;
+  /* clip circulaire */
+  clip-path:circle(calc(50% - 0px));
+}
+
+/* cursor custom */
+#cursor{
+  position:fixed;
+  width:10px;height:10px;
+  border-radius:50%;
+  background:var(--c-accent);
+  transform:translate(-50%,-50%);
+  z-index:20;
+  pointer-events:none;
+  mix-blend-mode:screen;
+  transition:transform 0.1s, background 0.2s;
+}
+body.drawing #cursor{
+  background:var(--c-accent2);
+  transform:translate(-50%,-50%) scale(0.6);
+}
+
+/* ── TOOLBAR ── */
+#toolbar{
+  position:fixed;
+  top:16px;left:50%;
+  transform:translateX(-50%);
+  z-index:30;
+  display:flex;align-items:center;gap:10px;
+  background:rgba(24,24,28,0.88);
+  border:1px solid var(--c-border);
+  border-radius:40px;
+  padding:8px 16px;
+  backdrop-filter:blur(12px);
+  box-shadow:0 4px 32px rgba(0,0,0,0.5);
+}
+#toolbar input{
+  background:transparent;
+  border:none;outline:none;
+  color:var(--c-text);
+  font-family:inherit;
+  font-size:12px;
+  width:220px;
+  padding:0 6px;
+  opacity:0.7;
+}
+#toolbar input::placeholder{color:var(--c-muted);}
+.sep{width:1px;height:20px;background:var(--c-border);}
+.btn{
+  background:transparent;
+  border:1px solid var(--c-border);
+  color:var(--c-text);
+  font-family:inherit;
+  font-size:12px;
+  padding:5px 12px;
+  border-radius:20px;
+  cursor:pointer;
+  display:flex;align-items:center;gap:5px;
+  transition:background 0.15s, border-color 0.15s, color 0.15s;
+  white-space:nowrap;
+}
+.btn:hover{background:var(--c-border);border-color:var(--c-accent);color:var(--c-accent);}
+.btn.danger:hover{border-color:var(--c-accent2);color:var(--c-accent2);}
+
+/* ── STATUS ── */
+#status{
+  position:fixed;
+  bottom:16px;left:50%;
+  transform:translateX(-50%);
+  z-index:30;
+  font-size:11px;
+  color:var(--c-muted);
+  background:rgba(24,24,28,0.75);
+  border:1px solid var(--c-border);
+  border-radius:20px;
+  padding:5px 14px;
+  backdrop-filter:blur(8px);
+  letter-spacing:0.04em;
+  display:flex;align-items:center;gap:6px;
+  transition:opacity 0.3s;
+}
+#status i{font-size:13px;}
+
+</style>
+</head>
+<body>
+
+<!-- Canvas d'impression pleine page -->
+<canvas id="print-canvas"></canvas>
+
+<!-- Canvas tracés finalisés (séparé pour fade indépendant) -->
+<canvas id="strokes-canvas"></canvas>
+
+<!-- Canvas overlay images (séparé pour fade indépendant) -->
+<canvas id="overlay-canvas"></canvas>
+
+<!-- Canvas de dessin flottant -->
+<div id="draw-ring">
+  <canvas id="draw-canvas"></canvas>
+</div>
+
+<!-- Curseur custom -->
+<div id="cursor"></div>
+
+<!-- Toolbar -->
+<div id="toolbar">
+  <i class="ti ti-topology-star-3" style="color:var(--c-accent);font-size:16px"></i>
+  <input type="text" id="dataset-url" placeholder="URL drawings.json…" value="data/drawings.json"/>
+  <div class="sep"></div>
+  <button class="btn" id="btn-load"><i class="ti ti-download"></i>Charger</button>
+  <button class="btn danger" id="btn-clear"><i class="ti ti-trash"></i>Effacer</button>
+</div>
+
+<!-- Status -->
+<div id="status"><i class="ti ti-hand-finger" id="status-icon"></i><span id="status-text">Charge un dataset, puis clique pour tracer.</span></div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   CONFIG
+═══════════════════════════════════════════════ */
+const RESAMPLE_N = 64;
+const DRAW_SIZE  = 268; // taille réelle du canvas de dessin (dans le cercle)
+
+/* ═══════════════════════════════════════════════
+   REFS DOM
+═══════════════════════════════════════════════ */
+const printCanvas = document.getElementById('print-canvas');
+const pctx        = printCanvas.getContext('2d');
+const strokesCanvas = document.getElementById('strokes-canvas');
+const sctx          = strokesCanvas.getContext('2d');
+const overlayCanvas = document.getElementById('overlay-canvas');
+const octx          = overlayCanvas.getContext('2d');
+const drawRing    = document.getElementById('draw-ring');
+const drawCanvas  = document.getElementById('draw-canvas');
+const dctx        = drawCanvas.getContext('2d');
+const cursorEl    = document.getElementById('cursor');
+const statusIcon  = document.getElementById('status-icon');
+const statusText  = document.getElementById('status-text');
+const urlInput    = document.getElementById('dataset-url');
+
+/* ═══════════════════════════════════════════════
+   ÉTAT
+═══════════════════════════════════════════════ */
+let dataset      = [];
+let currentPts   = [];   // points en coords locales du draw-canvas
+let isDrawing    = false; // bouton gauche enfoncé
+let isPinned     = false; // canvas fixé
+let ringX = window.innerWidth/2;
+let ringY = window.innerHeight/2;
+
+// Taille du print-canvas
+function resizePrint(){
+  printCanvas.width  = window.innerWidth;
+  printCanvas.height = window.innerHeight;
+  strokesCanvas.width  = window.innerWidth;
+  strokesCanvas.height = window.innerHeight;
+  overlayCanvas.width  = window.innerWidth;
+  overlayCanvas.height = window.innerHeight;
+  drawCanvas.width   = DRAW_SIZE;
+  drawCanvas.height  = DRAW_SIZE;
+}
+resizePrint();
+window.addEventListener('resize', resizePrint);
+
+/* ═══════════════════════════════════════════════
+   STATUS
+═══════════════════════════════════════════════ */
+function setStatus(msg, icon='ti-info-circle'){
+  statusIcon.className = `ti ${icon}`;
+  statusText.textContent = msg;
+}
+
+
+async function loadDataset(){
+  const url = urlInput.value.trim();
+
+  if(!url){
+    setStatus('Entrez une URL valide.','ti-alert-triangle');
+    return;
+  }
+
+  setStatus('Chargement…','ti-loader-2');
+
+  try{
+    const r = await fetch(url);
+
+    if(!r.ok){
+      throw new Error(`HTTP ${r.status}`);
+    }
+
+    dataset = await r.json();
+
+    setStatus(`${dataset.length} tracé(s) chargé(s).`,'ti-database');
+
+  }catch(err){
+    setStatus(`Erreur : ${err.message}`,'ti-alert-triangle');
+  }
+}
+
+
+/* ═══════════════════════════════════════════════
+   OVERLAY IMAGE — FADE IN / FADE OUT
+═══════════════════════════════════════════════ */
+const FADE_IN_MS  = 700;
+const FADE_OUT_MS = 400;
+
+let overlayImage  = null;  // offscreen canvas contenant l'image courante
+let overlayAlpha  = 0;
+let fadeRafId     = null;
+
+function cancelFade(){
+  if(fadeRafId !== null){ cancelAnimationFrame(fadeRafId); fadeRafId = null; }
+}
+
+function renderOverlay(){
+  octx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+  if(overlayImage && overlayAlpha > 0){
+    octx.save();
+    octx.globalAlpha = overlayAlpha;
+    octx.drawImage(overlayImage, 0, 0);
+    octx.restore();
+  }
+}
+
+function fadeInOverlay(newImage){
+  cancelFade();
+  overlayImage = newImage;
+  const startAlpha = overlayAlpha;
+  const startTime  = performance.now();
+  function step(now){
+    const t     = Math.min((now - startTime) / FADE_IN_MS, 1);
+    const eased = 1 - Math.pow(1 - t, 3); // ease-out cubique
+    overlayAlpha = startAlpha + (1 - startAlpha) * eased;
+    renderOverlay();
+    if(t < 1){ fadeRafId = requestAnimationFrame(step); }
+    else      { fadeRafId = null; overlayAlpha = 1; }
+  }
+  fadeRafId = requestAnimationFrame(step);
+}
+
+function fadeOutOverlay(){
+  if(overlayAlpha === 0 && !overlayImage){ return; }
+  cancelFade();
+  const startAlpha = overlayAlpha;
+  const startTime  = performance.now();
+  function step(now){
+    const t = Math.min((now - startTime) / FADE_OUT_MS, 1);
+    overlayAlpha = startAlpha * (1 - t);
+    renderOverlay();
+    if(t < 1){ fadeRafId = requestAnimationFrame(step); }
+    else      { fadeRafId = null; overlayAlpha = 0; overlayImage = null; renderOverlay(); }
+  }
+  fadeRafId = requestAnimationFrame(step);
+}
+
+/* ═══════════════════════════════════════════════
+   STROKES — FADE IN / FADE OUT
+═══════════════════════════════════════════════ */
+let strokesImage   = null;
+let strokesAlpha   = 0;
+let strokesRafId   = null;
+
+function cancelStrokesFade(){
+  if(strokesRafId !== null){ cancelAnimationFrame(strokesRafId); strokesRafId = null; }
+}
+
+function renderStrokes(){
+  sctx.clearRect(0, 0, strokesCanvas.width, strokesCanvas.height);
+  if(strokesImage && strokesAlpha > 0){
+    sctx.save();
+    sctx.globalAlpha = strokesAlpha;
+    sctx.drawImage(strokesImage, 0, 0);
+    sctx.restore();
+  }
+}
+
+function fadeInStrokes(newImage){
+  cancelStrokesFade();
+  strokesImage = newImage;
+  const startAlpha = strokesAlpha;
+  const startTime  = performance.now();
+  function step(now){
+    const t     = Math.min((now - startTime) / FADE_IN_MS, 1);
+    const eased = 1 - Math.pow(1 - t, 3);
+    strokesAlpha = startAlpha + (1 - startAlpha) * eased;
+    renderStrokes();
+    if(t < 1){ strokesRafId = requestAnimationFrame(step); }
+    else      { strokesRafId = null; strokesAlpha = 1; }
+  }
+  strokesRafId = requestAnimationFrame(step);
+}
+
+function fadeOutStrokes(){
+  if(strokesAlpha === 0 && !strokesImage){ return; }
+  cancelStrokesFade();
+  const startAlpha = strokesAlpha;
+  const startTime  = performance.now();
+  function step(now){
+    const t = Math.min((now - startTime) / FADE_OUT_MS, 1);
+    strokesAlpha = startAlpha * (1 - t);
+    renderStrokes();
+    if(t < 1){ strokesRafId = requestAnimationFrame(step); }
+    else      { strokesRafId = null; strokesAlpha = 0; strokesImage = null; renderStrokes(); }
+  }
+  strokesRafId = requestAnimationFrame(step);
+}
+
+/* ═══════════════════════════════════════════════
+   SUIVI SOURIS → déplacement du ring
+═══════════════════════════════════════════════ */
+window.addEventListener('mousemove', e => {
+  cursorEl.style.left = e.clientX + 'px';
+  cursorEl.style.top  = e.clientY + 'px';
+
+  if(!isPinned){
+    ringX = e.clientX;
+    ringY = e.clientY;
+    drawRing.style.left = ringX + 'px';
+    drawRing.style.top  = ringY + 'px';
+  }
+
+  if(isDrawing && isPinned){
+    // point en coordonnées locales du draw-canvas
+    const lp = pageToLocal(e.clientX, e.clientY);
+    currentPts.push(lp);
+    renderDrawCanvas();
+  }
+});
+
+/* Convertit des coords page → coords locales draw-canvas */
+function pageToLocal(px, py){
+  const r   = drawCanvas.getBoundingClientRect();
+  const sx  = DRAW_SIZE / r.width;
+  const sy  = DRAW_SIZE / r.height;
+  return [(px - r.left) * sx, (py - r.top) * sy];
+}
+
+/* ═══════════════════════════════════════════════
+   CLICS
+═══════════════════════════════════════════════ */
+window.addEventListener('mousedown', e => {
+  if(e.button !== 0) return;
+  if(e.target.closest('#toolbar')) return;
+
+
+  isPinned  = true;
+  isDrawing = true;
+  drawRing.classList.add('pinned');
+  document.body.classList.add('drawing');
+  currentPts = [];
+  dctx.clearRect(0, 0, DRAW_SIZE, DRAW_SIZE);
+
+  /* Démarrer le fondu de sortie de l'image et des tracés précédents (non bloquant) */
+  fadeOutOverlay();
+  fadeOutStrokes();
+
+  /* Snapshot de l'état actuel du print-canvas pour le rendu live sans accumulation */
+  printSnapshot = document.createElement('canvas');
+  printSnapshot.width  = printCanvas.width;
+  printSnapshot.height = printCanvas.height;
+  printSnapshot.getContext('2d').drawImage(printCanvas, 0, 0);
+
+  const lp = pageToLocal(e.clientX, e.clientY);
+  currentPts.push(lp);
+  renderDrawCanvas();
+});
+
+window.addEventListener('mouseup', e => {
+  if(e.button !== 0) return;
+  if(!isPinned) return;
+
+  isDrawing = false;
+  isPinned  = false;
+  printSnapshot = null; // libérer la mémoire
+  drawRing.classList.remove('pinned');
+  document.body.classList.remove('drawing');
+
+  if(currentPts.length < 2){
+    setStatus('Tracé trop court.', 'ti-alert-circle');
+    dctx.clearRect(0, 0, DRAW_SIZE, DRAW_SIZE);
+    return;
+  }
+
+  // Lancer la correspondance et imprimer
+  findAndPrint();
+});
+
+/* ═══════════════════════════════════════════════
+   RENDU DU CANVAS DE DESSIN (en cours)
+═══════════════════════════════════════════════ */
+
+/* Snapshot du print-canvas avant le premier point du tracé en cours */
+let printSnapshot = null;
+
+function renderDrawCanvas(){
+  dctx.clearRect(0, 0, DRAW_SIZE, DRAW_SIZE);
+  if(currentPts.length < 2) return;
+
+  /* ── Tracé dans la pastille ── */
+  dctx.beginPath();
+  dctx.lineWidth   = 2.5;
+  dctx.strokeStyle = '#ffffff';
+  dctx.lineCap     = 'round';
+  dctx.lineJoin    = 'round';
+  currentPts.forEach((p,i) => i===0 ? dctx.moveTo(p[0],p[1]) : dctx.lineTo(p[0],p[1]));
+  dctx.stroke();
+
+  /* ── Tracé live sur le print-canvas (pleine page, sans clip) ── */
+  const R = DRAW_SIZE / 2;
+  const localToPage = (lp) => [ringX + (lp[0] - R), ringY + (lp[1] - R)];
+
+  /* Restaurer le snapshot pour éviter l'accumulation de calques */
+  if(printSnapshot){
+    pctx.clearRect(0, 0, printCanvas.width, printCanvas.height);
+    pctx.drawImage(printSnapshot, 0, 0);
+  }
+
+  pctx.beginPath();
+  pctx.lineWidth   = 2.5;
+  pctx.strokeStyle = 'rgba(255,255,255,0.9)';
+  pctx.lineCap     = 'round';
+  pctx.lineJoin    = 'round';
+  currentPts.forEach((p,i)=>{
+    const [px,py] = localToPage(p);
+    i===0 ? pctx.moveTo(px,py) : pctx.lineTo(px,py);
+  });
+  pctx.stroke();
+}
+
+/* ═══════════════════════════════════════════════
+   ALGORITHMES (repris + adaptés)
+═══════════════════════════════════════════════ */
+function resample(pts, n=RESAMPLE_N){
+  if(!pts.length) return Array(n).fill([0,0]);
+  if(pts.length===1) return Array(n).fill(pts[0]);
+  const segs=[], cum=[0];
+  for(let i=1;i<pts.length;i++){
+    const d=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);
+    segs.push(d); cum.push(cum[cum.length-1]+d);
+  }
+  const total=cum[cum.length-1];
+  if(total<1e-12) return Array(n).fill(pts[0]);
+  const out=[]; let j=0;
+  for(let i=0;i<n;i++){
+    const t=total*i/(n-1);
+    while(j<cum.length-2&&cum[j+1]<t) j++;
+    const t0=cum[j],t1=cum[j+1],alpha=t1!==t0?(t-t0)/(t1-t0):0;
+    out.push([pts[j][0]+alpha*(pts[j+1][0]-pts[j][0]),
+              pts[j][1]+alpha*(pts[j+1][1]-pts[j][1])]);
+  }
+  return out;
+}
+
+function pca(pts){
+  const n=pts.length;
+  const mx=pts.reduce((a,p)=>a+p[0],0)/n;
+  const my=pts.reduce((a,p)=>a+p[1],0)/n;
+  const centered=pts.map(p=>[p[0]-mx,p[1]-my]);
+  const rms=Math.sqrt(centered.reduce((a,p)=>a+p[0]*p[0]+p[1]*p[1],0)/n)||1;
+  const scaled=centered.map(p=>[p[0]/rms,p[1]/rms]);
+  let c00=0,c01=0,c11=0;
+  scaled.forEach(p=>{c00+=p[0]*p[0];c01+=p[0]*p[1];c11+=p[1]*p[1];});
+  c00/=n;c01/=n;c11/=n;
+  const tr=c00+c11,det=c00*c11-c01*c01;
+  const l=tr/2+Math.sqrt(Math.max(0,(tr/2)**2-det));
+  const vx=c01,vy=l-c00;
+  const angle=Math.atan2(vy,vx);
+  const cosA=Math.cos(-angle),sinA=Math.sin(-angle);
+  const norm=scaled.map(p=>[p[0]*cosA-p[1]*sinA,p[0]*sinA+p[1]*cosA]);
+  return {centroid:[mx,my],rms,angle,norm};
+}
+
+function normalize(pts){ return pca(resample(pts)).norm; }
+
+function dist(a,b){
+  let s=0;
+  for(let i=0;i<a.length;i++) s+=Math.hypot(a[i][0]-b[i][0],a[i][1]-b[i][1]);
+  return s/a.length;
+}
+
+/* ═══════════════════════════════════════════════
+   CORRESPONDANCE + IMPRESSION SUR STROKES-CANVAS
+═══════════════════════════════════════════════ */
+function findAndPrint(){
+  const ptsNorm = currentPts.map(p => [p[0]/DRAW_SIZE*2-1, p[1]/DRAW_SIZE*2-1]);
+
+  let best=null, bestDist=Infinity, bestCand=null;
+
+  if(dataset.length){
+    const qn  = normalize(ptsNorm);
+    const qnr = normalize([...ptsNorm].reverse());
+
+    for(const item of dataset){
+      const pts = item.points.map(p=>[parseFloat(p[0]),parseFloat(p[1])]);
+      if(pts.length<2) continue;
+      for(const cand of [pts,[...pts].reverse()]){
+        const cn=normalize(cand);
+        for(const q of [qn,qnr]){
+          const d=dist(q,cn);
+          if(d<bestDist){bestDist=d;best=item;bestCand=cand;}
+        }
+      }
+    }
+  }
+
+  const cx = ringX;
+  const cy = ringY;
+  const R  = DRAW_SIZE / 2;
+  const localToPage = (lp) => [cx + (lp[0] - R), cy + (lp[1] - R)];
+
+  // Canvas temporaire pour les tracés finalisés
+  const tmpStrokes = document.createElement('canvas');
+  tmpStrokes.width  = strokesCanvas.width;
+  tmpStrokes.height = strokesCanvas.height;
+  const tsc = tmpStrokes.getContext('2d');
+
+  // Tracé utilisateur → tmpStrokes
+  tsc.beginPath();
+  tsc.lineWidth   = 2.5;
+  tsc.strokeStyle = 'rgba(255,255,255,0.9)';
+  tsc.lineCap     = 'round';
+  tsc.lineJoin    = 'round';
+  currentPts.forEach((p,i)=>{
+    const [px,py]=localToPage(p);
+    i===0?tsc.moveTo(px,py):tsc.lineTo(px,py);
+  });
+  tsc.stroke();
+
+  // Effacer le print-canvas (le tracé live n'a plus sa place ici)
+  pctx.clearRect(0, 0, printCanvas.width, printCanvas.height);
+
+  if(!best){
+    setStatus('Aucun dataset chargé — tracé imprimé.','ti-pencil');
+    fadeInStrokes(tmpStrokes);
+    dctx.clearRect(0,0,DRAW_SIZE,DRAW_SIZE);
+    return;
+  }
+
+  const alignedNorm = alignTo(bestCand, ptsNorm);
+  const normToPage = (np) => [
+    cx + (np[0]+1)*0.5*DRAW_SIZE - R,
+    cy + (np[1]+1)*0.5*DRAW_SIZE - R
+  ];
+
+  // Tracé du meilleur match en pointillés bleus → tmpStrokes
+  /* DEBUG
+  tsc.beginPath();
+  tsc.setLineDash([5,7]);
+  tsc.lineWidth   = 2;
+  tsc.strokeStyle = 'rgba(91,143,255,0.75)';
+  tsc.lineCap     = 'round';
+  alignedNorm.forEach((p,i)=>{
+    const [px,py]=normToPage(p);
+    i===0?tsc.moveTo(px,py):tsc.lineTo(px,py);
+  });
+  tsc.stroke();
+  tsc.setLineDash([]);*/
+
+
+  setStatus(`Match : ${best.name} — distance ${bestDist.toFixed(3)}`,'ti-check');
+
+  // Fade in des tracés finalisés
+  fadeInStrokes(tmpStrokes);
+
+  // Si image overlay disponible
+  if(best.image_path){
+    loadAndPrintImage(best.image_path, bestCand, ptsNorm, cx, cy);
+  }
+
+  dctx.clearRect(0,0,DRAW_SIZE,DRAW_SIZE);
+}
+
+function alignTo(src, dst){
+  const sf=pca(resample(src)), df=pca(resample(dst));
+  const scale=(df.rms||1)/(sf.rms||1);
+  const angle=df.angle-sf.angle;
+  const cosA=Math.cos(angle),sinA=Math.sin(angle);
+  return src.map(p=>{
+    const cx=p[0]-sf.centroid[0], cy=p[1]-sf.centroid[1];
+    const sx=cx*scale, sy=cy*scale;
+    return [sx*cosA-sy*sinA+df.centroid[0], sx*sinA+sy*cosA+df.centroid[1]];
+  });
+}
+
+function loadAndPrintImage(path, srcPts, dstPts, cx, cy){
+  const img=new Image();
+  img.crossOrigin='anonymous';
+  img.onload=()=>{
+    const sf=pca(resample(srcPts));
+    const df=pca(resample(dstPts));
+    const scale=(df.rms||1)/(sf.rms||1);
+    const angle=df.angle-sf.angle;
+    const cosA=Math.cos(angle),sinA=Math.sin(angle);
+    const R=DRAW_SIZE/2;
+    const s=DRAW_SIZE;
+
+    // centroid src en page
+    const scx=(sf.centroid[0]+1)*0.5*s;
+    const scy=(sf.centroid[1]+1)*0.5*s;
+    // centroid dst en page
+    const dcx=cx+(df.centroid[0]+1)*0.5*s-R;
+    const dcy=cy+(df.centroid[1]+1)*0.5*s-R;
+
+    const sx2=scale*s/s, sy2=scale*s/s;
+
+    // Rendre l'image sur un canvas offscreen (pleine page)
+    const tmpCanvas = document.createElement('canvas');
+    tmpCanvas.width  = overlayCanvas.width;
+    tmpCanvas.height = overlayCanvas.height;
+    const tctx = tmpCanvas.getContext('2d');
+    tctx.save();
+    tctx.setTransform(
+      cosA*sx2,  sinA*sx2,
+      -sinA*sy2, cosA*sy2,
+      dcx - cosA*sx2*scx + sinA*sy2*scy,
+      dcy - sinA*sx2*scx - cosA*sy2*scy
+    );
+    tctx.drawImage(img, 0, 0, s, s);
+    tctx.restore();
+
+    // Démarrer le fondu d'entrée (interrompt le fondu de sortie s'il est encore actif)
+    fadeInOverlay(tmpCanvas);
+  };
+  img.onerror=()=>{};
+  img.src=path;
+}
+
+/* ═══════════════════════════════════════════════
+   BOUTONS TOOLBAR
+═══════════════════════════════════════════════ */
+/* bouton */
+document.getElementById('btn-load')
+  .addEventListener('click', loadDataset);
+
+/* autoload au démarrage */
+window.addEventListener('DOMContentLoaded', () => {
+  loadDataset();
+});
+
+document.getElementById('btn-clear').addEventListener('click',()=>{
+  pctx.clearRect(0,0,printCanvas.width,printCanvas.height);
+  dctx.clearRect(0,0,DRAW_SIZE,DRAW_SIZE);
+  cancelFade();
+  overlayAlpha = 0;
+  overlayImage = null;
+  renderOverlay();
+  setStatus('Canvas effacé.','ti-check');
+});
+
+/* Init position du ring */
+drawRing.style.left = ringX + 'px';
+drawRing.style.top  = ringY + 'px';
+</script>
+</body>
+</html>

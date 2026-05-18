@@ -98,6 +98,12 @@ body.drawing #cursor{
   background:var(--c-accent2);
   transform:translate(-50%,-50%) scale(0.6);
 }
+/* Masquer le curseur custom sur écrans tactiles */
+@media (pointer: coarse){
+  #cursor{ display:none; }
+  #print-canvas{ cursor:default; }
+  #draw-ring{ width:200px; height:200px; }
+}
 
 /* ── STATUS ── */
 #status{
@@ -115,8 +121,15 @@ body.drawing #cursor{
   letter-spacing:0.04em;
   display:flex;align-items:center;gap:6px;
   transition:opacity 0.3s;
+  max-width:calc(100vw - 32px);
+  overflow:hidden;
 }
-#status i{font-size:13px;}
+#status i{font-size:13px;flex-shrink:0;}
+#status-text{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
 
 </style>
 </head>
@@ -147,7 +160,8 @@ body.drawing #cursor{
    CONFIG
 ═══════════════════════════════════════════════ */
 const RESAMPLE_N = 64;
-const DRAW_SIZE  = 268; // taille réelle du canvas de dessin (dans le cercle)
+// Taille réelle du canvas de dessin — plus petit sur mobile tactile
+const DRAW_SIZE  = window.matchMedia('(pointer: coarse)').matches ? 188 : 268;
 const MAX_PTS    = 30; // nombre maximum de points dans le tracé courant
 
 /* ═══════════════════════════════════════════════
@@ -334,7 +348,70 @@ function fadeOutStrokes(){
 }
 
 /* ═══════════════════════════════════════════════
-   SUIVI SOURIS → déplacement du ring
+   DÉTECTION TOUCH
+═══════════════════════════════════════════════ */
+const isTouchDevice = () => window.matchMedia('(pointer: coarse)').matches;
+
+/* Convertit des coords page → coords locales draw-canvas */
+function pageToLocal(px, py){
+  const r   = drawCanvas.getBoundingClientRect();
+  const sx  = DRAW_SIZE / r.width;
+  const sy  = DRAW_SIZE / r.height;
+  return [(px - r.left) * sx, (py - r.top) * sy];
+}
+
+/* ═══════════════════════════════════════════════
+   LOGIQUE COMMUNE DE DÉBUT DE TRACÉ
+═══════════════════════════════════════════════ */
+function startDraw(clientX, clientY){
+  isPinned  = true;
+  isDrawing = true;
+  drawRing.classList.add('pinned');
+  document.body.classList.add('drawing');
+  currentPts = [];
+  dctx.clearRect(0, 0, DRAW_SIZE, DRAW_SIZE);
+
+  /* Snapshot de l'état actuel du print-canvas */
+  printSnapshot = document.createElement('canvas');
+  printSnapshot.width  = printCanvas.width;
+  printSnapshot.height = printCanvas.height;
+  printSnapshot.getContext('2d').drawImage(printCanvas, 0, 0);
+
+  /* Démarrer le fondu de sortie de l'image et des tracés précédents */
+  fadeOutOverlay();
+  fadeOutStrokes();
+
+  const lp = pageToLocal(clientX, clientY);
+  currentPts.push(lp);
+  renderDrawCanvas();
+}
+
+function moveDraw(clientX, clientY){
+  if(!isDrawing || !isPinned) return;
+  const lp = pageToLocal(clientX, clientY);
+  currentPts.push(lp);
+  if(currentPts.length > MAX_PTS) currentPts.shift();
+  renderDrawCanvas();
+}
+
+function endDraw(){
+  if(!isPinned) return;
+  isDrawing = false;
+  isPinned  = false;
+  printSnapshot = null;
+  drawRing.classList.remove('pinned');
+  document.body.classList.remove('drawing');
+
+  if(currentPts.length < 2){
+    setStatus('Tracé trop court.', 'ti-alert-circle');
+    dctx.clearRect(0, 0, DRAW_SIZE, DRAW_SIZE);
+    return;
+  }
+  findAndPrint();
+}
+
+/* ═══════════════════════════════════════════════
+   SUIVI SOURIS (desktop)
 ═══════════════════════════════════════════════ */
 window.addEventListener('mousemove', e => {
   cursorEl.style.left = e.clientX + 'px';
@@ -347,75 +424,51 @@ window.addEventListener('mousemove', e => {
     drawRing.style.top  = ringY + 'px';
   }
 
-  if(isDrawing && isPinned){
-    // point en coordonnées locales du draw-canvas
-    const lp = pageToLocal(e.clientX, e.clientY);
-    currentPts.push(lp);
-    // Limiter la taille du tracé : supprimer le point le plus ancien
-    if(currentPts.length > MAX_PTS){
-      currentPts.shift();
-    }
-    renderDrawCanvas();
-  }
+  moveDraw(e.clientX, e.clientY);
 });
 
-/* Convertit des coords page → coords locales draw-canvas */
-function pageToLocal(px, py){
-  const r   = drawCanvas.getBoundingClientRect();
-  const sx  = DRAW_SIZE / r.width;
-  const sy  = DRAW_SIZE / r.height;
-  return [(px - r.left) * sx, (py - r.top) * sy];
-}
-
-/* ═══════════════════════════════════════════════
-   CLICS
-═══════════════════════════════════════════════ */
 window.addEventListener('mousedown', e => {
   if(e.button !== 0) return;
   if(e.target.closest('#toolbar')) return;
-
-
-  isPinned  = true;
-  isDrawing = true;
-  drawRing.classList.add('pinned');
-  document.body.classList.add('drawing');
-  currentPts = [];
-  dctx.clearRect(0, 0, DRAW_SIZE, DRAW_SIZE);
-
-  /* Démarrer le fondu de sortie de l'image et des tracés précédents (non bloquant) */
-  fadeOutOverlay();
-  fadeOutStrokes();
-
-  /* Snapshot de l'état actuel du print-canvas pour le rendu live sans accumulation */
-  printSnapshot = document.createElement('canvas');
-  printSnapshot.width  = printCanvas.width;
-  printSnapshot.height = printCanvas.height;
-  printSnapshot.getContext('2d').drawImage(printCanvas, 0, 0);
-
-  const lp = pageToLocal(e.clientX, e.clientY);
-  currentPts.push(lp);
-  renderDrawCanvas();
+  startDraw(e.clientX, e.clientY);
 });
 
 window.addEventListener('mouseup', e => {
   if(e.button !== 0) return;
-  if(!isPinned) return;
-
-  isDrawing = false;
-  isPinned  = false;
-  printSnapshot = null; // libérer la mémoire
-  drawRing.classList.remove('pinned');
-  document.body.classList.remove('drawing');
-
-  if(currentPts.length < 2){
-    setStatus('Tracé trop court.', 'ti-alert-circle');
-    dctx.clearRect(0, 0, DRAW_SIZE, DRAW_SIZE);
-    return;
-  }
-
-  // Lancer la correspondance et imprimer
-  findAndPrint();
+  endDraw();
 });
+
+/* ═══════════════════════════════════════════════
+   SUPPORT TACTILE (mobile)
+═══════════════════════════════════════════════ */
+window.addEventListener('touchstart', e => {
+  if(e.target.closest('#toolbar')) return;
+  e.preventDefault();
+  const t = e.changedTouches[0];
+
+  /* Positionner le ring sous le doigt */
+  ringX = t.clientX;
+  ringY = t.clientY;
+  drawRing.style.left = ringX + 'px';
+  drawRing.style.top  = ringY + 'px';
+
+  startDraw(t.clientX, t.clientY);
+}, { passive: false });
+
+window.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const t = e.changedTouches[0];
+  moveDraw(t.clientX, t.clientY);
+}, { passive: false });
+
+window.addEventListener('touchend', e => {
+  e.preventDefault();
+  endDraw();
+}, { passive: false });
+
+window.addEventListener('touchcancel', e => {
+  endDraw();
+}, { passive: false });
 
 /* ═══════════════════════════════════════════════
    RENDU DU CANVAS DE DESSIN (en cours)
@@ -664,6 +717,10 @@ function loadAndPrintImage(path, srcPts, dstPts, cx, cy){
 
 /* autoload au démarrage */
 window.addEventListener('DOMContentLoaded', () => {
+  // Message initial adapté selon le type de pointeur
+  if(window.matchMedia('(pointer: coarse)').matches){
+    setStatus('Charge un dataset, puis trace avec le doigt.', 'ti-hand-finger');
+  }
   loadDataset('data/drawings.json');
 });
 

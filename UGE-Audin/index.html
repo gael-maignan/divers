@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Points d'intérêt sur image</title>
+<style>
+  :root {
+    --accent: #21007F;
+    --player-bg: #1c1c1e;
+    --player-text: #ffffff;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+  }
+
+  .image-container {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+  }
+
+  .image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  /* Point d'intérêt */
+  .poi {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background: var(--accent);
+    border: 4px solid white;
+    border-radius: 50%;
+    cursor: pointer;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .poi:hover {
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+
+  /* Marqueur en cours de lecture : petit halo qui pulse */
+  .poi.playing {
+    box-shadow: 0 0 0 0 rgba(33, 0, 48, 0.6);
+    animation: pulse 1.6s infinite;
+  }
+
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(33, 0, 127, 0.55); }
+    70%  { box-shadow: 0 0 0 14px rgba(33, 0, 127, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(33, 0, 127, 0); }
+  }
+
+  /* Tooltip : visible au survol ET quand le point est actif (clic / clavier) */
+  .tooltip {
+    position: absolute;
+    left: 50%;
+    bottom: 35px;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.85);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+    font-size: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+  }
+
+  .poi:hover .tooltip,
+  .poi:focus-visible .tooltip,
+  .poi.active .tooltip {
+    opacity: 1;
+  }
+
+  .poi:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 3px;
+  }
+
+  /* ---------------------- Lecteur audio bas de page ---------------------- */
+  .audio-player {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--player-bg);
+    color: var(--player-text);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    z-index: 10;
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.3);
+  }
+
+  .audio-player.open {
+    transform: translateY(0);
+  }
+
+  .audio-player button {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    flex-shrink: 0;
+  }
+
+  .audio-player .play-pause {
+    width: 38px;
+    height: 38px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .audio-player .play-pause svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .player-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .player-title {
+    font-size: 14px;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .player-progress-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .player-time {
+    font-size: 11px;
+    color: #c7c7cc;
+    min-width: 34px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .player-progress {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: #4a4a4c;
+    cursor: pointer;
+    accent-color: var(--accent);
+  }
+
+  .audio-player .close-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  @media (max-width: 480px) {
+    .player-title { font-size: 13px; }
+    .audio-player { padding: 10px 12px; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="image-container" id="imageContainer">
+  <img src="fond de carte.jpg" alt="Image exemple">
+</div>
+
+<!-- Lecteur audio -->
+<div class="audio-player" id="audioPlayer">
+  <button class="play-pause" id="playPauseBtn" aria-label="Lecture / Pause">
+    <svg id="playIcon" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+    <svg id="pauseIcon" viewBox="0 0 24 24" fill="white" style="display:none;"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+  </button>
+
+  <div class="player-info">
+    <div class="player-title" id="playerTitle">Titre de l'audio</div>
+    <div class="player-progress-row">
+      <span class="player-time" id="currentTime">0:00</span>
+      <input type="range" class="player-progress" id="progressBar" value="0" min="0" max="100" step="0.1">
+      <span class="player-time" id="duration">0:00</span>
+    </div>
+  </div>
+
+  <button class="close-btn" id="closeBtn" aria-label="Fermer le lecteur">
+    <svg viewBox="0 0 24 24" fill="white"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+  </button>
+</div>
+
+<script>
+// Coordonnées normalisées entre 0 et 1, avec l'URL de l'audio associé à chaque point
+const points = [
+  {
+    id: 1,
+    x: 0.34817,
+    y:  0.10739,
+    title: "0. Place du Château-d’Eau, un lion mélancolique observe la Place de la République",
+    audioUrl: "https://exemple.com/audios/centre.mp3"
+  },
+  {
+    id: 2,
+    x: 0.37696,
+    y: 0.19044,
+    title: "1. Passage du Jeu-de-Boules, une inconnue embrasse un casquetier",
+    audioUrl: "https://exemple.com/audios/nord-ouest.mp3"
+  },
+  {
+    id: 3,
+    x: 0.39987,
+    y: 0.24628,
+    title: "2. Devant Bataclan, 90 clous pour se souvenir",
+    audioUrl: "https://exemple.com/audios/sud-est.mp3"
+  },
+  {
+    id: 4,
+    x: 0.41819,
+    y: 0.26203,
+    title: "3. En face de Bataclan, un sergent-écrivain contribue à l’effort de guerre allemand",
+    audioUrl: "https://exemple.com/audios/sud-est.mp3"
+  },
+  {
+    id: 5,
+    x: 0.43783,
+    y: 0.32932,
+    title: "4. Céline et Julie vont au cinéma",
+    audioUrl: "https://exemple.com/audios/sud-est.mp3"
+  },
+  {
+    id: 6,
+    x: 0.47120,
+    y: 0.32932,
+    title: "5. Église Saint-Ambroise, la mariée ne manifeste pas",
+    audioUrl: "https://exemple.com/audios/sud-est.mp3"
+  },
+  {
+    id: 7,
+    x: 0.49215,
+    y: 0.43814,
+    title: "6. Rue Sedaine, une confectionneuse tente d’empêcher un lynchage ",
+    audioUrl: "https://exemple.com/audios/sud-est.mp3"
+  },
+  {
+    id: 8,
+    x: 0.50785,
+    y: 0.43099,
+    title: "7. Défilé de statues devant la mairie ",
+    audioUrl: "https://exemple.com/audios/sud-est.mp3"
+  },
+  {
+    id: 9,
+    x: 0.54123,
+    y: 0.53265,
+    title: "8. Des autobus pour se rendre au gymnase ",
+    audioUrl: "https://exemple.com/audios/sud-est.mp3"
+  },
+  {
+    id: 10,
+    x: 0.57134,
+    y: 0.57847,
+    title: "9. Métro Charonne, Nestor Burma prend un coup sur la tête",
+    audioUrl: "https://exemple.com/audios/sud-est.mp3"
+  },
+  {
+    id: 11,
+    x: 0.61060,
+    y: 0.67297,
+    title: "10. Rue des Boulets, une institutrice énumère des objets",
+    audioUrl: "https://exemple.com/audios/sud-est.mp3"
+  },
+  {
+    id: 11,
+    x: 0.65445,
+    y: 0.74456,
+    title: "11. Rue de Montreuil, une couturière assiste à une inauguration",
+    audioUrl: "https://exemple.com/audios/sud-est.mp3"
+  },
+  {
+    id: 11,
+    x: 0.64725,
+    y: 0.75029,
+    title: "12. Rue des Immeubles-Industriels, embellissement",
+    audioUrl: "https://exemple.com/audios/sud-est.mp3"
+  },
+  {
+    id: 11,
+    x: 0.68586,
+    y: 0.85052,
+    title: "13. Casse-pipe à la Nation",
+    audioUrl: "https://exemple.com/audios/sud-est.mp3"
+  }
+];
+
+const container = document.getElementById("imageContainer");
+
+// --- Éléments du lecteur ---
+const audio = new Audio();
+const audioPlayer = document.getElementById("audioPlayer");
+const playPauseBtn = document.getElementById("playPauseBtn");
+const playIcon = document.getElementById("playIcon");
+const pauseIcon = document.getElementById("pauseIcon");
+const playerTitle = document.getElementById("playerTitle");
+const progressBar = document.getElementById("progressBar");
+const currentTimeEl = document.getElementById("currentTime");
+const durationEl = document.getElementById("duration");
+const closeBtn = document.getElementById("closeBtn");
+
+let currentMarker = null;
+let isSeeking = false;
+
+function formatTime(seconds) {
+  if (!isFinite(seconds)) return "0:00";
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60).toString().padStart(2, "0");
+  return `${m}:${s}`;
+}
+
+function showPlayIcon() {
+  playIcon.style.display = "block";
+  pauseIcon.style.display = "none";
+}
+
+function showPauseIcon() {
+  playIcon.style.display = "none";
+  pauseIcon.style.display = "block";
+}
+
+function openPlayer(point, marker) {
+  // Marqueur précédent : on retire l'état "en cours de lecture"
+  if (currentMarker && currentMarker !== marker) {
+    currentMarker.classList.remove("playing");
+  }
+  currentMarker = marker;
+  marker.classList.add("playing");
+
+  playerTitle.textContent = point.title;
+  audio.src = point.audioUrl;
+  audio.currentTime = 0;
+  audio.play().catch(err => console.warn("Lecture impossible :", err));
+
+  audioPlayer.classList.add("open");
+}
+
+function closePlayer() {
+  audio.pause();
+  audioPlayer.classList.remove("open");
+  if (currentMarker) {
+    currentMarker.classList.remove("playing");
+    currentMarker = null;
+  }
+}
+
+// --- Création des marqueurs ---
+points.forEach(point => {
+  const marker = document.createElement("div");
+  marker.className = "poi";
+  marker.style.left = `${point.x * 100}%`;
+  marker.style.top = `${point.y * 100}%`;
+  marker.tabIndex = 0; // accessible au clavier
+  marker.setAttribute("role", "button");
+  marker.setAttribute("aria-label", point.title);
+
+  const tooltip = document.createElement("div");
+  tooltip.className = "tooltip";
+  tooltip.textContent = point.title;
+  marker.appendChild(tooltip);
+
+  const activate = (e) => {
+    e.stopPropagation();
+    document.querySelectorAll(".poi.active").forEach(el => el.classList.remove("active"));
+    marker.classList.add("active");
+    openPlayer(point, marker);
+  };
+
+  marker.addEventListener("click", activate);
+  marker.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      activate(e);
+    }
+  });
+
+  container.appendChild(marker);
+});
+
+document.addEventListener("click", () => {
+  document.querySelectorAll(".poi.active").forEach(el => el.classList.remove("active"));
+});
+
+// --- Contrôles du lecteur ---
+playPauseBtn.addEventListener("click", () => {
+  if (audio.paused) {
+    audio.play();
+  } else {
+    audio.pause();
+  }
+});
+
+closeBtn.addEventListener("click", closePlayer);
+
+audio.addEventListener("play", showPauseIcon);
+audio.addEventListener("pause", showPlayIcon);
+
+audio.addEventListener("loadedmetadata", () => {
+  durationEl.textContent = formatTime(audio.duration);
+});
+
+audio.addEventListener("timeupdate", () => {
+  if (isSeeking) return;
+  currentTimeEl.textContent = formatTime(audio.currentTime);
+  if (audio.duration) {
+    progressBar.value = (audio.currentTime / audio.duration) * 100;
+  }
+});
+
+audio.addEventListener("ended", () => {
+  showPlayIcon();
+  if (currentMarker) currentMarker.classList.remove("playing");
+});
+
+progressBar.addEventListener("input", () => {
+  isSeeking = true;
+  currentTimeEl.textContent = formatTime((progressBar.value / 100) * audio.duration);
+});
+
+progressBar.addEventListener("change", () => {
+  if (audio.duration) {
+    audio.currentTime = (progressBar.value / 100) * audio.duration;
+  }
+  isSeeking = false;
+});
+</script>
+</body>
+</html>

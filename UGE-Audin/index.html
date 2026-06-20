@@ -4,6 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Points d'intérêt sur image</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300&display=swap" rel="stylesheet">
+
+
   <style>
 :root {
   /*--accent: #21007F;*/
@@ -21,7 +27,10 @@ body {
   margin: 0;
   width: 100%;
   height: 100%;
-  font-family: Arial, sans-serif;
+  
+font-family: "Figtree", sans-serif;
+  font-weight: 300;
+  
   background: #000;
   overflow: hidden;
 }
@@ -611,15 +620,21 @@ const points = [
     window.addEventListener("resize", positionMarkers);
     window.addEventListener("orientationchange", positionMarkers);
 
-    img.addEventListener("load", () => {
-      createMarkers();
-      positionMarkers();
-    });
+    let markersCreated = false;
 
-    if (img.complete) {
-      createMarkers();
-      positionMarkers();
-    }
+function init() {
+  if (markersCreated) return;
+  markersCreated = true;
+
+  createMarkers();
+  positionMarkers();
+}
+
+img.addEventListener("load", init);
+
+if (img.complete) {
+  init();
+}
   </script>
 
   <button id="fullscreenBtn" class="fullscreen-btn" aria-label="Plein écran">

@@ -787,15 +787,24 @@
 
     // Verrouille la font-size de base et applique la classe is-fullscreen
     // pour agrandir les textes quand la page est en plein écran.
+    // Après changement de taille, on recalcule --player-height en deux passes
+    // (rAF imbriqués) pour laisser le navigateur appliquer les nouvelles règles CSS
+    // avant de mesurer le lecteur — sinon le bouton plein écran et la mention légale
+    // restent positionnés avec l'ancienne hauteur.
     function lockFontSize() {
       const isFS = !!document.fullscreenElement;
       document.documentElement.classList.toggle("is-fullscreen", isFS);
-      // Pas de style.fontSize inline : on laisse le CSS gérer via :root:fullscreen / .is-fullscreen
       if (!isFS) {
         document.documentElement.style.fontSize = "16px";
       } else {
-        document.documentElement.style.fontSize = ""; // laisse la CSS rule prendre le dessus
+        document.documentElement.style.fontSize = "";
       }
+      // Double rAF : 1er = style appliqué, 2e = layout recalculé
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          updatePlayerHeight();
+        });
+      });
     }
     lockFontSize();
     document.addEventListener("fullscreenchange", lockFontSize);

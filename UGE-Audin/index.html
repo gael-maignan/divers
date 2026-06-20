@@ -76,8 +76,12 @@
 
     .poi:hover { transform: translate(-50%, -50%) scale(1.12); }
 
-    .poi:hover, .poi:focus-visible, .poi.active, .poi.loading, .poi.playing {
+    .poi.active, .poi.loading, .poi.playing {
       z-index: 100;
+    }
+
+    .poi:hover, .poi:focus-visible {
+      z-index: 200;
     }
 
     .poi-star {
@@ -371,15 +375,15 @@
     .legal-notice {
       position: fixed;
       left: 12px;
-      /* Toujours au-dessus du lecteur, alignée avec le bouton plein écran */
-      bottom: calc(var(--player-height) + 0px);
+      bottom: calc(var(--player-height) + 8px);
       z-index: 4;
+      margin: 0;
       font-size: 10px;
       font-weight: 300;
       color: rgba(255, 255, 255, 0.45);
       background: rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(4px);
-      padding: 8px;
+      padding: 5px 8px;
       border-radius: 4px;
       line-height: 1.4;
       max-width: 260px;

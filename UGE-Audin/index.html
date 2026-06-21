@@ -10,6 +10,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;600&display=swap" rel="stylesheet">
 
   <style>
+    .bold {
+      font-weight: bold;
+    }
+    a {
+      color: inherit;
+    }
     :root {
       --accent: #E5506B;
       --border: white;
@@ -340,55 +346,102 @@
     .close-btn:hover { opacity: 1; }
 
     /* =========================
-       BOUTON PLEIN ÉCRAN
+       BOUTONS UI (info haut droite / fullscreen bas droite)
        ========================= */
-    .fullscreen-btn {
+    :root {
+      --ui-btn-size: 40px;
+      --ui-btn-font: 20px;
+      --ui-btn-margin: 16px;
+    }
+
+    /* Styles communs */
+    .fullscreen-btn,
+    .info-btn {
       position: fixed;
-      right: 16px;
-      /* Toujours au-dessus du lecteur */
-      bottom: calc(var(--player-height) + 12px);
-      width: 40px;
-      height: 40px;
+      right: var(--ui-btn-margin);
+      width: var(--ui-btn-size);
+      height: var(--ui-btn-size);
       border: none;
       border-radius: 50%;
       background: rgba(0,0,0,0.7);
       color: white;
-      font-size: 20px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 4;
+      z-index: 5;
       backdrop-filter: blur(4px);
       transition: transform 0.15s ease, background 0.15s ease;
+      font-family: "Figtree", sans-serif;
+      font-weight: 400;
+      line-height: 1;
+      font-size: var(--ui-btn-font);
     }
 
-
-    .fullscreen-btn:hover {
+    .fullscreen-btn:hover,
+    .info-btn:hover {
       background: rgba(0,0,0,0.9);
       transform: scale(1.06);
     }
 
+    /* Info : haut droite */
+    .info-btn {
+      top: var(--ui-btn-margin);
+    }
+
+    /* Fullscreen : bas droite, au-dessus du lecteur */
+    .fullscreen-btn {
+      bottom: calc(var(--player-height) + var(--ui-btn-margin));
+    }
+
     /* =========================
-       MENTION LÉGALE
+       POPUP MENTIONS LÉGALES
        ========================= */
-    .legal-notice {
+    .legal-overlay {
       position: fixed;
-      left: 12px;
-      bottom: calc(var(--player-height) + 8px);
-      z-index: 4;
-      margin: 0;
-      font-size: 10px;
-      font-weight: 300;
-      color: rgba(255, 255, 255, 0.45);
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(4px);
-      padding: 5px 8px;
-      border-radius: 4px;
-      line-height: 1.4;
-      max-width: 260px;
+      inset: 0;
+      z-index: 2000;
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-end;
+      /* s'ouvre sous le bouton info */
+      padding: calc(var(--ui-btn-margin) + var(--ui-btn-size) + 8px) var(--ui-btn-margin) 0 0;
       pointer-events: none;
-      user-select: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .legal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .legal-popup {
+      background: rgba(15,15,15,0.92);
+      backdrop-filter: blur(8px);
+      color: rgba(255,255,255,0.75);
+      font-size: 11px;
+      font-weight: 300;
+      line-height: 1.6;
+      padding: 14px 16px;
+      border-radius: 10px;
+      max-width: 280px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+      transform: translateY(-6px);
+      transition: transform 0.2s ease;
+    }
+
+    .legal-overlay.open .legal-popup {
+      transform: translateY(0);
+    }
+
+    .legal-popup strong {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: white;
+      margin-bottom: 6px;
+      letter-spacing: 0.02em;
     }
 
     /* =========================
@@ -413,8 +466,20 @@
       font-size: 14px;
     }
 
-    html.is-fullscreen .legal-notice {
-      font-size: 13px;
+    html.is-fullscreen {
+      --ui-btn-size: 50px;
+      --ui-btn-font: 24px;
+      --ui-btn-margin: 20px;
+    }
+
+    html.is-fullscreen .legal-popup {
+      font-size: 14px;
+      max-width: 340px;
+      padding: 18px 20px;
+    }
+
+    html.is-fullscreen .legal-popup strong {
+      font-size: 15px;
     }
 
     html.is-fullscreen .audio-player .play-pause {
@@ -484,7 +549,16 @@
 
   <button id="fullscreenBtn" class="fullscreen-btn" aria-label="Plein écran">⛶</button>
 
-  <p class="legal-notice">Fond : Joseph Pinchon – Éditions Blondel-la-Rougery – 1945.</p>
+  <button id="infoBtn" class="info-btn" aria-label="Mentions légales">ⓘ</button>
+
+  <div id="legalOverlay" class="legal-overlay" role="dialog" aria-modal="true" aria-label="Mentions légales">
+    <div class="legal-popup">
+      <strong>À propos</strong>
+      <span class="bold">Fond</span> : Pinchon, J. (1945). <em>Carte postale illustrée : Paris XIe arrondissement – Popincourt</em> [Carte postale]. Éditions Blondel la Rougerie.<br><br>
+      Les contenus audio diffusés sur ce site sont protégés par le droit d'auteur. Toute reproduction, diffusion ou exploitation sans autorisation préalable est interdite.<br><br>
+      <span class="bold">Conception et développement</span> : Gaël Maignan - <a href="https://gael-maignan.fr/" target="_blank">gael-maignan.fr</a>
+    </div>
+  </div>
 
   <script>
     /* =========================
@@ -768,6 +842,26 @@
     progressBar.addEventListener("change", () => {
       if (audio.duration) audio.currentTime = (progressBar.value / 100) * audio.duration;
       isSeeking = false;
+    });
+
+    /* =========================
+       BOUTON INFO / MENTIONS LÉGALES
+       ========================= */
+    const infoBtn      = document.getElementById("infoBtn");
+    const legalOverlay = document.getElementById("legalOverlay");
+
+    infoBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      legalOverlay.classList.toggle("open");
+    });
+
+    // Fermeture en cliquant en dehors du popup
+    legalOverlay.addEventListener("click", (e) => {
+      if (e.target === legalOverlay) legalOverlay.classList.remove("open");
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") legalOverlay.classList.remove("open");
     });
 
     /* =========================

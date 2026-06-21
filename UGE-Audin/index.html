@@ -251,6 +251,15 @@
     .audio-player .play-pause:hover { transform: scale(1.06); }
     .audio-player .play-pause:active { transform: scale(0.95); }
 
+    /* État idle : aucun point sélectionné */
+    .audio-player.idle .play-pause {
+      background: rgba(255,255,255,0.15);
+      cursor: default;
+      pointer-events: none;
+    }
+    .audio-player.idle .play-pause:hover { transform: none; }
+    .audio-player.idle .play-pause:active { transform: none; }
+
     .audio-player .play-pause svg,
     .audio-player .close-btn svg { width: 16px; height: 16px; }
 
@@ -523,7 +532,7 @@
     <img id="mapImage" src="fond de carte.jpg" alt="Carte des points d'intérêt">
   </div>
 
-  <div class="audio-player" id="audioPlayer">
+  <div class="audio-player idle" id="audioPlayer">
     <!-- Corps du lecteur -->
     <div class="player-body">
       <button class="play-pause" id="playPauseBtn" aria-label="Lecture / Pause">
@@ -555,7 +564,8 @@
     <div class="legal-popup">
       <strong>À propos</strong>
       <span class="bold">Fond</span> : Pinchon, J. (1945). <em>Carte postale illustrée : Paris XIe arrondissement – Popincourt</em> [Carte postale]. Éditions Blondel la Rougerie.<br><br>
-      Les contenus audio diffusés sur ce site sont protégés par le droit d'auteur. Toute reproduction, diffusion ou exploitation sans autorisation préalable est interdite.<br><br>
+      <span class="bold">Audio</span> : Les enregistrements audio ont été réalisés dans le cadre du séminaire <em><a href="https://ecrituresurbaines.org/" target="_blank">Écritures Urbaines</a></em>, lors de la séance du 5 juin 2025 consacrée à Michèle Audin.<br><br>
+      <!--Les contenus audio diffusés sur ce site sont protégés par le droit d'auteur. Toute reproduction, diffusion ou exploitation sans autorisation préalable est interdite.<br><br>-->
       <span class="bold">Conception et développement</span> : Gaël Maignan - <a href="https://gael-maignan.fr/" target="_blank">gael-maignan.fr</a>
     </div>
   </div>
@@ -702,6 +712,7 @@
       }
       currentMarker = marker;
       marker.classList.remove("playing");
+      audioPlayer.classList.remove("idle");
 
       playerTitle.textContent = point.title;
       closeBtn.style.display = "flex";
@@ -723,10 +734,12 @@
     function closePlayer() {
       audio.pause();
       audioPlayer.classList.remove("loading");
+      audioPlayer.classList.add("idle");
       playerTitle.textContent = "Sélectionnez un point sur la carte";
       closeBtn.style.display = "none";
       progressBar.disabled = true;
       progressBar.value = 0;
+      audio.currentTime = 0;
       currentTimeEl.textContent = "0:00";
       durationEl.textContent = "0:00";
       setPlayerIconState("play");
@@ -741,7 +754,7 @@
       setLoadingState(false);
       setPlayerIconState("play");
       if (currentMarker) currentMarker.classList.remove("playing", "loading");
-      playerTitle.textContent = "Erreur de lecture de l'audio";
+      playerTitle.textContent = "Erreur lors de la lecture de l'enregistrement";
     }
 
     /* =========================

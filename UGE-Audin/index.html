@@ -155,7 +155,7 @@
     .tooltip {
       position: absolute;
       left: 50%;
-      bottom: 40px;
+      bottom: 42px;
       transform: translateX(calc(-50% + var(--tooltip-shift, 0px)));
       background: rgba(0,0,0,0.9);
       color: white;
@@ -513,17 +513,108 @@
     }
 
     /* =========================
-       MOBILE
+       PETITE FENÊTRE (iframe étroite)
        ========================= */
+
+    /* Bouton fermer — caché par défaut, révélé en mode overflow-popup */
+    .legal-close {
+      display: none;
+      position: absolute; /* dans l'overlay fixed = fixe visuellement */
+      top: 14px;
+      right: 14px;
+      z-index: 2001;
+      width: 34px;
+      height: 34px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(4px);
+      color: rgba(255,255,255,0.75);
+      font-size: 18px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      padding: 0;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .legal-close:hover {
+      background: rgba(0,0,0,0.85);
+      color: white;
+    }
+
     @media (max-width: 480px) {
+
+
+
       .player-title { font-size: 12.5px; }
       .player-body { padding: 10px 12px; gap: 10px; }
 
       .tooltip {
         font-size: 12px;
         padding: 6px 10px;
+        bottom: 32px;
         max-width: min(220px, calc(100vw - 24px));
       }
+
+      /* Étoiles légèrement réduites */
+      .poi {
+        width: 24px;
+        height: 24px;
+      }
+    }
+
+    /* Popup plein écran — activé dynamiquement si le contenu déborde */
+    .legal-overlay.overflow-popup {
+      align-items: stretch;
+      justify-content: stretch;
+      padding: 0;
+      background: rgba(0,0,0,0.6);
+    }
+
+    .legal-overlay.overflow-popup .legal-popup {
+      width: 100%;
+      max-width: 100%;
+      min-height: 100%;
+      border-radius: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      /* padding-top : espace réduit sous la croix */
+      padding: 20px 20px 40px;
+      transform: none !important;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .legal-overlay.overflow-popup .legal-popup strong {
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    /* Croix — révélée en mode plein écran, ancrée dans l'overlay (pas dans le scroll) */
+    .legal-overlay.overflow-popup .legal-close {
+      display: flex;
+    }
+
+    /* Scrollbar stylisée (Webkit) */
+    .legal-overlay.overflow-popup .legal-popup::-webkit-scrollbar {
+      width: 8px;
+    }
+    .legal-overlay.overflow-popup .legal-popup::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .legal-overlay.overflow-popup .legal-popup::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.25);
+      border-radius: 2px;
+    }
+    .legal-overlay.overflow-popup .legal-popup::-webkit-scrollbar-thumb:hover {
+      background: rgba(255,255,255,0.45);
+    }
+
+    /* Transition de fermeture : on garde overflow-popup pendant le fade-out */
+    .legal-overlay.closing {
+      opacity: 0;
+      pointer-events: none;
     }
   </style>
 </head>
@@ -561,6 +652,7 @@
   <button id="infoBtn" class="info-btn" aria-label="Mentions légales">ⓘ</button>
 
   <div id="legalOverlay" class="legal-overlay" role="dialog" aria-modal="true" aria-label="Mentions légales">
+    <button class="legal-close" id="legalCloseBtn" aria-label="Fermer">✕</button>
     <div class="legal-popup">
       <strong>À propos</strong>
       <span class="bold">Fond</span> : Pinchon, J. (1945). <em>Carte postale illustrée : Paris XIe arrondissement – Popincourt</em> [Carte postale]. Éditions Blondel la Rougerie.<br><br>
@@ -863,14 +955,52 @@
     const infoBtn      = document.getElementById("infoBtn");
     const legalOverlay = document.getElementById("legalOverlay");
 
+    const legalPopup = legalOverlay.querySelector(".legal-popup");
+
+    function openLegal() {
+      // Retirer d'abord overflow-popup pour mesurer en mode flottant
+      legalOverlay.classList.remove("overflow-popup");
+      legalOverlay.classList.add("open");
+
+      // Après le rendu, vérifier si le popup déborde verticalement
+      requestAnimationFrame(() => {
+        const rect = legalPopup.getBoundingClientRect();
+        const margin = 12; // marge de sécurité en bas
+        if (rect.bottom > window.innerHeight - margin) {
+          legalOverlay.classList.add("overflow-popup");
+          legalPopup.scrollTop = 0;
+        }
+      });
+    }
+
+    function closeLegal() {
+      const isOverflow = legalOverlay.classList.contains("overflow-popup");
+      if (isOverflow) {
+        // En mode plein écran : fade-out d'abord, puis nettoyer les classes
+        legalOverlay.classList.add("closing");
+        legalOverlay.classList.remove("open");
+        legalOverlay.addEventListener("transitionend", function handler() {
+          legalOverlay.classList.remove("overflow-popup", "closing");
+          legalOverlay.removeEventListener("transitionend", handler);
+        });
+      } else {
+        legalOverlay.classList.remove("open", "overflow-popup");
+      }
+    }
+
     infoBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      legalOverlay.classList.toggle("open");
+      legalOverlay.classList.contains("open") ? closeLegal() : openLegal();
     });
 
     // Fermeture en cliquant en dehors du popup
     legalOverlay.addEventListener("click", (e) => {
-      if (e.target === legalOverlay) legalOverlay.classList.remove("open");
+      if (e.target === legalOverlay) closeLegal();
+    });
+
+    // Bouton ✕ (popup plein écran)
+    document.getElementById("legalCloseBtn").addEventListener("click", () => {
+      closeLegal();
     });
 
     document.addEventListener("keydown", (e) => {

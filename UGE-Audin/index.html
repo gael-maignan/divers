@@ -438,12 +438,21 @@
       font-size: 11px;
       font-weight: 300;
       line-height: 1.6;
-      padding: 14px 16px;
       border-radius: 10px;
       max-width: 280px;
       box-shadow: 0 4px 24px rgba(0,0,0,0.5);
       transform: translateY(-6px);
       transition: transform 0.2s ease;
+      /* Le flou (backdrop-filter) reste sur ce conteneur FIXE.
+         Le scroll se fait dans .legal-popup-inner ci-dessous : le navigateur
+         n'a ainsi plus besoin de recalculer le blur à chaque frame de scroll,
+         ce qui supprime les à-coups. */
+      overflow: hidden;
+      contain: paint;
+    }
+
+    .legal-popup-inner {
+      padding: 14px 16px;
     }
 
     .legal-overlay.open .legal-popup {
@@ -490,6 +499,9 @@
     html.is-fullscreen .legal-popup {
       font-size: 14px;
       max-width: 340px;
+    }
+
+    html.is-fullscreen .legal-popup-inner {
       padding: 18px 20px;
     }
 
@@ -583,16 +595,27 @@
       max-width: 100%;
       min-height: 100%;
       border-radius: 0;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      /* padding-top : espace réduit sous la croix */
-      padding: 20px 20px 40px;
       transform: none !important;
       display: flex;
       flex-direction: column;
     }
 
-    .legal-overlay.overflow-popup .legal-popup strong {
+    .legal-overlay.overflow-popup .legal-popup-inner {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      /* padding-top : espace réduit sous la croix */
+      padding: 20px 20px 40px;
+      /* Place le contenu scrollable sur sa propre couche de composition,
+         indépendante du blur du parent : le navigateur peut alors se
+         contenter de translater cette couche pendant le scroll au lieu de
+         tout repeindre à chaque frame -> fin des à-coups. */
+      will-change: scroll-position;
+      transform: translateZ(0);
+    }
+
+    .legal-overlay.overflow-popup .legal-popup-inner strong {
       font-size: 14px;
       margin-bottom: 10px;
     }
@@ -603,17 +626,17 @@
     }
 
     /* Scrollbar stylisée (Webkit) */
-    .legal-overlay.overflow-popup .legal-popup::-webkit-scrollbar {
+    .legal-overlay.overflow-popup .legal-popup-inner::-webkit-scrollbar {
       width: 8px;
     }
-    .legal-overlay.overflow-popup .legal-popup::-webkit-scrollbar-track {
+    .legal-overlay.overflow-popup .legal-popup-inner::-webkit-scrollbar-track {
       background: transparent;
     }
-    .legal-overlay.overflow-popup .legal-popup::-webkit-scrollbar-thumb {
+    .legal-overlay.overflow-popup .legal-popup-inner::-webkit-scrollbar-thumb {
       background: rgba(255,255,255,0.25);
       border-radius: 2px;
     }
-    .legal-overlay.overflow-popup .legal-popup::-webkit-scrollbar-thumb:hover {
+    .legal-overlay.overflow-popup .legal-popup-inner::-webkit-scrollbar-thumb:hover {
       background: rgba(255,255,255,0.45);
     }
 
@@ -660,11 +683,13 @@
   <div id="legalOverlay" class="legal-overlay" role="dialog" aria-modal="true" aria-label="Mentions légales">
     <button class="legal-close" id="legalCloseBtn" aria-label="Fermer">✕</button>
     <div class="legal-popup">
-      <strong>À propos</strong>
-      <span class="bold">Fond</span> : Pinchon, J. (1945). <em>Carte postale illustrée : Paris XIe arrondissement – Popincourt</em> [Carte postale]. Éditions Blondel la Rougerie.<br><br>
-      <span class="bold">Audio</span> : Les enregistrements audio ont été réalisés dans le cadre du séminaire <em><a href="https://ecrituresurbaines.org/" target="_blank">Écritures Urbaines</a></em>, lors de la séance du 5 juin 2025 consacrée à Michèle Audin.<br><br>
-      <!--Les contenus audio diffusés sur ce site sont protégés par le droit d'auteur. Toute reproduction, diffusion ou exploitation sans autorisation préalable est interdite.<br><br>-->
-      <span class="bold">Conception et développement</span> : Gaël Maignan - <a href="https://gael-maignan.fr/" target="_blank">gael-maignan.fr</a>
+      <div class="legal-popup-inner">
+        <strong>À propos</strong>
+        <span class="bold">Fond</span> : Pinchon, J. (1945). <em>Carte postale illustrée : Paris XIe arrondissement – Popincourt</em> [Carte postale]. Éditions Blondel la Rougerie.<br><br>
+        <span class="bold">Audio</span> : Les enregistrements audio ont été réalisés dans le cadre du séminaire <em><a href="https://ecrituresurbaines.org/" target="_blank">Écritures Urbaines</a></em>, lors de la séance du 5 juin 2025 consacrée à Michèle Audin.<br><br>
+        <!--Les contenus audio diffusés sur ce site sont protégés par le droit d'auteur. Toute reproduction, diffusion ou exploitation sans autorisation préalable est interdite.<br><br>-->
+        <span class="bold">Conception et développement</span> : Gaël Maignan - <a href="https://gael-maignan.fr/" target="_blank">gael-maignan.fr</a>
+      </div>
     </div>
   </div>
 
@@ -962,6 +987,7 @@
     const legalOverlay = document.getElementById("legalOverlay");
 
     const legalPopup = legalOverlay.querySelector(".legal-popup");
+    const legalPopupInner = legalOverlay.querySelector(".legal-popup-inner");
 
     function openLegal() {
       // Retirer d'abord overflow-popup pour mesurer en mode flottant
@@ -974,7 +1000,7 @@
         const margin = 12; // marge de sécurité en bas
         if (rect.bottom > window.innerHeight - margin) {
           legalOverlay.classList.add("overflow-popup");
-          legalPopup.scrollTop = 0;
+          legalPopupInner.scrollTop = 0;
         }
       });
     }

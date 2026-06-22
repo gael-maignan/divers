@@ -253,8 +253,6 @@
       justify-content: center;
       z-index: 20;
       backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-      will-change: transform;
       transition: transform 0.2s cubic-bezier(0.22,1,0.36,1), background 0.2s ease, opacity 0.25s ease;
     }
 
@@ -327,7 +325,7 @@
 
     .play-pause {
       width: 40px; height: 40px;
-      background: var(--accent, #E5506B);
+      background: var(--accent);
       border-radius: 50%;
       position: relative;
       transform-origin: center;
@@ -417,8 +415,6 @@
       display: flex; align-items: center; justify-content: center;
       z-index: 30;
       backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-      will-change: transform; /* couche GPU stable : évite le "pop" au début/fin du hover (blur + scale) */
       transition: transform 0.2s cubic-bezier(0.22,1,0.36,1), background 0.2s ease;
       font-family: "Figtree", sans-serif;
       font-weight: 400; line-height: 1;
@@ -533,109 +529,9 @@
     .legal-overlay.overflow-popup .legal-popup-inner::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.25); border-radius: 2px; }
     .legal-overlay.overflow-popup .legal-popup-inner::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.45); }
     .legal-overlay.closing { opacity: 0; pointer-events: none; }
-
-    /* ====================================================
-       PANNEAU LIVRE — zone noire gauche (pillarbox)
-       ==================================================== */
-    .book-panel {
-      position: fixed;
-      top: 0;
-      left: 0;
-      bottom: var(--player-height);
-      /* Largeur = marge noire gauche calculée dynamiquement via JS */
-      width: var(--pillar-left, 0px);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px 14px;
-      gap: 14px;
-      z-index: 15;
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    .book-panel-inner {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      width: 100%;
-      opacity: 0;
-      transform: translateX(-8px);
-      transition: opacity 0.45s ease, transform 0.45s ease;
-    }
-
-    .book-panel-inner.visible {
-      opacity: 1;
-      transform: translateX(0);
-    }
-
-    /* Couverture — largeur fixe, hauteur auto (ratio naturel préservé) */
-    .book-cover {
-      width: var(--cover-width, 90px);
-      height: auto;
-      display: block;
-      border-radius: 3px;
-      box-shadow:
-        2px 3px 10px rgba(0,0,0,0.7),
-        inset -2px 0 4px rgba(0,0,0,0.25);
-      object-fit: cover;
-      flex-shrink: 0;
-    }
-
-    .book-meta {
-      width: 100%;
-      text-align: center;
-      color: rgba(255,255,255,0.88);
-    }
-
-    .book-title {
-      font-size: 11px;
-      font-weight: 600;
-      line-height: 1.35;
-      letter-spacing: 0.03em;
-      margin-bottom: 6px;
-      color: white;
-    }
-
-    .book-desc {
-      font-size: 10px;
-      font-weight: 300;
-      line-height: 1.5;
-      color: rgba(255,255,255,0.60);
-    }
-
-    /* Séparateur accent */
-    .book-divider {
-      width: 28px;
-      height: 2px;
-      border-radius: 1px;
-      background: var(--accent);
-      flex-shrink: 0;
-      transition: background 0.35s ease;
-    }
-
-    /* Caché si la zone est trop étroite (< 80px) */
-    .book-panel.too-narrow .book-panel-inner {
-      opacity: 0;
-      pointer-events: none;
-    }
   </style>
 </head>
 <body>
-
-  <!-- Panneau livre (zone noire gauche) -->
-  <div id="bookPanel" class="book-panel">
-    <div class="book-panel-inner" id="bookPanelInner">
-      <img id="bookCover" class="book-cover" src="" alt="" />
-      <div class="book-divider" id="bookDivider"></div>
-      <div class="book-meta">
-        <div class="book-title" id="bookTitle"></div>
-        <div class="book-desc" id="bookDesc"></div>
-      </div>
-    </div>
-  </div>
 
   <!-- Colonne scrollable -->
   <div id="scrollCol"></div>
@@ -677,23 +573,8 @@
     </div>
   </div>
 
-  <button id="fullscreenBtn" class="fullscreen-btn" aria-label="Plein écran">
-    <svg id="iconEnterFS" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
-      <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
-      <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
-    </svg>
-    <svg id="iconExitFS" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" style="display:none;">
-      <polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/>
-      <line x1="10" y1="14" x2="3" y2="21"/><line x1="14" y1="10" x2="21" y2="3"/>
-    </svg>
-  </button>
-  <button id="infoBtn" class="info-btn" aria-label="Mentions légales">
-    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
-      <circle cx="12" cy="12" r="10"/>
-      <line x1="12" y1="8" x2="12" y2="8" stroke-width="2.5" stroke-linecap="round"/>
-      <line x1="12" y1="12" x2="12" y2="16"/>
-    </svg>
-  </button>
+  <button id="fullscreenBtn" class="fullscreen-btn" aria-label="Plein écran">⛶</button>
+  <button id="infoBtn" class="info-btn" aria-label="Mentions légales">ⓘ</button>
 
   <div id="legalOverlay" class="legal-overlay" role="dialog" aria-modal="true" aria-label="Mentions légales">
     <button class="legal-close" id="legalCloseBtn" aria-label="Fermer">✕</button>
@@ -713,14 +594,9 @@
        ==================================================== */
     const scenes = [
       {
-        src: "images/fond de carte.jpg",
-        title: "",
+        src: "fond de carte.jpg",
+        title: "Paris XIe — Popincourt",
         accent: "#E5506B",
-        book: {
-          cover: "images/voltaire.webp",
-          title: "Paris, boulevard Voltaire suivi de Ponts - Michèle Audin",
-          desc: "05·06·2025 Séminaire autour de Michèle Audin, Ferme du Buisson, Noisiel"
-        },
         points: [
           { id: 1,  x: 0.13726, y: 0.28711, title: "0. Place du Château-d'Eau, un lion mélancolique observe la Place de la République - Jennifer Buyck",    audioUrl: "https://stream.gael-maignan.workers.dev/?id=1yT7gG25LapFyXDFsj9iV_8sdMBod5MZY" },
           { id: 2,  x: 0.19985, y: 0.35817, title: "1. Passage du Jeu-de-Boules, une inconnue embrasse un casquetier",                                        audioUrl: "https://stream.gael-maignan.workers.dev/?id=1lYo84SA1Hb3HhAPHvYc1WMox7Q0cH_Vs" },
@@ -739,28 +615,18 @@
         ]
       },
       {
-        src: "images/halles.png",        /* ← remplacez par votre image */
-        title: "",
+        src: "halles.png",        /* ← remplacez par votre image */
+        title: "Scène 2 — Exemple",
         accent: "#4A9EE0",
-        book: {
-          cover: "images/tectonique.webp",
-          title: "La Tectonique des Halles - Guillaume Marie",
-          desc: "12·06·26 Séminaire autour de La Tectonique des Halles de Guillaume Marie, Ferme du Buisson, Noisiel"
-        },
         points: [
           { id: 1, x: 0.25, y: 0.35, title: "Point A — Description du lieu", audioUrl: "https://exemple.com/audios/s2-a.mp3" },
           { id: 2, x: 0.55, y: 0.60, title: "Point B — Description du lieu", audioUrl: "https://exemple.com/audios/s2-b.mp3" }
         ]
       },
       {
-        src: "images/sophia.png",        /* ← remplacez par votre image */
-        title: "",
+        src: "sophia.png",        /* ← remplacez par votre image */
+        title: "Scène 3 — Exemple",
         accent: "#59C49A",
-        book: {
-          cover: "images/antipolis.webp",
-          title: "Antipolis - Nina Leger",
-          desc: "23·01·2026 Séminaire autour d’Antipolis et Mémoires sauvées de l’eau de Nina Leger, Ferme du Buisson, Noisiel"
-        },
         points: [
           { id: 1, x: 0.40, y: 0.45, title: "Point X — Description du lieu", audioUrl: "https://exemple.com/audios/s3-x.mp3" }
         ]
@@ -813,61 +679,6 @@
     const fullscreenBtn= document.getElementById("fullscreenBtn");
 
     /* ====================================================
-       PANNEAU LIVRE
-       ==================================================== */
-    const bookPanel      = document.getElementById("bookPanel");
-    const bookPanelInner = document.getElementById("bookPanelInner");
-    const bookCover      = document.getElementById("bookCover");
-    const bookTitle      = document.getElementById("bookTitle");
-    const bookDesc       = document.getElementById("bookDesc");
-
-    /* Largeur fixe des couvertures (en px) — la hauteur s'adapte au ratio */
-    const COVER_WIDTH = 90;
-
-    function updateBookPanel(idx) {
-      const data = scenes[idx];
-      if (!data.book) { bookPanel.style.display = "none"; return; }
-      bookPanel.style.display = "";
-
-      /* Transition : masquer → changer → afficher */
-      bookPanelInner.classList.remove("visible");
-
-      setTimeout(() => {
-        bookCover.src = data.book.cover;
-        bookCover.alt = data.book.title;
-        bookTitle.textContent = data.book.title;
-        bookDesc.textContent  = data.book.desc;
-        bookPanelInner.classList.add("visible");
-      }, 200);
-    }
-
-    function updatePillarWidth() {
-      /* Calcule la largeur de la zone noire gauche (pillarbox)
-         en utilisant la même logique que getRenderedRect() */
-      if (!sceneEls.length) return;
-      const { el, img } = sceneEls[currentSceneIndex];
-      const cw = el.clientWidth, ch = el.clientHeight;
-      const nw = img.naturalWidth,  nh = img.naturalHeight;
-      let pillarLeft = 0;
-      if (nw && nh) {
-        const cR = cw / ch, iR = nw / nh;
-        if (iR > cR) {
-          /* Pillarbox : l'image est plus large que le conteneur → bandes noires gauche/droite */
-          /* Dans getRenderedRect : w=cw, h=cw/iR → pas de bande latérale en réalité */
-          pillarLeft = 0;
-        } else {
-          /* L'image est plus haute (ou ratio égal) → bandes noires gauche/droite */
-          /* Dans getRenderedRect : h=ch, w=ch*iR → l=(cw-w)/2 */
-          pillarLeft = (cw - ch * iR) / 2;
-        }
-      }
-      const usable = pillarLeft - 8; /* 8px de marge de sécurité */
-      document.documentElement.style.setProperty("--pillar-left", `${Math.max(0, pillarLeft)}px`);
-      document.documentElement.style.setProperty("--cover-width",  `${Math.min(COVER_WIDTH, Math.max(0, usable - 20))}px`);
-      bookPanel.classList.toggle("too-narrow", usable < 80);
-    }
-
-    /* ====================================================
        CONSTRUCTION
        ==================================================== */
     function sceneHeight() {
@@ -907,7 +718,6 @@
         const tryMarkers = () => {
           createMarkersForScene(idx);
           positionMarkersForScene(idx);
-          if (idx === currentSceneIndex) updatePillarWidth();
         };
         if (img.complete && img.naturalWidth) tryMarkers();
         else img.addEventListener("load", tryMarkers);
@@ -928,7 +738,6 @@
       scrollCol.style.scrollBehavior = "auto";
       scrollCol.scrollTop = currentSceneIndex * sceneHeight();
       scrollCol.style.scrollBehavior = "";
-      updatePillarWidth();
     }
 
     /* ====================================================
@@ -955,16 +764,11 @@
       document.documentElement.style.setProperty("--accent",  accent);
       document.documentElement.style.setProperty("--accent2", accent);
 
-      /* Bouton play : couleur de la scène active */
-      playPauseBtn.style.background = accent;
-
       /* Dots */
       document.querySelectorAll(".scene-dot").forEach((d, i) =>
         d.classList.toggle("active", i === idx));
 
       updateNavBtns();
-      updateBookPanel(idx);
-      updatePillarWidth();
 
       /* Stopper l'audio si on change de scène */
       if (currentMarker) closePlayer();
@@ -1287,24 +1091,12 @@
     document.addEventListener("fullscreenchange",        lockFontSize);
     document.addEventListener("webkitfullscreenchange",  lockFontSize);
 
-    function updateFullscreenIcon() {
-      const isFS = !!document.fullscreenElement;
-      document.getElementById("iconEnterFS").style.display = isFS ? "none"  : "";
-      document.getElementById("iconExitFS").style.display  = isFS ? ""      : "none";
-    }
-    document.addEventListener("fullscreenchange",       updateFullscreenIcon);
-    document.addEventListener("webkitfullscreenchange", updateFullscreenIcon);
-
     /* ====================================================
        INIT
        ==================================================== */
     updatePlayerHeight();
     buildScenes();
     lockFontSize();
-    /* Couleur initiale du bouton play (scène 0) */
-    playPauseBtn.style.background = scenes[0].accent;
-    /* Panneau livre initial */
-    updateBookPanel(0);
 
     window.addEventListener("resize",           onResize);
     window.addEventListener("orientationchange",onResize);

@@ -155,7 +155,7 @@
     .tooltip {
       position: absolute;
       left: 50%;
-      bottom: 42px;
+      bottom: 40px;
       transform: translateX(calc(-50% + var(--tooltip-shift, 0px)));
       background: rgba(0,0,0,0.9);
       color: white;
@@ -245,13 +245,10 @@
       background: var(--accent);
       border-radius: 50%;
       position: relative;
-      transform-origin: center;
-      will-change: transform;
-      backface-visibility: hidden;
-      transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), background 0.2s ease;
+      transition: transform 0.15s ease, background 0.15s ease;
     }
 
-    .audio-player .play-pause:hover { transform: scale(1.2); }
+    .audio-player .play-pause:hover { transform: scale(1.06); }
     .audio-player .play-pause:active { transform: scale(0.95); }
 
     /* État idle : aucun point sélectionné */
@@ -361,9 +358,9 @@
        BOUTONS UI (info haut droite / fullscreen bas droite)
        ========================= */
     :root {
-      --ui-btn-size: 38px;
-      --ui-btn-font: 18px;
-      --ui-btn-margin: 12px;
+      --ui-btn-size: 40px;
+      --ui-btn-font: 20px;
+      --ui-btn-margin: 16px;
     }
 
     /* Styles communs */
@@ -383,10 +380,7 @@
       justify-content: center;
       z-index: 5;
       backdrop-filter: blur(4px);
-      transform-origin: center;
-      will-change: transform;
-      backface-visibility: hidden;
-      transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), background 0.2s ease;
+      transition: transform 0.15s ease, background 0.15s ease;
       font-family: "Figtree", sans-serif;
       font-weight: 400;
       line-height: 1;
@@ -396,7 +390,7 @@
     .fullscreen-btn:hover,
     .info-btn:hover {
       background: rgba(0,0,0,0.9);
-      transform: scale(1.2);
+      transform: scale(1.06);
     }
 
     /* Info : haut droite */
@@ -438,21 +432,12 @@
       font-size: 11px;
       font-weight: 300;
       line-height: 1.6;
+      padding: 14px 16px;
       border-radius: 10px;
       max-width: 280px;
       box-shadow: 0 4px 24px rgba(0,0,0,0.5);
       transform: translateY(-6px);
       transition: transform 0.2s ease;
-      /* Le flou (backdrop-filter) reste sur ce conteneur FIXE.
-         Le scroll se fait dans .legal-popup-inner ci-dessous : le navigateur
-         n'a ainsi plus besoin de recalculer le blur à chaque frame de scroll,
-         ce qui supprime les à-coups. */
-      overflow: hidden;
-      contain: paint;
-    }
-
-    .legal-popup-inner {
-      padding: 14px 16px;
     }
 
     .legal-overlay.open .legal-popup {
@@ -477,7 +462,7 @@
     }
 
     html.is-fullscreen .tooltip {
-      font-size: 15px;
+      font-size: 17px;
       padding: 10px 16px;
       max-width: min(360px, calc(100vw - 24px));
     }
@@ -499,9 +484,6 @@
     html.is-fullscreen .legal-popup {
       font-size: 14px;
       max-width: 340px;
-    }
-
-    html.is-fullscreen .legal-popup-inner {
       padding: 18px 20px;
     }
 
@@ -534,44 +516,29 @@
        PETITE FENÊTRE (iframe étroite)
        ========================= */
 
-    /* Bouton fermer — caché par défaut, révélé en mode overflow-popup */
+    /* Bouton fermer du popup — caché par défaut, visible en petite fenêtre */
     .legal-close {
       display: none;
-      position: absolute; /* dans l'overlay fixed = fixe visuellement */
-      top: 14px;
-      right: 14px;
-      z-index: 2001;
-      width: 34px;
-      height: 34px;
+      align-self: flex-end;
+      order: -1;
+      margin-bottom: 14px;
+      background: none;
       border: none;
-      border-radius: 50%;
-      background: rgba(0,0,0,0.55);
-      backdrop-filter: blur(4px);
-      color: rgba(255,255,255,0.75);
-      font-size: 18px;
+      color: rgba(255,255,255,0.55);
+      font-size: 22px;
       cursor: pointer;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
       padding: 0;
-      transition: background 0.15s ease, color 0.15s ease;
+      line-height: 1;
     }
-    .legal-close:hover {
-      background: rgba(0,0,0,0.85);
-      color: white;
-    }
+    .legal-close:hover { color: white; }
 
     @media (max-width: 480px) {
-
-
-
       .player-title { font-size: 12.5px; }
       .player-body { padding: 10px 12px; gap: 10px; }
 
       .tooltip {
         font-size: 12px;
         padding: 6px 10px;
-        bottom: 32px;
         max-width: min(220px, calc(100vw - 24px));
       }
 
@@ -580,76 +547,42 @@
         width: 24px;
         height: 24px;
       }
-    }
 
-    /* Popup plein écran — activé dynamiquement si le contenu déborde */
-    .legal-overlay.overflow-popup {
-      align-items: stretch;
-      justify-content: stretch;
-      padding: 0;
-      background: rgba(0,0,0,0.6);
-    }
+      /* Popup mentions : plein écran avec scroll */
+      .legal-overlay {
+        align-items: stretch;
+        justify-content: stretch;
+        padding: 0;
+        background: rgba(0,0,0,0.6);
+      }
 
-    .legal-overlay.overflow-popup .legal-popup {
-      width: 100%;
-      max-width: 100%;
-      min-height: 100%;
-      border-radius: 0;
-      transform: none !important;
-      display: flex;
-      flex-direction: column;
-    }
+      .legal-popup {
+        width: 100%;
+        max-width: 100%;
+        min-height: 100%;
+        border-radius: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 24px 20px 40px;
+        transform: none !important;
+        display: flex;
+        flex-direction: column;
+      }
 
-    .legal-overlay.overflow-popup .legal-popup-inner {
-      flex: 1;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior: contain;
-      /* padding-top : espace réduit sous la croix */
-      padding: 20px 20px 40px;
-      /* Place le contenu scrollable sur sa propre couche de composition,
-         indépendante du blur du parent : le navigateur peut alors se
-         contenter de translater cette couche pendant le scroll au lieu de
-         tout repeindre à chaque frame -> fin des à-coups. */
-      will-change: scroll-position;
-      transform: translateZ(0);
-    }
+      .legal-popup strong {
+        font-size: 14px;
+        margin-bottom: 10px;
+      }
 
-    .legal-overlay.overflow-popup .legal-popup-inner strong {
-      font-size: 14px;
-      margin-bottom: 10px;
-    }
-
-    /* Croix — révélée en mode plein écran, ancrée dans l'overlay (pas dans le scroll) */
-    .legal-overlay.overflow-popup .legal-close {
-      display: flex;
-    }
-
-    /* Scrollbar stylisée (Webkit) */
-    .legal-overlay.overflow-popup .legal-popup-inner::-webkit-scrollbar {
-      width: 8px;
-    }
-    .legal-overlay.overflow-popup .legal-popup-inner::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    .legal-overlay.overflow-popup .legal-popup-inner::-webkit-scrollbar-thumb {
-      background: rgba(255,255,255,0.25);
-      border-radius: 2px;
-    }
-    .legal-overlay.overflow-popup .legal-popup-inner::-webkit-scrollbar-thumb:hover {
-      background: rgba(255,255,255,0.45);
-    }
-
-    /* Transition de fermeture : on garde overflow-popup pendant le fade-out */
-    .legal-overlay.closing {
-      opacity: 0;
-      pointer-events: none;
+      .legal-close {
+        display: block;
+      }
     }
   </style>
 </head>
 <body>
   <div class="image-container" id="imageContainer">
-    <img id="mapImage" src="images/fond de carte.jpg" alt="Carte des points d'intérêt">
+    <img id="mapImage" src="fond de carte.jpg" alt="Carte des points d'intérêt">
   </div>
 
   <div class="audio-player idle" id="audioPlayer">
@@ -681,15 +614,13 @@
   <button id="infoBtn" class="info-btn" aria-label="Mentions légales">ⓘ</button>
 
   <div id="legalOverlay" class="legal-overlay" role="dialog" aria-modal="true" aria-label="Mentions légales">
-    <button class="legal-close" id="legalCloseBtn" aria-label="Fermer">✕</button>
     <div class="legal-popup">
-      <div class="legal-popup-inner">
-        <strong>À propos</strong>
-        <span class="bold">Fond</span> : Pinchon, J. (1945). <em>Carte postale illustrée : Paris XIe arrondissement – Popincourt</em> [Carte postale]. Éditions Blondel la Rougerie.<br><br>
-        <span class="bold">Audio</span> : Les enregistrements audio ont été réalisés dans le cadre du séminaire <em><a href="https://ecrituresurbaines.org/" target="_blank">Écritures Urbaines</a></em>, lors de la séance du 5 juin 2025 consacrée à Michèle Audin.<br><br>
-        <!--Les contenus audio diffusés sur ce site sont protégés par le droit d'auteur. Toute reproduction, diffusion ou exploitation sans autorisation préalable est interdite.<br><br>-->
-        <span class="bold">Conception et développement</span> : Gaël Maignan - <a href="https://gael-maignan.fr/" target="_blank">gael-maignan.fr</a>
-      </div>
+      <button class="legal-close" id="legalCloseBtn" aria-label="Fermer">✕</button>
+      <strong>À propos</strong>
+      <span class="bold">Fond</span> : Pinchon, J. (1945). <em>Carte postale illustrée : Paris XIe arrondissement – Popincourt</em> [Carte postale]. Éditions Blondel la Rougerie.<br><br>
+      <span class="bold">Audio</span> : Les enregistrements audio ont été réalisés dans le cadre du séminaire <em><a href="https://ecrituresurbaines.org/" target="_blank">Écritures Urbaines</a></em>, lors de la séance du 5 juin 2025 consacrée à Michèle Audin.<br><br>
+      <!--Les contenus audio diffusés sur ce site sont protégés par le droit d'auteur. Toute reproduction, diffusion ou exploitation sans autorisation préalable est interdite.<br><br>-->
+      <span class="bold">Conception et développement</span> : Gaël Maignan - <a href="https://gael-maignan.fr/" target="_blank">gael-maignan.fr</a>
     </div>
   </div>
 
@@ -698,10 +629,10 @@
        DONNÉES
        ========================= */
     const points = [
-      { id: 1, x: 0.13726, y: 0.28711, title: "0. Place du Château-d'Eau, un lion mélancolique observe la Place de la République - Jennifer Buyck", audioUrl: "https://stream.gael-maignan.workers.dev/?id=1Pukk44fA99OFDmwoIJmrqv_3D3u7YppH" },
-      { id: 2, x: 0.19985, y: 0.35817, title: "1. Passage du Jeu-de-Boules, une inconnue embrasse un casquetier", audioUrl: "https://stream.gael-maignan.workers.dev/?id=" },
+      { id: 1, x: 0.13726, y: 0.28711, title: "0. Place du Château-d'Eau, un lion mélancolique observe la Place de la République - Jennifer Buyck", audioUrl: "https://stream.gael-maignan.workers.dev/?id=1yT7gG25LapFyXDFsj9iV_8sdMBod5MZY" },
+      { id: 2, x: 0.19985, y: 0.35817, title: "1. Passage du Jeu-de-Boules, une inconnue embrasse un casquetier", audioUrl: "https://stream.gael-maignan.workers.dev/?id=1lYo84SA1Hb3HhAPHvYc1WMox7Q0cH_Vs" },
       { id: 3, x: 0.27048, y: 0.46017, title: "2. Devant Bataclan, 90 clous pour se souvenir", audioUrl: "https://exemple.com/audios/sud-est.mp3" },
-      { id: 4, x: 0.30659, y: 0.44756, title: "3. En face de Bataclan, un sergent-écrivain contribue à l'effort de guerre allemand - Arthur Pétin", audioUrl: "https://stream.gael-maignan.workers.dev/?id=1VpwB36AEB90nFvWM51R_kPtLsmtE1ofV" },
+      { id: 4, x: 0.30659, y: 0.44756, title: "3. En face de Bataclan, un sergent-écrivain contribue à l'effort de guerre allemand", audioUrl: "https://exemple.com/audios/sud-est.mp3" },
       { id: 5, x: 0.35394, y: 0.52321, title: "4. Céline et Julie vont au cinéma", audioUrl: "https://exemple.com/audios/sud-est.mp3" },
       { id: 6, x: 0.39246, y: 0.50716, title: "5. Église Saint-Ambroise, la mariée ne manifeste pas", audioUrl: "https://exemple.com/audios/sud-est.mp3" },
       { id: 7, x: 0.43821, y: 0.60688, title: "6. Rue Sedaine, une confectionneuse tente d'empêcher un lynchage", audioUrl: "https://exemple.com/audios/sud-est.mp3" },
@@ -986,53 +917,19 @@
     const infoBtn      = document.getElementById("infoBtn");
     const legalOverlay = document.getElementById("legalOverlay");
 
-    const legalPopup = legalOverlay.querySelector(".legal-popup");
-    const legalPopupInner = legalOverlay.querySelector(".legal-popup-inner");
-
-    function openLegal() {
-      // Retirer d'abord overflow-popup pour mesurer en mode flottant
-      legalOverlay.classList.remove("overflow-popup");
-      legalOverlay.classList.add("open");
-
-      // Après le rendu, vérifier si le popup déborde verticalement
-      requestAnimationFrame(() => {
-        const rect = legalPopup.getBoundingClientRect();
-        const margin = 12; // marge de sécurité en bas
-        if (rect.bottom > window.innerHeight - margin) {
-          legalOverlay.classList.add("overflow-popup");
-          legalPopupInner.scrollTop = 0;
-        }
-      });
-    }
-
-    function closeLegal() {
-      const isOverflow = legalOverlay.classList.contains("overflow-popup");
-      if (isOverflow) {
-        // En mode plein écran : fade-out d'abord, puis nettoyer les classes
-        legalOverlay.classList.add("closing");
-        legalOverlay.classList.remove("open");
-        legalOverlay.addEventListener("transitionend", function handler() {
-          legalOverlay.classList.remove("overflow-popup", "closing");
-          legalOverlay.removeEventListener("transitionend", handler);
-        });
-      } else {
-        legalOverlay.classList.remove("open", "overflow-popup");
-      }
-    }
-
     infoBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      legalOverlay.classList.contains("open") ? closeLegal() : openLegal();
+      legalOverlay.classList.toggle("open");
     });
 
     // Fermeture en cliquant en dehors du popup
     legalOverlay.addEventListener("click", (e) => {
-      if (e.target === legalOverlay) closeLegal();
+      if (e.target === legalOverlay) legalOverlay.classList.remove("open");
     });
 
-    // Bouton ✕ (popup plein écran)
+    // Bouton ✕ (visible uniquement en petite fenêtre)
     document.getElementById("legalCloseBtn").addEventListener("click", () => {
-      closeLegal();
+      legalOverlay.classList.remove("open");
     });
 
     document.addEventListener("keydown", (e) => {

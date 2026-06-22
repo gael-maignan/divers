@@ -17,9 +17,9 @@
       color: inherit;
     }
     :root {
-      --accent: #7F0000;
+      --accent: #E5506B;
       --border: white;
-      --accent2: #D10000;
+      --accent2: #E5506B;
       --player-bg: #1c1c1e;
       --player-text: #ffffff;
       --player-height: 88px;
@@ -649,7 +649,7 @@
 </head>
 <body>
   <div class="image-container" id="imageContainer">
-    <img id="mapImage" src="images/boulevard_voltaire.webp" alt="Carte des points d'intérêt">
+    <img id="mapImage" src="images/fond de carte.jpg" alt="Carte des points d'intérêt">
   </div>
 
   <div class="audio-player idle" id="audioPlayer">
@@ -697,240 +697,22 @@
     /* =========================
        DONNÉES
        ========================= */
-
     const points = [
-  {
-    id: 1,
-    x: 0.12044,
-    y: 0.13352,
-    title: "Lecture commentée par Jennifer Buyck",
-    audioUrl: "https://stream.gael-maignan.workers.dev/?id=1Pukk44fA99OFDmwoIJmrqv_3D3u7YppH"
-  },
-  {
-    id: 2,
-    x: 0.19225,
-    y: 0.22292,
-    title: "Lecture commentée par Joachim Séné",
-    audioUrl: "https://stream.gael-maignan.workers.dev/?id=1oQZGVkJts1PkBzCN0t5vY1sCKTfuKTdg"
-  },
-  /*{
-    id: 3,
-    x: 0.25252,
-    y: 0.31232,
-    title: "2. Devant Bataclan, 90 clous pour se souvenir",
-    audioUrl: "https://stream.gael-maignan.workers.dev/?id="
-  },*/
-  {
-    id: 4,
-    x: 0.29996,
-    y: 0.30888,
-    title: "Lecture commentée par Loïc Vadelorge",
-    audioUrl: "https://stream.gael-maignan.workers.dev/?id=1fz9tFszn447OdGpgvxXjA5Zv4HbVbrgf"
-  },
-  {
-    id: 4.1,
-    x: 0.30125,
-    y: 0.26533,
-    title: "Lecture commentée par Arthur Pétin",
-    audioUrl: "https://stream.gael-maignan.workers.dev/?id=1nNTelHbvNo25Paz4lnSqkT9bSoj6LDFq"
-  },
-  {
-    id: 5,
-    x: 0.33330,
-    y: 0.37994,
-    title: "Lecture commentée par Gaël Maignan",
-    audioUrl: "https://stream.gael-maignan.workers.dev/?id=1s9y0aNXbfHr0R_ZopurO2A7n1NBhU_QG"
-  },
-  {
-    id: 6,
-    x: 0.42050,
-    y: 0.36390,
-    title: "Lecture commentée par [Inconnue]",
-    audioUrl: "https://stream.gael-maignan.workers.dev/?id=1-bseEHjiREFOo3r7MMzX76PvTsdXoFSs"
-  },/*
-  {
-    id: 7,
-    x: 0.45127,
-    y: 0.47622,
-    title: "6. Rue Sedaine, une confectionneuse tente d’empêcher un lynchage",
-    audioUrl: "https://stream.gael-maignan.workers.dev/?id="
-  },*/
-  {
-    id: 8,
-    x: 0.49102,
-    y: 0.46819,
-    title: "Lecture commentée par [Inconnu]",
-    audioUrl: "https://stream.gael-maignan.workers.dev/?id=1vgoF07v6SGC6756Tfb0o_1QCBLxh3Lib"
-  },/*
-  {
-    id: 9,
-    x: 0.56540,
-    y: 0.57937,
-    title: "8. Des autobus pour se rendre au gymnase",
-    audioUrl: "https://stream.gael-maignan.workers.dev/?id="
-  },*/
-  {
-    id: 10,
-    x: 0.66670,
-    y: 0.60000,
-    title: "Lecture commentée par Blaise Chabanis",
-    audioUrl: "https://stream.gael-maignan.workers.dev/?id=1zP4rrvYATLARbr--Kgak5PIY1fuNLdsu"
-  },
-  {
-    id: 11,
-    x: 0.74107,
-    y: 0.70888,
-    title: "Lecture commentée par [Inconnu]",
-    audioUrl: "https://stream.gael-maignan.workers.dev/?id=1TzhVuaJCTvG1YEdQj_edoFaTtOXzZqtb"
-  },/*
-  {
-    id: 12,
-    x: 0.85135,
-    y: 0.76046,
-    title: "11. Rue de Montreuil, une couturière assiste à une inauguration",
-    audioUrl: "https://stream.gael-maignan.workers.dev/?id="
-  },*/
-  {
-    id: 13,
-    x: 0.83211,
-    y: 0.79140,
-    title: "Lecture commentée par Lou Gomez",
-    audioUrl: "https://stream.gael-maignan.workers.dev/?id=1f87UT0VfiU39gm_Qaj94yWKhOCKixz02"
-  },
-  {
-    id: 13.2,
-    x: 0.86417,
-    y: 0.81203,
-    title: "Lecture commentée par Virginie Tahar",
-    audioUrl: "https://stream.gael-maignan.workers.dev/?id=17zE0KjR_HaaUP73D9rIzKarQ_zziUrCj"
-  },
-  {
-    id: 14,
-    x: 0.92828,
-    y: 0.88653,
-    title: "13. ",
-    audioUrl: "https://stream.gael-maignan.workers.dev/?id="
-  },
-
-
-  {
-    id: 20,
-    x: 0.10762,
-    y: 0.85559,
-    title: "Analyse et commentaire de la couverture par [Inconnu]",
-    audioUrl: "https://stream.gael-maignan.workers.dev/?id=1KvHbYHM6BD9h2jxcqtrs6cvsrr6ipD1q"
-  },
-  {
-    id: 21,
-    x: 0.40896,
-    y: 0.97479,
-    title: "Sources : Lecture et commentaire par Olivier Brossard",
-    audioUrl: "https://stream.gael-maignan.workers.dev/?id=1XVY2by11wI_BS0f6kzWfDPbiWgrYYR6J"
-  }
-];
-
-
-
-   /* const points = [
-  {
-    id: 1,
-    x: 0.12044,
-    y: 0.13352,
-    title: "0. Place du Château-d’Eau, un lion mélancolique observe la Place de la République",
-    audioUrl: "https://exemple.com/audios/centre.mp3"
-  },
-  {
-    id: 2,
-    x: 0.19225,
-    y: 0.22292,
-    title: "1. Passage du Jeu-de-Boules, une inconnue embrasse un casquetier",
-    audioUrl: "https://exemple.com/audios/nord-ouest.mp3"
-  },
-  {
-    id: 3,
-    x: 0.25252,
-    y: 0.31232,
-    title: "2. Devant Bataclan, 90 clous pour se souvenir",
-    audioUrl: "https://exemple.com/audios/sud-est.mp3"
-  },
-  {
-    id: 4,
-    x: 0.29996,
-    y: 0.30888,
-    title: "3. En face de Bataclan, un sergent-écrivain contribue à l’effort de guerre allemand",
-    audioUrl: "https://exemple.com/audios/sud-est.mp3"
-  },
-  {
-    id: 5,
-    x: 0.33330,
-    y: 0.37994,
-    title: "4. Céline et Julie vont au cinéma",
-    audioUrl: "https://exemple.com/audios/sud-est.mp3"
-  },
-  {
-    id: 6,
-    x: 0.42050,
-    y: 0.36390,
-    title: "5. Église Saint-Ambroise, la mariée ne manifeste pas",
-    audioUrl: "https://exemple.com/audios/sud-est.mp3"
-  },
-  {
-    id: 7,
-    x: 0.45127,
-    y: 0.47622,
-    title: "6. Rue Sedaine, une confectionneuse tente d’empêcher un lynchage",
-    audioUrl: "https://exemple.com/audios/sud-est.mp3"
-  },
-  {
-    id: 8,
-    x: 0.49102,
-    y: 0.46819,
-    title: "7. Défilé de statues devant la mairie",
-    audioUrl: "https://exemple.com/audios/sud-est.mp3"
-  },
-  {
-    id: 9,
-    x: 0.56540,
-    y: 0.57937,
-    title: "8. Des autobus pour se rendre au gymnase",
-    audioUrl: "https://exemple.com/audios/sud-est.mp3"
-  },
-  {
-    id: 10,
-    x: 0.66670,
-    y: 0.60000,
-    title: "9. Métro Charonne, Nestor Burma prend un coup sur la tête",
-    audioUrl: "https://exemple.com/audios/sud-est.mp3"
-  },
-  {
-    id: 11,
-    x: 0.74107,
-    y: 0.70888,
-    title: "10. Rue des Boulets, une institutrice énumère des objets",
-    audioUrl: "https://exemple.com/audios/sud-est.mp3"
-  },
-  {
-    id: 12,
-    x: 0.85135,
-    y: 0.76046,
-    title: "11. Rue de Montreuil, une couturière assiste à une inauguration",
-    audioUrl: "https://exemple.com/audios/sud-est.mp3"
-  },
-  {
-    id: 13,
-    x: 0.83211,
-    y: 0.79140,
-    title: "12. Rue des Immeubles-Industriels, embellissement",
-    audioUrl: "https://exemple.com/audios/sud-est.mp3"
-  },
-  {
-    id: 14,
-    x: 0.92828,
-    y: 0.88653,
-    title: "13. Casse-pipe à la Nation",
-    audioUrl: "https://exemple.com/audios/sud-est.mp3"
-  }
-];*/
+      { id: 1, x: 0.13726, y: 0.28711, title: "0. Place du Château-d'Eau, un lion mélancolique observe la Place de la République - Jennifer Buyck", audioUrl: "https://stream.gael-maignan.workers.dev/?id=1Pukk44fA99OFDmwoIJmrqv_3D3u7YppH" },
+      { id: 2, x: 0.19985, y: 0.35817, title: "1. Passage du Jeu-de-Boules, une inconnue embrasse un casquetier", audioUrl: "https://stream.gael-maignan.workers.dev/?id=" },
+      { id: 3, x: 0.27048, y: 0.46017, title: "2. Devant Bataclan, 90 clous pour se souvenir", audioUrl: "https://exemple.com/audios/sud-est.mp3" },
+      { id: 4, x: 0.30659, y: 0.44756, title: "3. En face de Bataclan, un sergent-écrivain contribue à l'effort de guerre allemand - Arthur Pétin", audioUrl: "https://stream.gael-maignan.workers.dev/?id=1VpwB36AEB90nFvWM51R_kPtLsmtE1ofV" },
+      { id: 5, x: 0.35394, y: 0.52321, title: "4. Céline et Julie vont au cinéma", audioUrl: "https://exemple.com/audios/sud-est.mp3" },
+      { id: 6, x: 0.39246, y: 0.50716, title: "5. Église Saint-Ambroise, la mariée ne manifeste pas", audioUrl: "https://exemple.com/audios/sud-est.mp3" },
+      { id: 7, x: 0.43821, y: 0.60688, title: "6. Rue Sedaine, une confectionneuse tente d'empêcher un lynchage", audioUrl: "https://exemple.com/audios/sud-est.mp3" },
+      { id: 8, x: 0.47031, y: 0.54040, title: "7. Défilé de statues devant la mairie", audioUrl: "https://exemple.com/audios/sud-est.mp3" },
+      { id: 9, x: 0.53290, y: 0.70544, title: "8. Des autobus pour se rendre au gymnase", audioUrl: "https://exemple.com/audios/sud-est.mp3" },
+      { id: 10, x: 0.58587, y: 0.74212, title: "9. Métro Charonne, Nestor Burma prend un coup sur la tête", audioUrl: "https://exemple.com/audios/sud-est.mp3" },
+      { id: 11, x: 0.67415, y: 0.80745, title: "10. Rue des Boulets, une institutrice énumère des objets", audioUrl: "https://exemple.com/audios/sud-est.mp3" },
+      { id: 12, x: 0.82583, y: 0.88309, title: "11. Rue de Montreuil, une couturière assiste à une inauguration", audioUrl: "https://exemple.com/audios/sud-est.mp3" },
+      { id: 13, x: 0.74477, y: 0.88768, title: "12. Rue des Immeubles-Industriels, embellissement", audioUrl: "https://exemple.com/audios/sud-est.mp3" },
+      { id: 14, x: 0.87077, y: 0.95874, title: "13. Casse-pipe à la Nation", audioUrl: "https://exemple.com/audios/sud-est.mp3" }
+    ];
 
     /* =========================
        RÉFÉRENCES DOM

@@ -718,7 +718,7 @@
         accent: "#E5506B",
         book: {
           cover: "images/voltaire.webp",
-          title: "Paris, boulevard Voltaire suivi de Ponts - Michèle Audin",
+          title: "Paris, boulevard Voltaire - Michèle Audin",
           desc: "05·06·2025 Séminaire autour de Michèle Audin, Ferme du Buisson, Noisiel"
         },
         points: [
@@ -1277,8 +1277,18 @@
       } catch(e) {}
     });
 
+    /* Seuil à partir duquel on considère la fenêtre comme "grand écran"
+       (plein écran natif OU iframe agrandie, OU ouverture directe dans un grand onglet).
+       On utilise la taille réelle du viewport, indépendamment de fullscreenElement
+       (qui reste null à l'intérieur d'un iframe même quand il est en plein écran). */
+    const FS_THRESHOLD_W = 900;  // px — ajustez si besoin
+    const FS_THRESHOLD_H = 600;  // px
+
     function lockFontSize() {
-      const isFS = !!document.fullscreenElement;
+      const isLarge = window.innerWidth  >= FS_THRESHOLD_W
+                   && window.innerHeight >= FS_THRESHOLD_H;
+      /* Plein écran natif (hors iframe) : on l'honore aussi */
+      const isFS = isLarge || !!document.fullscreenElement;
       document.documentElement.classList.toggle("is-fullscreen", isFS);
       document.documentElement.style.fontSize = isFS ? "" : "16px";
       requestAnimationFrame(() => requestAnimationFrame(onResize));
@@ -1306,8 +1316,8 @@
     /* Panneau livre initial */
     updateBookPanel(0);
 
-    window.addEventListener("resize",           onResize);
-    window.addEventListener("orientationchange",onResize);
+    window.addEventListener("resize",           () => { lockFontSize(); onResize(); });
+    window.addEventListener("orientationchange",() => { lockFontSize(); onResize(); });
   </script>
 </body>
 </html>

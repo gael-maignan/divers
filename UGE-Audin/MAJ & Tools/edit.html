@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Points d'intérêt sur image</title>
+  <style>
+    :root {
+      --accent: #21007F;
+      --player-bg: #1c1c1e;
+      --player-text: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .image-container {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+      background: #000;
+    }
+
+    .image-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none;
+    }
+
+    .poi {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      background: var(--accent);
+      border: 4px solid white;
+      border-radius: 50%;
+      cursor: pointer;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+      z-index: 2;
+    }
+
+    .poi:hover {
+      transform: translate(-50%, -50%) scale(1.2);
+    }
+
+    .poi.playing {
+      box-shadow: 0 0 0 0 rgba(33, 0, 127, 0.6);
+      animation: pulse 1.6s infinite;
+    }
+
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(33, 0, 127, 0.55); }
+      70%  { box-shadow: 0 0 0 14px rgba(33, 0, 127, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(33, 0, 127, 0); }
+    }
+
+    .tooltip {
+      position: absolute;
+      left: 50%;
+      bottom: 35px;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.85);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      white-space: nowrap;
+      font-size: 14px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease;
+      z-index: 3;
+    }
+
+    .poi:hover .tooltip,
+    .poi:focus-visible .tooltip,
+    .poi.active .tooltip {
+      opacity: 1;
+    }
+
+    .poi:focus-visible {
+      outline: 2px solid white;
+      outline-offset: 3px;
+    }
+
+    /* ---------------------- Mode édition / déplacement ---------------------- */
+    body.edit-mode .poi {
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .poi.dragging {
+      cursor: grabbing;
+      z-index: 5;
+      transition: none;
+    }
+
+    .poi.dragging .tooltip {
+      opacity: 1;
+    }
+
+    /* ---------------------- Barre d'outils ---------------------- */
+    .toolbar {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      gap: 8px;
+      z-index: 20;
+    }
+
+    .toolbar button {
+      background: rgba(28, 28, 30, 0.9);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .toolbar button:hover {
+      background: rgba(55, 55, 58, 0.95);
+    }
+
+    .toolbar button.active {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    @media (max-width: 480px) {
+      .toolbar {
+        top: auto;
+        bottom: 90px;
+        left: 12px;
+        right: 12px;
+        justify-content: center;
+      }
+      .toolbar button { font-size: 12px; padding: 8px 10px; }
+    }
+
+    /* ---------------------- Lecteur audio bas de page ---------------------- */
+    .audio-player {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--player-bg);
+      color: var(--player-text);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+      z-index: 10;
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.3);
+    }
+
+    .audio-player.open {
+      transform: translateY(0);
+    }
+
+    .audio-player button {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      flex-shrink: 0;
+    }
+
+    .audio-player .play-pause {
+      width: 38px;
+      height: 38px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+
+    .audio-player .play-pause svg,
+    .audio-player .close-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .player-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .player-title {
+      font-size: 14px;
+      font-weight: bold;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .player-progress-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .player-time {
+      font-size: 11px;
+      color: #c7c7cc;
+      min-width: 34px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .player-progress {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      border-radius: 2px;
+      background: #4a4a4c;
+      cursor: pointer;
+      accent-color: var(--accent);
+    }
+
+    .player-progress::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: white;
+      cursor: pointer;
+    }
+
+    .player-progress::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      border: none;
+      border-radius: 50%;
+      background: white;
+      cursor: pointer;
+    }
+
+    @media (max-width: 480px) {
+      .player-title { font-size: 13px; }
+      .audio-player { padding: 10px 12px; gap: 10px; }
+      .tooltip { font-size: 12px; padding: 6px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="image-container" id="imageContainer">
+    <img id="mapImage" src="image.png" alt="Image exemple">
+  </div>
+
+  <div class="toolbar">
+    <button id="editModeBtn" type="button">✏️ Déplacer les points</button>
+    <button id="copyBtn" type="button">📋 Copier le tableau</button>
+  </div>
+
+  <div class="audio-player" id="audioPlayer">
+    <button class="play-pause" id="playPauseBtn" aria-label="Lecture / Pause">
+      <svg id="playIcon" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+      <svg id="pauseIcon" viewBox="0 0 24 24" fill="white" style="display:none;"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+    </button>
+
+    <div class="player-info">
+      <div class="player-title" id="playerTitle">Titre de l'audio</div>
+      <div class="player-progress-row">
+        <span class="player-time" id="currentTime">0:00</span>
+        <input type="range" class="player-progress" id="progressBar" value="0" min="0" max="100" step="0.1">
+        <span class="player-time" id="duration">0:00</span>
+      </div>
+    </div>
+
+    <button class="close-btn" id="closeBtn" aria-label="Fermer le lecteur">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+    </button>
+  </div>
+
+  <script>
+    const points = [
+      {
+        id: 1,
+        x: 0.50000,
+        y: 0.50000,
+        title: "0. Place du Château-d’Eau, un lion mélancolique observe la Place de la République",
+        audioUrl: "https://exemple.com/audios/centre.mp3"
+      },
+      {
+        id: 2,
+        x: 0.37696,
+        y: 0.19044,
+        title: "1. Passage du Jeu-de-Boules, une inconnue embrasse un casquetier",
+        audioUrl: "https://exemple.com/audios/nord-ouest.mp3"
+      },
+      {
+        id: 3,
+        x: 0.39987,
+        y: 0.24628,
+        title: "2. Devant Bataclan, 90 clous pour se souvenir",
+        audioUrl: "https://exemple.com/audios/sud-est.mp3"
+      },
+      {
+        id: 4,
+        x: 0.41819,
+        y: 0.26203,
+        title: "3. En face de Bataclan, un sergent-écrivain contribue à l’effort de guerre allemand",
+        audioUrl: "https://exemple.com/audios/sud-est.mp3"
+      },
+      {
+        id: 5,
+        x: 0.43783,
+        y: 0.32932,
+        title: "4. Céline et Julie vont au cinéma",
+        audioUrl: "https://exemple.com/audios/sud-est.mp3"
+      },
+      {
+        id: 6,
+        x: 0.47120,
+        y: 0.32932,
+        title: "5. Église Saint-Ambroise, la mariée ne manifeste pas",
+        audioUrl: "https://exemple.com/audios/sud-est.mp3"
+      },
+      {
+        id: 7,
+        x: 0.49215,
+        y: 0.43814,
+        title: "6. Rue Sedaine, une confectionneuse tente d’empêcher un lynchage",
+        audioUrl: "https://exemple.com/audios/sud-est.mp3"
+      },
+      {
+        id: 8,
+        x: 0.50785,
+        y: 0.43099,
+        title: "7. Défilé de statues devant la mairie",
+        audioUrl: "https://exemple.com/audios/sud-est.mp3"
+      },
+      {
+        id: 9,
+        x: 0.54123,
+        y: 0.53265,
+        title: "8. Des autobus pour se rendre au gymnase",
+        audioUrl: "https://exemple.com/audios/sud-est.mp3"
+      },
+      {
+        id: 10,
+        x: 0.57134,
+        y: 0.57847,
+        title: "9. Métro Charonne, Nestor Burma prend un coup sur la tête",
+        audioUrl: "https://exemple.com/audios/sud-est.mp3"
+      },
+      {
+        id: 11,
+        x: 0.61060,
+        y: 0.67297,
+        title: "10. Rue des Boulets, une institutrice énumère des objets",
+        audioUrl: "https://exemple.com/audios/sud-est.mp3"
+      },
+      {
+        id: 12,
+        x: 0.65445,
+        y: 0.74456,
+        title: "11. Rue de Montreuil, une couturière assiste à une inauguration",
+        audioUrl: "https://exemple.com/audios/sud-est.mp3"
+      },
+      {
+        id: 13,
+        x: 0.64725,
+        y: 0.75029,
+        title: "12. Rue des Immeubles-Industriels, embellissement",
+        audioUrl: "https://exemple.com/audios/sud-est.mp3"
+      },
+      {
+        id: 14,
+        x: 0.68586,
+        y: 0.85052,
+        title: "13. Casse-pipe à la Nation",
+        audioUrl: "https://exemple.com/audios/sud-est.mp3"
+      }
+    ];
+
+    const container = document.getElementById("imageContainer");
+    const img = document.getElementById("mapImage");
+
+    const audio = new Audio();
+    const audioPlayer = document.getElementById("audioPlayer");
+    const playPauseBtn = document.getElementById("playPauseBtn");
+    const playIcon = document.getElementById("playIcon");
+    const pauseIcon = document.getElementById("pauseIcon");
+    const playerTitle = document.getElementById("playerTitle");
+    const progressBar = document.getElementById("progressBar");
+    const currentTimeEl = document.getElementById("currentTime");
+    const durationEl = document.getElementById("duration");
+    const closeBtn = document.getElementById("closeBtn");
+
+    const editModeBtn = document.getElementById("editModeBtn");
+    const copyBtn = document.getElementById("copyBtn");
+
+    let currentMarker = null;
+    let isSeeking = false;
+    let editMode = false;
+
+    function formatTime(seconds) {
+      if (!isFinite(seconds)) return "0:00";
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60).toString().padStart(2, "0");
+      return `${m}:${s}`;
+    }
+
+    function showPlayIcon() {
+      playIcon.style.display = "block";
+      pauseIcon.style.display = "none";
+    }
+
+    function showPauseIcon() {
+      playIcon.style.display = "none";
+      pauseIcon.style.display = "block";
+    }
+
+    function getRenderedImageRect() {
+      const cw = container.clientWidth;
+      const ch = container.clientHeight;
+      const nw = img.naturalWidth;
+      const nh = img.naturalHeight;
+
+      if (!nw || !nh) {
+        return { left: 0, top: 0, width: cw, height: ch };
+      }
+
+      const containerRatio = cw / ch;
+      const imageRatio = nw / nh;
+
+      let width, height, left, top;
+
+      if (imageRatio > containerRatio) {
+        width = cw;
+        height = cw / imageRatio;
+        left = 0;
+        top = (ch - height) / 2;
+      } else {
+        height = ch;
+        width = ch * imageRatio;
+        top = 0;
+        left = (cw - width) / 2;
+      }
+
+      return { left, top, width, height };
+    }
+
+    function positionMarkers() {
+      const rect = getRenderedImageRect();
+
+      document.querySelectorAll(".poi").forEach((marker, index) => {
+        const point = points[index];
+        marker.style.left = `${rect.left + point.x * rect.width}px`;
+        marker.style.top = `${rect.top + point.y * rect.height}px`;
+      });
+    }
+
+    function openPlayer(point, marker) {
+      if (currentMarker && currentMarker !== marker) {
+        currentMarker.classList.remove("playing");
+      }
+
+      currentMarker = marker;
+      marker.classList.add("playing");
+
+      playerTitle.textContent = point.title;
+      audio.src = point.audioUrl;
+      audio.currentTime = 0;
+      audio.play().catch(err => console.warn("Lecture impossible :", err));
+
+      audioPlayer.classList.add("open");
+    }
+
+    function closePlayer() {
+      audio.pause();
+      audioPlayer.classList.remove("open");
+
+      if (currentMarker) {
+        currentMarker.classList.remove("playing");
+        currentMarker = null;
+      }
+    }
+
+    /* ---------------------- Création des marqueurs + déplacement ---------------------- */
+    function createMarkers() {
+      points.forEach(point => {
+        const marker = document.createElement("div");
+        marker.className = "poi";
+        marker.tabIndex = 0;
+        marker.setAttribute("role", "button");
+        marker.setAttribute("aria-label", point.title);
+
+        const tooltip = document.createElement("div");
+        tooltip.className = "tooltip";
+        tooltip.textContent = point.title;
+        marker.appendChild(tooltip);
+
+        // --- Lecture au clic (désactivée en mode édition) ---
+        const activate = (e) => {
+          if (editMode) return;
+          e.stopPropagation();
+          document.querySelectorAll(".poi.active").forEach(el => el.classList.remove("active"));
+          marker.classList.add("active");
+          openPlayer(point, marker);
+        };
+
+        marker.addEventListener("click", activate);
+        marker.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            activate(e);
+          }
+        });
+
+        // --- Déplacement du point (mode édition uniquement) ---
+        let dragging = false;
+
+        marker.addEventListener("pointerdown", (e) => {
+          if (!editMode) return;
+          e.stopPropagation();
+          e.preventDefault();
+          dragging = true;
+          marker.classList.add("dragging");
+          marker.setPointerCapture(e.pointerId);
+          tooltip.textContent = `x: ${point.x.toFixed(3)}  y: ${point.y.toFixed(3)}`;
+        });
+
+        marker.addEventListener("pointermove", (e) => {
+          if (!dragging) return;
+
+          const rect = getRenderedImageRect();
+          const containerRect = container.getBoundingClientRect();
+
+          let px = e.clientX - containerRect.left - rect.left;
+          let py = e.clientY - containerRect.top - rect.top;
+
+          px = Math.max(0, Math.min(rect.width, px));
+          py = Math.max(0, Math.min(rect.height, py));
+
+          point.x = rect.width ? px / rect.width : 0;
+          point.y = rect.height ? py / rect.height : 0;
+
+          marker.style.left = `${rect.left + px}px`;
+          marker.style.top = `${rect.top + py}px`;
+
+          tooltip.textContent = `x: ${point.x.toFixed(3)}  y: ${point.y.toFixed(3)}`;
+        });
+
+        const stopDragging = (e) => {
+          if (!dragging) return;
+          dragging = false;
+          marker.classList.remove("dragging");
+          tooltip.textContent = point.title;
+          try { marker.releasePointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+        };
+
+        marker.addEventListener("pointerup", stopDragging);
+        marker.addEventListener("pointercancel", stopDragging);
+
+        container.appendChild(marker);
+      });
+    }
+
+    document.addEventListener("click", () => {
+      document.querySelectorAll(".poi.active").forEach(el => el.classList.remove("active"));
+    });
+
+    /* ---------------------- Bascule du mode édition ---------------------- */
+    editModeBtn.addEventListener("click", () => {
+      editMode = !editMode;
+      document.body.classList.toggle("edit-mode", editMode);
+      editModeBtn.textContent = editMode ? "✓ Déplacement activé" : "✏️ Déplacer les points";
+      editModeBtn.classList.toggle("active", editMode);
+
+      // En mode édition, on ferme le lecteur pour ne pas gêner le placement
+      if (editMode) closePlayer();
+    });
+
+    /* ---------------------- Export du tableau dans le presse-papier ---------------------- */
+    function generatePointsCode() {
+      const items = points.map(point => (
+`  {
+    id: ${point.id},
+    x: ${point.x.toFixed(5)},
+    y: ${point.y.toFixed(5)},
+    title: ${JSON.stringify(point.title)},
+    audioUrl: ${JSON.stringify(point.audioUrl)}
+  }`
+      ));
+      return `const points = [\n${items.join(",\n")}\n];`;
+    }
+
+    let copyFeedbackTimeout;
+    function showCopyFeedback(success) {
+      clearTimeout(copyFeedbackTimeout);
+      copyBtn.textContent = success ? "✅ Copié !" : "❌ Échec de la copie";
+      copyFeedbackTimeout = setTimeout(() => {
+        copyBtn.textContent = "📋 Copier le tableau";
+      }, 1800);
+    }
+
+    async function copyPointsToClipboard() {
+      const code = generatePointsCode();
+
+      if (navigator.clipboard && window.isSecureContext) {
+        try {
+          await navigator.clipboard.writeText(code);
+          showCopyFeedback(true);
+          return;
+        } catch (err) {
+          console.warn("navigator.clipboard a échoué, repli sur execCommand :", err);
+        }
+      }
+
+      // Repli pour les contextes non sécurisés / navigateurs plus anciens
+      const textarea = document.createElement("textarea");
+      textarea.value = code;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      try {
+        document.execCommand("copy");
+        showCopyFeedback(true);
+      } catch (err) {
+        console.error("Copie impossible :", err);
+        showCopyFeedback(false);
+      }
+      document.body.removeChild(textarea);
+    }
+
+    copyBtn.addEventListener("click", copyPointsToClipboard);
+
+    /* ---------------------- Contrôles du lecteur ---------------------- */
+    playPauseBtn.addEventListener("click", () => {
+      if (audio.paused) {
+        audio.play();
+      } else {
+        audio.pause();
+      }
+    });
+
+    closeBtn.addEventListener("click", closePlayer);
+
+    audio.addEventListener("play", showPauseIcon);
+    audio.addEventListener("pause", showPlayIcon);
+
+    audio.addEventListener("loadedmetadata", () => {
+      durationEl.textContent = formatTime(audio.duration);
+      currentTimeEl.textContent = formatTime(0);
+      progressBar.value = 0;
+    });
+
+    audio.addEventListener("timeupdate", () => {
+      if (isSeeking) return;
+      currentTimeEl.textContent = formatTime(audio.currentTime);
+      if (audio.duration) {
+        progressBar.value = (audio.currentTime / audio.duration) * 100;
+      }
+    });
+
+    audio.addEventListener("ended", () => {
+      showPlayIcon();
+      if (currentMarker) currentMarker.classList.remove("playing");
+    });
+
+    progressBar.addEventListener("input", () => {
+      if (!audio.duration) return;
+      isSeeking = true;
+      currentTimeEl.textContent = formatTime((progressBar.value / 100) * audio.duration);
+    });
+
+    progressBar.addEventListener("change", () => {
+      if (audio.duration) {
+        audio.currentTime = (progressBar.value / 100) * audio.duration;
+      }
+      isSeeking = false;
+    });
+
+    window.addEventListener("resize", positionMarkers);
+    window.addEventListener("orientationchange", positionMarkers);
+
+    img.addEventListener("load", () => {
+      createMarkers();
+      positionMarkers();
+    });
+
+    if (img.complete) {
+      createMarkers();
+      positionMarkers();
+    }
+  </script>
+</body>
+</html>

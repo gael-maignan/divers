@@ -118,6 +118,36 @@
   #panelToggleBtn:hover { background: #f0b658; }
   #panelToggleBtn.hidden-behind { opacity: 0; pointer-events: none; }
 
+  /* Bouton flottant mobile : lance directement la recherche de la fontaine
+     à boire la plus proche. Masqué sur desktop, affiché uniquement en
+     dessous de 760px (même seuil que le reste des adaptations mobile). */
+  #mobileFountainBtn {
+    position: fixed;
+    bottom: 20px;
+    right: 16px;
+    z-index: 1050;
+    width: 52px;
+    height: 52px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: var(--line);
+    color: var(--ink);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+    font-size: 24px;
+    line-height: 1;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  #mobileFountainBtn:hover { background: #8fc6e6; }
+  #mobileFountainBtn:active { transform: scale(0.92); }
+
+  @media (max-width: 760px) {
+    #mobileFountainBtn { display: flex; }
+  }
+
   #panel::before {
     /* subtle blueprint grid texture */
     content: "";
@@ -337,6 +367,23 @@
     border: none;
   }
   .picto-marker svg { display: block; }
+
+  /* ---------- Effet "pulse" temporaire sur le marqueur trouvé ---------- */
+  @keyframes pulseMarkerAnim {
+    0%, 100% {
+      transform: scale(1);
+      filter: drop-shadow(0 0 0 rgba(0,0,0,0.9));
+    }
+    50% {
+      transform: scale(1.4);
+      filter: drop-shadow(0 0 8px rgba(0,0,0,0.95));
+    }
+  }
+  .pulse-marker {
+    animation: pulseMarkerAnim 0.9s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
   .legend-name {
     color: var(--paper);
     font-size: 12px;
@@ -517,6 +564,7 @@
 
 <div id="app">
   <button type="button" id="panelToggleBtn" title="Ouvrir le panneau de contrôle">☰</button>
+  <button type="button" id="mobileFountainBtn" title="Fontaine à boire la plus proche" aria-label="Fontaine à boire la plus proche">💧</button>
 
   <div id="panel">
     <div class="panel-inner">
@@ -1105,8 +1153,10 @@
     if (showGoBtn && targetLonLat) {
       $infoPanelGoBtn.style.display = "";
       infoPanelGoHandler = () => {
+        // Ferme les panneaux (contrôle + info) avant de tracer l'itinéraire,
+        // pour ne pas surcharger l'affichage.
+        closeAllPanels();
         computeAndShowPath(targetLonLat, label);
-        closeInfoPanel();
       };
       $infoPanelGoBtn.addEventListener("click", infoPanelGoHandler, { once: true });
     } else {
@@ -1144,6 +1194,23 @@
   // panneau reste fermé tant que l'utilisateur ne l'ouvre pas lui-même.
   const isMobile = window.matchMedia("(max-width: 760px)").matches;
   if (!isMobile) openPanel();
+
+  // Ferme les deux panneaux flottants (contrôle + info) en une fois, pour
+  // ne pas surcharger l'affichage lors du calcul d'un itinéraire (clic sur
+  // "à pied" dans la légende, ou sur "S'y rendre" dans le panneau d'info).
+  function closeAllPanels() {
+    closePanel();
+    closeInfoPanel();
+  }
+
+  // Bouton flottant mobile : raccourci direct vers la recherche de la
+  // fontaine à boire la plus proche (type_element "fontaines_a_boire"),
+  // sans passer par la légende.
+  const $mobileFountainBtn = document.getElementById("mobileFountainBtn");
+  $mobileFountainBtn.addEventListener("click", () => {
+    closeAllPanels();
+    findNearestInCategory("Fontaines à boire");
+  });
 
   // ---- Catégorisation des items (props.type_element) ----
   // Toutes les géométries sont catégorisées, SAUF les LineString /
@@ -1364,6 +1431,9 @@ function buildPinSVG(def, size) {
       });
 
       row.querySelector(".legend-find").addEventListener("click", () => {
+        // Ferme les panneaux ouverts avant de lancer la recherche, pour ne
+        // pas surcharger l'affichage pendant le calcul/zoom de l'itinéraire.
+        closeAllPanels();
         findNearestInCategory(type);
       });
 
@@ -1451,18 +1521,69 @@ function buildPinSVG(def, size) {
 
     drawPathResult(result, `${type} le plus proche : ${best.item.label}`);
     zoomToPathBounds(result, best.item.lonlat);
+
+    // Fait pulser l'icône du lieu trouvé pendant 8 secondes, pour le
+    // repérer facilement une fois l'itinéraire tracé.
+    pulseMarker(best.item.marker, 5000);
+
     // Ouvre le panneau latéral avec la fiche de l'élément trouvé ; le
     // bouton "S'y rendre" est masqué puisque l'itinéraire est déjà calculé
-    // et centré sur la carte.
-    openInfoPanel({
-      category: best.item.category,
-      label: best.item.label,
-      propsHtml: best.item.propsHtml,
-      targetLonLat: best.item.lonlat,
-      showGoBtn: false,
-    });
+    // et centré sur la carte. Sur mobile, la carte reste plein écran : pas
+    // d'ouverture automatique de la fenêtre d'info.
+    if (!isMobile) {
+      openInfoPanel({
+        category: best.item.category,
+        label: best.item.label,
+        propsHtml: best.item.propsHtml,
+        targetLonLat: best.item.lonlat,
+        showGoBtn: false,
+      });
+    }
 
     log(`${evaluated}/${candidates.length} candidat(s) réellement évalué(s) sur le réseau (élagage par distance à vol d'oiseau).`, "ok");
+  }
+
+  // Fait "pulser" (halo + léger zoom en boucle) l'élément DOM d'un marqueur
+  // pendant `durationMs` millisecondes, puis retire l'effet. Fonctionne
+  // aussi bien avec un L.marker (icône pictogramme), un L.circleMarker
+  // (disque de couleur) qu'un L.geoJSON (polygone), grâce au parcours
+  // récursif via eachLayer pour les groupes de calques.
+  function pulseMarker(markerOrLayer, durationMs) {
+    const targets = [];
+    function collect(layer) {
+      if (!layer) return;
+      if (typeof layer.getElement === "function") {
+        const el = layer.getElement();
+        if (el) {
+          // Pour un L.Marker (icône pictogramme en divIcon), l'élément
+          // retourné par getElement() est le conteneur que Leaflet
+          // repositionne lui-même via un style "transform: translate3d(...)"
+          // posé en ligne. Si on anime ce même élément (notre classe
+          // .pulse-marker pose aussi un "transform: scale(...)"), on écrase
+          // ce transform de positionnement et le marqueur "saute" au coin
+          // supérieur gauche de la carte.
+          // On cible donc plutôt son premier enfant (le <svg> du
+          // pictogramme, cf. buildPinSVG), qui n'est pas utilisé par
+          // Leaflet pour le placement — l'animer n'a aucun effet sur la
+          // position du marqueur.
+          // Un L.circleMarker (disque de couleur) n'a pas ce problème : il
+          // est positionné via l'attribut "d" de son <path>, pas via
+          // transform, donc on peut l'animer directement.
+          const pulseEl = (layer instanceof L.Marker && el.firstElementChild) || el;
+          targets.push(pulseEl);
+        }
+      }
+      if (typeof layer.eachLayer === "function") {
+        layer.eachLayer(collect);
+      }
+    }
+    collect(markerOrLayer);
+    if (!targets.length) return;
+
+    targets.forEach((el) => el.classList.add("pulse-marker"));
+    setTimeout(() => {
+      targets.forEach((el) => el.classList.remove("pulse-marker"));
+    }, durationMs);
   }
 
   function log(msg, cls) {

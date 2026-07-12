@@ -240,6 +240,24 @@
   }
   button.secondary:hover { border-color: var(--line); color: var(--paper); }
 
+  .radius-quick {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .radius-quick-btn {
+    width: auto;
+    flex: 1;
+    margin-top: 0;
+    padding: 8px 6px;
+    font-size: 11.5px;
+  }
+  .radius-quick-btn.active {
+    background: var(--amber);
+    color: var(--ink);
+    border-color: var(--amber);
+  }
+
   /* ---------- Log / readout ---------- */
   #log {
     font-family: var(--font-mono);
@@ -511,25 +529,7 @@
       </p>
 
       <fieldset>
-        <legend>Point central</legend>
-        <p class="hint">
-          Cliquez sur la carte pour sélectionner le centre de la zone.
-        </p>
-      </fieldset>
-
-      <button id="loadBtn">Charger la zone</button>
-      <button id="clearBtn" class="secondary">Vider la carte</button>
-
-
-      <fieldset>
         <legend>Catégories</legend>
-        <p class="hint">
-          Chaque catégorie (<code>type_element</code>) reçoit un pictogramme
-          si son type est reconnu, sinon simplement une couleur.
-          Décochez pour masquer une catégorie, ou cliquez « à pied » pour
-          trouver l'élément le plus proche du point central via le réseau
-          routier. Les routes (way) ne sont pas catégorisées.
-        </p>
         <div id="legend"><div class="legend-empty">Aucune donnée chargée.</div></div>
       </fieldset>
 
@@ -537,6 +537,11 @@
         <legend>Rayon</legend>
         <label for="radius">Rayon de recherche (m)</label>
         <input type="number" id="radius" value="999" min="10" step="10" />
+        <div class="radius-quick">
+          <button type="button" class="secondary radius-quick-btn" data-radius="999">&lt;1km</button>
+          <button type="button" class="secondary radius-quick-btn" data-radius="2999">&lt;3km</button>
+          <button type="button" class="secondary radius-quick-btn" data-radius="9999">Tous</button>
+        </div>
       </fieldset>
 
       <fieldset style="margin-top: 20px;">
@@ -549,15 +554,8 @@
       
       <fieldset>
         <legend>Itinéraire</legend>
-        <p class="hint">
-          Une fois la zone chargée, cliquez sur un élément de la carte
-          (point ou zone — pas une route) pour ouvrir le panneau
-          d'information à droite, puis sur « S'y rendre » pour tracer le
-          plus court chemin depuis le point central via le réseau routier.
-        </p>
         <button id="clearPathBtn" class="secondary">Effacer l'itinéraire</button>
         <div class="stats-row"><span>Distance</span><span id="statPathDist">—</span></div>
-        <div class="stats-row"><span>Segments</span><span id="statPathSegs">—</span></div>
       </fieldset>
     </div>
   </div>
@@ -913,7 +911,6 @@
     pathLayer.clearLayers();
     currentPath = null;
     $statPathDist.textContent = "—";
-    $statPathSegs.textContent = "—";
   }
 
   // Dessine un résultat de plus-court-chemin (polyligne + marqueurs départ/arrivée
@@ -961,7 +958,6 @@
       ? (result.distanceM / 1000).toFixed(2) + " km"
       : result.distanceM.toFixed(0) + " m";
     $statPathDist.textContent = distTxt;
-    $statPathSegs.textContent = (result.pathCoords.length - 1);
 
     log(`Itinéraire vers ${label} : ${distTxt} (${result.pathCoords.length - 1} segment(s)).`, "ok");
 
@@ -989,6 +985,22 @@
       requestAnimationFrame(() => {
         pathEl.style.strokeDashoffset = "0";
       });
+
+      // Une fois l'animation de « dessin » terminée, on retire le
+      // strokeDasharray/strokeDashoffset posés en inline. Sans ce nettoyage,
+      // ces valeurs restent figées à la longueur du tracé mesurée au zoom
+      // courant ; or Leaflet redessine (repositionne) ce même élément SVG à
+      // chaque zoom sans jamais toucher à ces styles. Au zoom suivant, la
+      // longueur réelle du tracé à l'écran change mais le motif de tirets
+      // reste basé sur l'ancienne longueur : la ligne apparaît alors
+      // partiellement, voire totalement, invisible.
+      const cleanupDash = () => {
+        pathEl.style.transition = "";
+        pathEl.style.strokeDasharray = "";
+        pathEl.style.strokeDashoffset = "";
+      };
+      pathEl.addEventListener("transitionend", cleanupDash, { once: true });
+      setTimeout(cleanupDash, 750); // filet de sécurité si transitionend ne se déclenche pas
     } else {
       polyline.setStyle({ opacity: 0.95 });
     }
@@ -1054,13 +1066,10 @@
   let selectedLng = 2.3522;
 
   const $radius = document.getElementById("radius");
-  const $loadBtn = document.getElementById("loadBtn");
-  const $clearBtn = document.getElementById("clearBtn");
   const $log = document.getElementById("log");
   const $statTiles = document.getElementById("statTiles");
   const $statFeatures = document.getElementById("statFeatures");
   const $statPathDist = document.getElementById("statPathDist");
-  const $statPathSegs = document.getElementById("statPathSegs");
   const $clearPathBtn = document.getElementById("clearPathBtn");
   const $legend = document.getElementById("legend");
 
@@ -1129,9 +1138,12 @@
   $panelToggleBtn.addEventListener("click", togglePanel);
   $panelClose.addEventListener("click", closePanel);
 
-  // Panneau de contrôle ouvert par défaut au premier chargement (pratique
-  // pour saisir les paramètres), refermable ensuite via ✕ ou ☰.
-  openPanel();
+  // Panneau de contrôle ouvert par défaut au premier chargement sur
+  // ordinateur (pratique pour saisir les paramètres), refermable ensuite
+  // via ✕ ou ☰. Sur mobile, on laisse la carte occuper tout l'écran et le
+  // panneau reste fermé tant que l'utilisateur ne l'ouvre pas lui-même.
+  const isMobile = window.matchMedia("(max-width: 760px)").matches;
+  if (!isMobile) openPanel();
 
   // ---- Catégorisation des items (props.type_element) ----
   // Toutes les géométries sont catégorisées, SAUF les LineString /
@@ -1502,11 +1514,28 @@ function buildPinSVG(def, size) {
     }
   }
 
-  // Clic gauche
+  // Filet de sécurité supplémentaire : si un zoom survient pendant
+  // l'animation de « dessin » du tracé (avant que le nettoyage dans
+  // revealCurrentPath n'ait eu lieu), on retire immédiatement tout
+  // strokeDasharray/strokeDashoffset resté figé sur l'élément SVG, pour
+  // éviter que le tracé ne reste partiellement ou totalement invisible.
+  map.on("zoomend", () => {
+    if (!currentPath || !currentPath.polyline) return;
+    const el = currentPath.polyline.getElement && currentPath.polyline.getElement();
+    if (el) {
+      el.style.transition = "";
+      el.style.strokeDasharray = "";
+      el.style.strokeDashoffset = "";
+    }
+  });
+
+  // Clic gauche — repositionne le marqueur central puis recharge
+  // automatiquement la zone autour de ce nouveau point.
   map.on("click", (e) => {
     selectedLat = e.latlng.lat;
     selectedLng = e.latlng.lng;
     moveMarkerTo(selectedLat, selectedLng);
+    loadZone();
   });
   // Clic droit
   map.on("contextmenu", (e) => {
@@ -1521,8 +1550,10 @@ function buildPinSVG(def, size) {
 
 
 
-  // Marqueur initial sur le point par défaut
+  // Marqueur initial sur le point par défaut, puis chargement automatique
+  // de la zone correspondante au démarrage.
   moveMarkerTo(selectedLat, selectedLng);
+  loadZone();
 
   function drawTileGrid(keys) {
     gridLayer.clearLayers();
@@ -1729,9 +1760,7 @@ function buildPinSVG(def, size) {
     //drawTileGrid(keys);
     log(`Tuiles à charger (${keys.length}): ${keys.join(", ")}`);
 
-    $loadBtn.disabled = true;
     const results = await Promise.all(keys.map((k) => fetchTile(base, k)));
-    $loadBtn.disabled = false;
 
     const tilesLoaded = results.filter(Boolean).length;
     const centerPt = turf.point([lng, lat]);
@@ -1794,23 +1823,28 @@ function buildPinSVG(def, size) {
     log("Utilisez la légende pour masquer une catégorie ou trouver la plus proche à pied.", "head");
   }
 
-  function clearMap() {
-    clearCategoryLayers();
-    gridLayer.clearLayers();
-    roadNetworkLayer.clearLayers();
-    clearPath();
-    roadGraph = null;
-    roadEdges = [];
-    if (circleLayer) { map.removeLayer(circleLayer); circleLayer = null; }
-    $statTiles.textContent = "0";
-    $statFeatures.textContent = "0";
-    resetLog();
-    log("Carte vidée.");
-  }
-
-  $loadBtn.addEventListener("click", loadZone);
-  $clearBtn.addEventListener("click", clearMap);
   $clearPathBtn.addEventListener("click", () => { clearPath(); log("Itinéraire effacé."); });
+
+  // Saisie manuelle du rayon : recharge automatiquement la zone une fois
+  // la valeur validée (Entrée ou perte de focus).
+  $radius.addEventListener("change", () => { setActiveRadiusBtn(); loadZone(); });
+
+  // ---- Boutons rapides de rayon (<1km / <5km / tous) ----
+  const $radiusQuickBtns = document.querySelectorAll(".radius-quick-btn");
+  function setActiveRadiusBtn() {
+    const current = parseFloat($radius.value);
+    $radiusQuickBtns.forEach((btn) => {
+      btn.classList.toggle("active", parseFloat(btn.dataset.radius) === current);
+    });
+  }
+  $radiusQuickBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      $radius.value = btn.dataset.radius;
+      setActiveRadiusBtn();
+      loadZone();
+    });
+  });
+  setActiveRadiusBtn();
 })();
 </script>
 

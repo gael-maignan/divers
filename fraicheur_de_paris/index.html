@@ -1493,6 +1493,14 @@ function buildPinSVG(def, size) {
   let roadGraph = null;
   let roadEdges = [];
 
+  // Cache des tuiles déjà récupérées (clé "tx_ty" -> GeoJSON, ou null si la
+  // tuile est confirmée vide). Persiste entre les appels à loadZone : quand
+  // le marqueur est déplacé ou que le rayon est agrandi, les tuiles déjà
+  // couvertes précédemment ne sont pas re-téléchargées. Les échecs réseau
+  // ne sont volontairement pas mis en cache, pour permettre une nouvelle
+  // tentative au prochain chargement.
+  const tileCache = new Map();
+
   function moveMarkerTo(lat, lng) {
     if (centerMarker) {
       centerMarker.setLatLng([lat, lng]);
@@ -1605,19 +1613,35 @@ function buildPinSVG(def, size) {
   }
 
   async function fetchTile(base, key) {
+    // Tuile déjà connue (chargée avec succès, ou confirmée absente) :
+    // on la ressert depuis le cache sans requête réseau.
+    if (tileCache.has(key)) {
+      const cached = tileCache.get(key);
+      if (cached) {
+        log(`  ${key}.geojson — déjà en cache (${cached.features.length} feature(s))`, "ok");
+      } else {
+        log(`  ${key}.geojson — déjà en cache (cellule vide)`, "warn");
+      }
+      return cached;
+    }
+
     const url = `${base.replace(/\/$/, "")}/${key}.geojson`;
     try {
       const res = await fetch(url);
       if (!res.ok) {
         // Tuile absente = pas de données dans cette cellule, ce n'est pas une erreur.
         log(`  ${key}.geojson — absent (cellule vide)`, "warn");
+        tileCache.set(key, null);
         return null;
       }
       const data = await res.json();
       log(`  ${key}.geojson — ${data.features.length} feature(s)`, "ok");
+      tileCache.set(key, data);
       return data;
     } catch (err) {
       log(`  ${key}.geojson — échec réseau (${err.message})`, "err");
+      // Pas de mise en cache d'un échec réseau : on retentera au prochain
+      // chargement plutôt que de considérer la tuile comme vide.
       return null;
     }
   }
@@ -1758,7 +1782,9 @@ function buildPinSVG(def, size) {
 
     const keys = tilesCoveringCircle(lat, lng, radius);
     //drawTileGrid(keys);
-    log(`Tuiles à charger (${keys.length}): ${keys.join(", ")}`);
+    const newKeys = keys.filter((k) => !tileCache.has(k));
+    const cachedKeys = keys.length - newKeys.length;
+    log(`Tuiles couvrant la zone (${keys.length}) : ${cachedKeys} déjà en cache, ${newKeys.length} à télécharger.`);
 
     const results = await Promise.all(keys.map((k) => fetchTile(base, k)));
 

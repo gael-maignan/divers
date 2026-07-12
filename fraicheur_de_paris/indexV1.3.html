@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Relevé de zone — chargement partiel de données géographiques</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;1000;600&family=IBM+Plex+Sans:wght@400;1000;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --navy: #10233F;
+    --ink: #0B1626;
+    --line: #6FA8C7;
+    --line-dim: #365A78;
+    --paper: #E8EEF2;
+    --muted: #7C8B9E;
+    --amber: #E8A33D;
+    --amber-dim: #8a662c;
+    --danger: #D9695F;
+    --path: #5FD9A0;
+    --start-pt: #5FD9A0;
+    --end-pt: #D9695F;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--font-sans);
+  }
+
+  #app {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    height: 100vh;
+  }
+
+  /* ---------- Sidebar / drafting panel ---------- */
+  #panel {
+    background: var(--navy);
+    border-right: 1px solid var(--line-dim);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    position: relative;
+  }
+
+  #panel::before {
+    /* subtle blueprint grid texture */
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(var(--line-dim) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line-dim) 1px, transparent 1px);
+    background-size: 24px 24px;
+    opacity: 0.12;
+  }
+
+  .panel-inner {
+    position: relative;
+    padding: 22px 20px 28px;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--line);
+    text-transform: uppercase;
+    margin: 0 0 4px;
+  }
+
+  h1 {
+    font-family: var(--font-mono);
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    margin: 0 0 6px;
+    color: var(--paper);
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin: 0 0 24px;
+  }
+
+  fieldset {
+    border: 1px solid var(--line-dim);
+    border-radius: 2px;
+    padding: 14px 14px 16px;
+    margin: 0 0 16px;
+  }
+
+  legend {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--line);
+    padding: 0 6px;
+  }
+
+  label {
+    display: block;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--muted);
+    margin: 10px 0 4px;
+  }
+  label:first-child { margin-top: 0; }
+
+  input[type="text"], input[type="number"] {
+    width: 100%;
+    background: var(--ink);
+    border: 1px solid var(--line-dim);
+    color: var(--paper);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    padding: 8px 10px;
+    border-radius: 2px;
+  }
+  input:focus {
+    outline: none;
+    border-color: var(--line);
+    box-shadow: 0 0 0 1px var(--line);
+  }
+
+  .hint {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  button {
+    width: 100%;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 11px 12px;
+    background: var(--amber);
+    color: var(--ink);
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  button:hover { background: #f0b658; }
+  button:active { background: var(--amber-dim); }
+  button:disabled {
+    background: var(--line-dim);
+    color: var(--muted);
+    cursor: not-allowed;
+  }
+
+  button.secondary {
+    background: transparent;
+    color: var(--line);
+    border: 1px solid var(--line-dim);
+    margin-top: 8px;
+  }
+  button.secondary:hover { border-color: var(--line); color: var(--paper); }
+
+  /* ---------- Log / readout ---------- */
+  #log {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    line-height: 1.65;
+    color: var(--muted);
+    background: var(--ink);
+    border: 1px solid var(--line-dim);
+    border-radius: 2px;
+    padding: 12px 12px;
+    max-height: 260px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+  #log .ok { color: var(--line); }
+  #log .warn { color: var(--amber); }
+  #log .err { color: var(--danger); }
+  #log .head { color: var(--paper); font-weight: 600; }
+
+  .stats-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--paper);
+    border-top: 1px dashed var(--line-dim);
+    padding-top: 10px;
+    margin-top: 10px;
+  }
+  .stats-row span:last-child { color: var(--line); }
+
+  /* ---------- Map ---------- */
+  #map { height: 100%; width: 100%; background: #1a2c44; }
+
+  .leaflet-popup-content-wrapper {
+    background: var(--navy);
+    color: var(--paper);
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    border-radius: 2px;
+  }
+  .leaflet-popup-tip { background: var(--navy); }
+
+  .tile-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--line);
+    opacity: 0.75;
+    white-space: nowrap;
+    transform: translate(-50%, -50%);
+    text-shadow: 0 0 3px var(--ink), 0 0 3px var(--ink);
+    pointer-events: none;
+  }
+
+  @media (max-width: 760px) {
+    #app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+    #panel { max-height: 46vh; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="panel">
+    <div class="panel-inner">
+      <p class="eyebrow">Relevé cartographique</p>
+      <h1>Chargement de zone</h1>
+      <p class="subtitle">
+        Ne charge que les tuiles GeoJSON qui recouvrent le cercle demandé,
+        au lieu du jeu de données complet.
+      </p>
+
+      <fieldset>
+        <legend>Point central</legend>
+        <p class="hint">
+          Cliquez sur la carte pour sélectionner le centre de la zone.
+        </p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Rayon</legend>
+        <label for="radius">Rayon de recherche (m)</label>
+        <input type="number" id="radius" value="500" min="10" step="10" />
+      </fieldset>
+
+      <button id="loadBtn">Charger la zone</button>
+      <button id="clearBtn" class="secondary">Vider la carte</button>
+
+      <fieldset>
+        <legend>Itinéraire</legend>
+        <p class="hint">
+          Une fois la zone chargée, cliquez sur un élément de la carte
+          (point ou zone — pas une route) pour tracer le plus court
+          chemin depuis le point central via le réseau routier.
+        </p>
+        <button id="clearPathBtn" class="secondary">Effacer l'itinéraire</button>
+        <div class="stats-row"><span>Distance</span><span id="statPathDist">—</span></div>
+        <div class="stats-row"><span>Segments</span><span id="statPathSegs">—</span></div>
+      </fieldset>
+
+      <fieldset style="margin-top: 20px;">
+        <legend>Console</legend>
+        <div id="log">En attente d'une requête…</div>
+        <div class="stats-row"><span>Tuiles chargées</span><span id="statTiles">0</span></div>
+        <div class="stats-row"><span>Features dans le rayon</span><span id="statFeatures">0</span></div>
+      </fieldset>
+    </div>
+  </div>
+
+  <div id="map"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- Constantes de projection : DOIVENT matcher split-geojson.py ----
+  // Web Mercator sphérique (EPSG:3857), la même que les tuiles OSM/Google.
+  // Pas de latitude de référence : valable sur toute la plage de latitudes.
+  const TILE_SIZE_M = 1000;
+  const R_EARTH = 6378137.0;
+
+  function lonToMercX(lon) { return R_EARTH * (lon * Math.PI / 180); }
+  function latToMercY(lat) {
+    const latRad = lat * Math.PI / 180;
+    return R_EARTH * Math.log(Math.tan(Math.PI / 4 + latRad / 2));
+  }
+  function lonToTileX(lon) { return Math.floor(lonToMercX(lon) / TILE_SIZE_M); }
+  function latToTileY(lat) { return Math.floor(latToMercY(lat) / TILE_SIZE_M); }
+
+  // ---- Inverses (mercator -> lon/lat), pour dessiner les limites de tuiles ----
+  function mercXToLon(x) { return (x / R_EARTH) * (180 / Math.PI); }
+  function mercYToLat(y) {
+    const latRad = 2 * Math.atan(Math.exp(y / R_EARTH)) - Math.PI / 2;
+    return latRad * (180 / Math.PI);
+  }
+  function tileBounds(tx, ty) {
+    const x0 = tx * TILE_SIZE_M, x1 = (tx + 1) * TILE_SIZE_M;
+    const y0 = ty * TILE_SIZE_M, y1 = (ty + 1) * TILE_SIZE_M;
+    return L.latLngBounds(
+      [mercYToLat(y0), mercXToLon(x0)],
+      [mercYToLat(y1), mercXToLon(x1)]
+    );
+  }
+
+  // ---------------------------------------------------------------------
+  // Plus court chemin : graphe construit à partir des LineString /
+  // MultiLineString des tuiles chargées, résolu par Dijkstra.
+  // (Repris du prototype shortest_path_geojsonV1.html)
+  // ---------------------------------------------------------------------
+
+  function haversineM(p1, p2) {
+    const [lon1, lat1] = p1, [lon2, lat2] = p2;
+    const R = 6371000.0;
+    const toRad = d => d * Math.PI / 180;
+    const phi1 = toRad(lat1), phi2 = toRad(lat2);
+    const dphi = toRad(lat2 - lat1);
+    const dlambda = toRad(lon2 - lon1);
+    const a = Math.sin(dphi / 2) ** 2 +
+              Math.cos(phi1) * Math.cos(phi2) * Math.sin(dlambda / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(a));
+  }
+  function round7(c) { return [Math.round(c[0] * 1e7) / 1e7, Math.round(c[1] * 1e7) / 1e7]; }
+  function keyOf(c) { return c[0] + "," + c[1]; }
+
+  function buildGraph(lines) {
+    const nodes = new Map(); // key -> [lon,lat]
+    const adj = new Map();   // key -> Map(neighborKey -> weight)
+
+    function ensureNode(c) {
+      const k = keyOf(c);
+      if (!nodes.has(k)) { nodes.set(k, c); adj.set(k, new Map()); }
+      return k;
+    }
+    function addEdge(ku, kv, d) {
+      if (ku === kv) return;
+      const eu = adj.get(ku), ev = adj.get(kv);
+      if (eu.has(kv)) { if (d < eu.get(kv)) { eu.set(kv, d); ev.set(ku, d); } }
+      else { eu.set(kv, d); ev.set(ku, d); }
+    }
+
+    for (const coords of lines) {
+      let prevKey = ensureNode(round7(coords[0]));
+      for (let i = 1; i < coords.length; i++) {
+        const curKey = ensureNode(round7(coords[i]));
+        if (prevKey !== curKey) {
+          const d = haversineM(nodes.get(prevKey), nodes.get(curKey));
+          addEdge(prevKey, curKey, d);
+        }
+        prevKey = curKey;
+      }
+    }
+    return { nodes, adj };
+  }
+
+  function edgeList(graph) {
+    const seen = new Set();
+    const edges = [];
+    for (const [u, nbrs] of graph.adj) {
+      for (const [v, w] of nbrs) {
+        const id = u < v ? u + "|" + v : v + "|" + u;
+        if (seen.has(id)) continue;
+        seen.add(id);
+        edges.push([u, v, w]);
+      }
+    }
+    return edges;
+  }
+
+  // Projette un point (lon,lat) sur l'arête du réseau la plus proche, en
+  // s'appuyant sur la même projection Mercator (mètres) que le reste du
+  // fichier, pour rester cohérent avec split-geojson.py.
+  function nearestPointOnNetwork(graph, edges, clickLonLat) {
+    if (!edges.length) throw new Error("Le réseau routier ne contient aucune arête.");
+    const px = lonToMercX(clickLonLat[0]), py = latToMercY(clickLonLat[1]);
+
+    let best = null;
+    for (const [u, v] of edges) {
+      const pu = graph.nodes.get(u), pv = graph.nodes.get(v);
+      const ax = lonToMercX(pu[0]), ay = latToMercY(pu[1]);
+      const bx = lonToMercX(pv[0]), by = latToMercY(pv[1]);
+      const dx = bx - ax, dy = by - ay;
+      const len2 = dx * dx + dy * dy;
+      let t = len2 > 0 ? ((px - ax) * dx + (py - ay) * dy) / len2 : 0;
+      if (t < 0) t = 0; else if (t > 1) t = 1;
+      const projx = ax + t * dx, projy = ay + t * dy;
+      const ddx = px - projx, ddy = py - projy;
+      const dist2 = ddx * ddx + ddy * ddy;
+      if (!best || dist2 < best.dist2) best = { u, v, t, dist2 };
+    }
+    const pu = graph.nodes.get(best.u), pv = graph.nodes.get(best.v);
+    const point = [pu[0] + best.t * (pv[0] - pu[0]), pu[1] + best.t * (pv[1] - pu[1])];
+    return { edge: [best.u, best.v], t: best.t, point, distM: Math.sqrt(best.dist2) };
+  }
+
+  function dijkstra(graph, srcKey, dstKey) {
+    const dist = new Map();
+    const prev = new Map();
+    const visited = new Set();
+    dist.set(srcKey, 0);
+    const pq = [[0, srcKey]];
+    function pqPush(item) {
+      let lo = 0, hi = pq.length;
+      while (lo < hi) { const mid = (lo + hi) >> 1; if (pq[mid][0] < item[0]) lo = mid + 1; else hi = mid; }
+      pq.splice(lo, 0, item);
+    }
+    while (pq.length) {
+      const [d, u] = pq.shift();
+      if (visited.has(u)) continue;
+      visited.add(u);
+      if (u === dstKey) break;
+      const nbrs = graph.adj.get(u);
+      if (!nbrs) continue;
+      for (const [v, w] of nbrs) {
+        const nd = d + w;
+        if (nd < (dist.has(v) ? dist.get(v) : Infinity)) {
+          dist.set(v, nd);
+          prev.set(v, u);
+          pqPush([nd, v]);
+        }
+      }
+    }
+    if (!dist.has(dstKey)) return null;
+    const path = [dstKey];
+    let cur = dstKey;
+    while (cur !== srcKey) { cur = prev.get(cur); path.push(cur); }
+    path.reverse();
+    return { path, distance: dist.get(dstKey) };
+  }
+
+  function insertPointOnEdge(graph, u, v, point, label) {
+    graph.adj.get(u).delete(v);
+    graph.adj.get(v).delete(u);
+    graph.nodes.set(label, point);
+    graph.adj.set(label, new Map());
+    const du = haversineM(graph.nodes.get(u), point);
+    const dv = haversineM(point, graph.nodes.get(v));
+    graph.adj.get(u).set(label, du); graph.adj.get(label).set(u, du);
+    graph.adj.get(v).set(label, dv); graph.adj.get(label).set(v, dv);
+  }
+
+  function cloneGraphShallow(graph) {
+    const nodes = new Map(graph.nodes);
+    const adj = new Map();
+    for (const [k, m] of graph.adj) adj.set(k, new Map(m));
+    return { nodes, adj };
+  }
+
+  // a et b = résultats de nearestPointOnNetwork (point déjà projeté sur
+  // une arête, avec le paramètre t le long de celle-ci).
+  function computeShortestPathBetween(graph, a, b) {
+    const Gw = cloneGraphShallow(graph);
+    const START = "__START__", END = "__END__";
+
+    const sameEdge = (a.edge[0] === b.edge[0] && a.edge[1] === b.edge[1]) ||
+                     (a.edge[0] === b.edge[1] && a.edge[1] === b.edge[0]);
+
+    if (sameEdge) {
+      const [u, v] = a.edge;
+      insertPointOnEdge(Gw, u, v, a.point, START);
+      if (b.t >= a.t) insertPointOnEdge(Gw, START, v, b.point, END);
+      else insertPointOnEdge(Gw, u, START, b.point, END);
+    } else {
+      insertPointOnEdge(Gw, a.edge[0], a.edge[1], a.point, START);
+      insertPointOnEdge(Gw, b.edge[0], b.edge[1], b.point, END);
+    }
+
+    const result = dijkstra(Gw, START, END);
+    if (!result) throw new Error("Aucun chemin trouvé (le réseau n'est pas connecté à cet endroit).");
+    const pathCoords = result.path.map(k => Gw.nodes.get(k));
+    return { pathCoords, distanceM: result.distance };
+  }
+
+  function renderRoadNetwork() {
+    roadNetworkLayer.clearLayers();
+    /*if (!roadGraph || !roadEdges.length) return;
+    const segs = roadEdges.map(([u, v]) => {
+      const pu = roadGraph.nodes.get(u), pv = roadGraph.nodes.get(v);
+      return [[pu[1], pu[0]], [pv[1], pv[0]]];
+    });
+    L.polyline(segs, { color: "#365A78", weight: 1.5, opacity: 0.45 }).addTo(roadNetworkLayer);*/
+  }
+
+  function clearPath() {
+    pathLayer.clearLayers();
+    $statPathDist.textContent = "—";
+    $statPathSegs.textContent = "—";
+  }
+
+  function computeAndShowPath(endLonLat, label) {
+    clearPath();
+
+    if (!roadGraph || !roadEdges.length) {
+      log("Itinéraire impossible : aucune route chargée dans la zone.", "err");
+      return;
+    }
+
+    try {
+      const startSnap = nearestPointOnNetwork(roadGraph, roadEdges, [selectedLng, selectedLat]);
+      const endSnap = nearestPointOnNetwork(roadGraph, roadEdges, endLonLat);
+      const result = computeShortestPathBetween(roadGraph, startSnap, endSnap);
+
+      const latlngs = result.pathCoords.map(p => [p[1], p[0]]);
+      L.polyline(latlngs, {
+        color: getComputedStyle(document.documentElement).getPropertyValue("--path").trim(),
+        weight: 4.5,
+        opacity: 0.95,
+        lineJoin: "round",
+        lineCap: "round",
+      }).addTo(pathLayer);
+
+      L.circleMarker([startSnap.point[1], startSnap.point[0]], {
+        radius: 6, color: "#0B1626", weight: 1.5,
+        fillColor: getComputedStyle(document.documentElement).getPropertyValue("--start-pt").trim(),
+        fillOpacity: 1,
+      }).bindPopup("Départ (point central)").addTo(pathLayer);
+
+      L.circleMarker([endSnap.point[1], endSnap.point[0]], {
+        radius: 6, color: "#0B1626", weight: 1.5,
+        fillColor: getComputedStyle(document.documentElement).getPropertyValue("--end-pt").trim(),
+        fillOpacity: 1,
+      }).bindPopup("Arrivée : " + label).addTo(pathLayer);
+
+      const distTxt = result.distanceM >= 1000
+        ? (result.distanceM / 1000).toFixed(2) + " km"
+        : result.distanceM.toFixed(0) + " m";
+      $statPathDist.textContent = distTxt;
+      $statPathSegs.textContent = (result.pathCoords.length - 1);
+
+      log(`Itinéraire vers ${label} : ${distTxt} (${result.pathCoords.length - 1} segment(s)).`, "ok");
+    } catch (err) {
+      log("Itinéraire impossible : " + err.message, "err");
+    }
+  }
+
+  // ---- UI refs ----
+  let selectedLat = 48.8566;
+  let selectedLng = 2.3522;
+
+  const $radius = document.getElementById("radius");
+  const $loadBtn = document.getElementById("loadBtn");
+  const $clearBtn = document.getElementById("clearBtn");
+  const $log = document.getElementById("log");
+  const $statTiles = document.getElementById("statTiles");
+  const $statFeatures = document.getElementById("statFeatures");
+  const $statPathDist = document.getElementById("statPathDist");
+  const $statPathSegs = document.getElementById("statPathSegs");
+  const $clearPathBtn = document.getElementById("clearPathBtn");
+
+  function log(msg, cls) {
+    const line = document.createElement("div");
+    if (cls) line.className = cls;
+    line.textContent = msg;
+    $log.appendChild(line);
+    $log.scrollTop = $log.scrollHeight;
+  }
+  function resetLog() { $log.innerHTML = ""; }
+
+  // ---- Map setup ----
+  const map = L.map("map", { zoomControl: true }).setView([48.8566, 2.3522], 15);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap",
+    maxZoom: 19,
+  }).addTo(map);
+
+  let roadNetworkLayer = L.layerGroup().addTo(map);
+  let resultLayer = L.layerGroup().addTo(map);
+  let gridLayer = L.layerGroup().addTo(map);
+  let pathLayer = L.layerGroup().addTo(map);
+  let circleLayer = null;
+  let centerMarker = null;
+
+  // Graphe du réseau routier (LineString/MultiLineString des tuiles
+  // chargées), utilisé pour le calcul du plus court chemin au clic.
+  let roadGraph = null;
+  let roadEdges = [];
+
+  function moveMarkerTo(lat, lng) {
+    if (centerMarker) {
+      centerMarker.setLatLng([lat, lng]);
+    } else {
+      centerMarker = L.marker([lat, lng]).addTo(map);
+    }
+  }
+
+  // Clic gauche
+  map.on("click", (e) => {
+    selectedLat = e.latlng.lat;
+    selectedLng = e.latlng.lng;
+    moveMarkerTo(selectedLat, selectedLng);
+  });
+  // Clic droit
+  map.on("contextmenu", (e) => {
+  // Empêche le menu contextuel du navigateur
+  L.DomEvent.preventDefault(e);
+
+  computeAndShowPath(
+    [e.latlng.lng, e.latlng.lat],
+    `Point (${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)})`
+  );
+});
+
+
+
+  // Marqueur initial sur le point par défaut
+  moveMarkerTo(selectedLat, selectedLng);
+
+  function drawTileGrid(keys) {
+    gridLayer.clearLayers();
+    for (const key of keys) {
+      const [tx, ty] = key.split("_").map(Number);
+      const bounds = tileBounds(tx, ty);
+      L.rectangle(bounds, {
+        color: "#365A78",
+        weight: 1,
+        dashArray: "3 3",
+        fill: false,
+        interactive: false,
+      }).addTo(gridLayer);
+
+      const center = bounds.getCenter();
+      L.marker(center, {
+        icon: L.divIcon({
+          className: "tile-label",
+          html: key,
+          iconSize: [0, 0],
+        }),
+        interactive: false,
+      }).addTo(gridLayer);
+    }
+  }
+
+  // ---- Tile fetch logic ----
+  function tilesCoveringCircle(centerLat, centerLon, radiusM) {
+    // Marge en degrés autour du centre, juste pour lister les tuiles candidates
+    // (approximation locale suffisante ; le filtre exact se fait ensuite via turf).
+    const mPerDegLat = 111320;
+    const mPerDegLon = 111320 * Math.cos(centerLat * Math.PI / 180);
+    const dLat = radiusM / mPerDegLat;
+    const dLon = radiusM / mPerDegLon;
+
+    const minTX = lonToTileX(centerLon - dLon);
+    const maxTX = lonToTileX(centerLon + dLon);
+    const minTY = latToTileY(centerLat - dLat);
+    const maxTY = latToTileY(centerLat + dLat);
+
+    const keys = [];
+    for (let tx = minTX; tx <= maxTX; tx++) {
+      for (let ty = minTY; ty <= maxTY; ty++) {
+        keys.push(`${tx}_${ty}`);
+      }
+    }
+    return keys;
+  }
+
+  async function fetchTile(base, key) {
+    const url = `${base.replace(/\/$/, "")}/${key}.geojson`;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) {
+        // Tuile absente = pas de données dans cette cellule, ce n'est pas une erreur.
+        log(`  ${key}.geojson — absent (cellule vide)`, "warn");
+        return null;
+      }
+      const data = await res.json();
+      log(`  ${key}.geojson — ${data.features.length} feature(s)`, "ok");
+      return data;
+    } catch (err) {
+      log(`  ${key}.geojson — échec réseau (${err.message})`, "err");
+      return null;
+    }
+  }
+
+  function withinRadius(feature, centerPt, radiusM) {
+    const geom = feature.geometry;
+    if (!geom) return false;
+
+    if (geom.type === "Point") {
+      const d = turf.distance(centerPt, turf.point(geom.coordinates), { units: "meters" });
+      return d <= radiusM;
+    }
+
+    if (geom.type === "LineString" || geom.type === "MultiLineString") {
+      try {
+        const d = turf.pointToLineDistance(centerPt, feature, { units: "meters" });
+        return d <= radiusM;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    if (geom.type === "Polygon" || geom.type === "MultiPolygon") {
+      try {
+        const circle = turf.circle(centerPt, radiusM, { units: "meters", steps: 32 });
+        return turf.booleanIntersects(circle, feature);
+      } catch (e) {
+        return false;
+      }
+    }
+
+    return false;
+  }
+
+  function renderFeature(feature) {
+    const geom = feature.geometry;
+    const props = feature.properties || {};
+    //const popupHtml = "(Affichage masqué)";
+
+    const popupHtml = Object.entries(props)
+      .filter(([k]) => k !== "__fid")
+      .map(([k, v]) => `<b>${k}</b>: ${v}`)
+      .join("<br/>") || "(sans propriétés)";
+
+    const label = props.nom || props.name || props.__fid || "élément sélectionné";
+
+    if (geom.type === "Point") {
+      const [lon, lat] = geom.coordinates;
+      const marker = L.circleMarker([lat, lon], {
+        radius: 6,
+        color: "#E8A33D",
+        weight: 2,
+        fillColor: "#E8A33D",
+        fillOpacity: 0.85,
+      }).bindPopup(popupHtml).addTo(resultLayer);
+      // Élément "autre qu'une route" : un clic dessus déclenche le calcul
+      // du plus court chemin depuis le point central.
+      marker.on("click", () => computeAndShowPath([lon, lat], label));
+    } else if (geom.type === "LineString" || geom.type === "MultiLineString") {
+      /*
+      // Une route : simple affichage/popup, pas de calcul d'itinéraire.
+      L.geoJSON(feature, {
+        style: { color: "#6FA8C7", weight: 4, opacity: 0.9 },
+      }).bindPopup(popupHtml).addTo(resultLayer);*/
+    } else {
+      const layer = L.geoJSON(feature, {
+        style: { color: "#6FA8C7", weight: 2, fillOpacity: 0.15 },
+      }).bindPopup(popupHtml).addTo(resultLayer);
+      // Polygone / autre géométrie non-route : idem, déclenche l'itinéraire.
+      layer.on("click", () => {
+        let target = [lon0(feature), lat0(feature)];
+        try {
+          const pt = turf.pointOnFeature(feature);
+          target = pt.geometry.coordinates;
+        } catch (e) { /* fallback silencieux sur le centre approximatif */ }
+        computeAndShowPath(target, label);
+      });
+    }
+  }
+
+  // Centre approximatif d'une feature (fallback si turf.pointOnFeature échoue)
+  function lon0(feature) {
+    const c = turf.centroid(feature);
+    return c.geometry.coordinates[0];
+  }
+  function lat0(feature) {
+    const c = turf.centroid(feature);
+    return c.geometry.coordinates[1];
+  }
+
+  async function loadZone() {
+    const lat = selectedLat;
+    const lng = selectedLng;
+    const radius = parseFloat($radius.value) || 500;
+    const base = "tiles";
+
+    if (Number.isNaN(lat) || Number.isNaN(lng)) {
+      log("Coordonnées invalides.", "err");
+      return;
+    }
+
+    resetLog();
+    log(`Point: ${lat.toFixed(6)}, ${lng.toFixed(6)}  —  rayon ${radius} m`, "head");
+
+    resultLayer.clearLayers();
+    clearPath();
+    if (circleLayer) map.removeLayer(circleLayer);
+
+    circleLayer = L.circle([lat, lng], {
+      radius: radius,
+      color: "#E8A33D",
+      weight: 1.5,
+      dashArray: "4 4",
+      fillOpacity: 0.05,
+    }).addTo(map);
+    moveMarkerTo(lat, lng);
+    // On ne touche pas au zoom courant, seulement au log/aux calques.
+
+    const keys = tilesCoveringCircle(lat, lng, radius);
+    drawTileGrid(keys);
+    log(`Tuiles à charger (${keys.length}): ${keys.join(", ")}`);
+
+    $loadBtn.disabled = true;
+    const results = await Promise.all(keys.map((k) => fetchTile(base, k)));
+    $loadBtn.disabled = false;
+
+    const tilesLoaded = results.filter(Boolean).length;
+    const centerPt = turf.point([lng, lat]);
+    const seen = new Set();
+    let count = 0;
+
+    // Construction du réseau routier à partir de TOUTES les LineString /
+    // MultiLineString des tuiles chargées (pas seulement celles dans le
+    // rayon), afin que l'itinéraire puisse emprunter les routes attenantes
+    // à la zone. Les autres types de features restent filtrés par rayon.
+    const lines = [];
+    const seenLineFid = new Set();
+
+    for (const fc of results) {
+      if (!fc) continue;
+      for (const feature of fc.features) {
+        const fid = feature.properties && feature.properties.__fid;
+        const geom = feature.geometry;
+
+        if (geom && (geom.type === "LineString" || geom.type === "MultiLineString")) {
+          if (fid !== undefined) {
+            if (seenLineFid.has(fid)) continue;
+            seenLineFid.add(fid);
+          }
+          if (geom.type === "LineString") {
+            if (geom.coordinates.length >= 2) lines.push(geom.coordinates);
+          } else {
+            for (const c of geom.coordinates) if (c.length >= 2) lines.push(c);
+          }
+        }
+
+        if (fid !== undefined && seen.has(fid)) continue; // dédup entre tuiles
+        if (fid !== undefined) seen.add(fid);
+
+        if (withinRadius(feature, centerPt, radius)) {
+          renderFeature(feature);
+          count++;
+        }
+      }
+    }
+
+    if (lines.length) {
+      roadGraph = buildGraph(lines);
+      roadEdges = edgeList(roadGraph);
+      renderRoadNetwork();
+      log(`Réseau routier : ${roadGraph.nodes.size} nœud(s), ${roadEdges.length} arête(s).`, "ok");
+    } else {
+      roadGraph = null;
+      roadEdges = [];
+      roadNetworkLayer.clearLayers();
+      log("Aucune route (LineString) dans les tuiles chargées — itinéraire indisponible.", "warn");
+    }
+
+    $statTiles.textContent = tilesLoaded;
+    $statFeatures.textContent = count;
+    log(`Terminé — ${count} feature(s) affichée(s) dans le rayon.`, "head");
+    log("Cliquez sur un élément non-route pour tracer le plus court chemin.", "head");
+  }
+
+  function clearMap() {
+    resultLayer.clearLayers();
+    gridLayer.clearLayers();
+    roadNetworkLayer.clearLayers();
+    clearPath();
+    roadGraph = null;
+    roadEdges = [];
+    if (circleLayer) { map.removeLayer(circleLayer); circleLayer = null; }
+    $statTiles.textContent = "0";
+    $statFeatures.textContent = "0";
+    resetLog();
+    log("Carte vidée.");
+  }
+
+  $loadBtn.addEventListener("click", loadZone);
+  $clearBtn.addEventListener("click", clearMap);
+  $clearPathBtn.addEventListener("click", () => { clearPath(); log("Itinéraire effacé."); });
+})();
+</script>
+
+</body>
+</html>

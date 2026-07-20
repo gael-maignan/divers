@@ -1089,7 +1089,7 @@
     // ne déclenche pas toujours "moveend" (aucun mouvement réel).
     setTimeout(reveal, 500);
 
-    map.fitBounds(bounds, { padding: [60, 60], maxZoom: 18 });
+    map.fitBounds(bounds, { padding: [100, 100], maxZoom: 18 });
   }
 
   function computeAndShowPath(endLonLat, label) {
@@ -1254,22 +1254,22 @@
   const ICONS_BY_TYPE = {
     fontaines_a_boire: {
       type: "image",
-      image: "eau.png",
+      image: "images/eau.png",
       imageScale: 1,
     },
     baignades_estivales: {
       type: "image",
-      image: "baignade.png",
+      image: "images/baignade.png",
       imageScale: 1,
     },
     bains_douches: {
       type: "image",
-      image: "douche.png",
+      image: "images/douche.png",
       imageScale: 1,
     },
     parcs_jardins_et_bois: {
       type: "image",
-      image: "parc.png",
+      image: "images/parc.png",
       imageScale: 1,
     },
     // Exemple d'icône basée sur une image plutôt qu'un SVG inline : place
@@ -1278,7 +1278,7 @@
     // alors plus utilisé.
     piscines: {
       type: "image",
-      image: "piscine.png",
+      image: "images/piscine.png",
       imageScale: 1,
     },
     eglises: {
@@ -1622,6 +1622,7 @@ function buildPinSVG(def, size) {
   // tentative au prochain chargement.
   const tileCache = new Map();
 
+
   function moveMarkerTo(lat, lng) {
     if (centerMarker) {
       centerMarker.setLatLng([lat, lng]);
@@ -1629,10 +1630,10 @@ function buildPinSVG(def, size) {
       //centerMarker = L.marker([lat, lng]).addTo(map);
 
       const redIcon = L.icon({
-        iconUrl: "marker-icon-red.png",
+        iconUrl: "images/marker-icon-red.png",
 
-        iconSize: [25, 37],
-        iconAnchor: [12, 37],
+        iconSize: [25, 36],
+        iconAnchor: [12, 36],
         popupAnchor: [1, -34],
     });
 

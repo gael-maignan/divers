@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Démo Interface Android</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+    margin:0;
+    background:#111827;
+    color:white;
+}
+
+header{
+    padding:20px;
+    text-align:center;
+    background:#1f2937;
+    font-size:22px;
+    font-weight:bold;
+}
+
+main{
+    max-width:700px;
+    margin:auto;
+    padding:20px;
+}
+
+button{
+    width:100%;
+    margin:8px 0;
+    padding:15px;
+    border:none;
+    border-radius:10px;
+    background:#2563eb;
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#1d4ed8;
+}
+
+#status{
+    margin-top:20px;
+    padding:15px;
+    background:#1f2937;
+    border-radius:10px;
+}
+
+#modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.7);
+    display:none;
+    align-items:center;
+    justify-content:center;
+}
+
+.modal-content{
+    background:white;
+    color:black;
+    padding:20px;
+    border-radius:12px;
+    width:300px;
+    text-align:center;
+}
+
+.modal-content button{
+    background:#ef4444;
+}
+</style>
+</head>
+<body>
+
+<header>
+Démo des fonctions Android
+</header>
+
+<main>
+
+<a href="index.html" style="display:inline-block;color:#9ca3af;font-size:13px;text-decoration:none;margin-bottom:12px;">← Accueil</a>
+
+
+<button onclick="partager()">
+Partager
+</button>
+
+<button onclick="copier()">
+Copier dans le presse-papier
+</button>
+
+<button onclick="vibrer()">
+Vibrer 50 ms
+</button>
+
+<button onclick="changerCouleur()">
+Définir une couleur aléatoire des barres système
+</button>
+
+<button onclick="verifierConnexion()">
+Tester la connexion Internet
+</button>
+
+<button onclick="ouvrirModal()">
+Ouvrir une modale (test du bouton Retour)
+</button>
+
+<div id="status">
+Statut : prêt.
+</div>
+
+</main>
+
+<div id="modal">
+    <div class="modal-content">
+        <h3>Modale</h3>
+        <p>Appuie sur Retour pour la fermer.</p>
+        <button onclick="fermerModal()">Fermer</button>
+    </div>
+</div>
+
+<script>
+
+const status = document.getElementById("status");
+const modal = document.getElementById("modal");
+
+function log(message){
+    status.innerHTML = message;
+}
+
+function disponible(){
+    if(typeof Android === "undefined"){
+        alert("Interface Android non disponible.");
+        return false;
+    }
+    return true;
+}
+
+// Génère une couleur hexadécimale aléatoire
+function couleurAleatoire(){
+    return "#" + Math.floor(Math.random() * 0xFFFFFF)
+        .toString(16)
+        .padStart(6, "0");
+}
+
+function partager(){
+    if(!disponible()) return;
+
+    Android.partager(
+        "Regarde ça",
+        "https://monsite.com/page"
+    );
+
+    log("Partage demandé.");
+}
+
+function copier(){
+    if(!disponible()) return;
+
+    Android.copierPressePapier("texte à copier");
+    log("Texte copié.");
+}
+
+function vibrer(){
+    if(!disponible()) return;
+
+    Android.vibrer(50);
+    log("Vibration envoyée.");
+}
+
+function changerCouleur(){
+    if(!disponible()) return;
+
+    const couleur = couleurAleatoire();
+
+    Android.definirCouleurBarre(couleur);
+
+    log("Nouvelle couleur appliquée : " + couleur);
+}
+
+function verifierConnexion(){
+    if(!disponible()) return;
+
+    const connecte = Android.estConnecteAInternet();
+
+    log(
+        connecte
+        ? "🟢 Connecté à Internet"
+        : "🔴 Hors ligne"
+    );
+}
+
+function ouvrirModal(){
+    modal.style.display = "flex";
+}
+
+function fermerModal(){
+    modal.style.display = "none";
+}
+
+/*
+ * Gestion du bouton Retour Android.
+ * Retourne true si on ferme la modale nous-mêmes.
+ * Sinon laisse Android gérer le retour normal.
+ */
+window.onBackPressed = function(){
+
+    if(modal.style.display === "flex"){
+        fermerModal();
+        log("Retour intercepté : fermeture de la modale.");
+        return true;
+    }
+
+    return false;
+};
+
+// Applique une couleur aléatoire au démarrage
+window.addEventListener("load", () => {
+    if(typeof Android !== "undefined"){
+        const couleur = couleurAleatoire();
+        Android.definirCouleurBarre(couleur);
+        log("Couleur initiale : " + couleur);
+    }
+});
+
+</script>
+
+</body>
+</html>

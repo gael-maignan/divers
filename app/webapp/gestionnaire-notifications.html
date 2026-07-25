@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test — Notifications locales</title>
+<style>
+  :root {
+    --bg: #0e1116;
+    --panel: #161b22;
+    --border: #2a313c;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #4fd1a5;
+    --accent-dim: #2b6e57;
+    --danger: #e5644a;
+    --mono: "SF Mono", "Consolas", "Roboto Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding: 20px 16px 40px;
+  }
+  .retour {
+    display: inline-block;
+    font-size: 12.5px;
+    color: var(--muted);
+    text-decoration: none;
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin: 0 0 4px;
+  }
+  .sous-titre {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0 0 20px;
+  }
+  .etat {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .pastille { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); }
+  .pastille.ok { background: var(--accent); }
+
+  section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  section h2 {
+    font-size: 13px;
+    font-family: var(--mono);
+    color: var(--accent);
+    margin: 0 0 12px;
+  }
+  label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin: 10px 0 4px;
+  }
+  input,
+  select {
+    width: 100%;
+    background: #0a0d12;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 9px 10px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--accent-dim); }
+
+  .rangee { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  button {
+    appearance: none;
+    border: 1px solid var(--accent-dim);
+    background: rgba(79, 209, 165, 0.1);
+    color: var(--accent);
+    padding: 9px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    flex: 1;
+    min-width: 140px;
+  }
+  button:active { transform: translateY(1px); }
+  button.secondaire {
+    border-color: var(--border);
+    background: transparent;
+    color: var(--text);
+  }
+  button.danger {
+    border-color: #6e3229;
+    background: rgba(229, 100, 74, 0.1);
+    color: var(--danger);
+  }
+
+  #journal {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.6;
+    background: #0a0d12;
+    border-radius: 6px;
+    padding: 10px;
+    max-height: 260px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+  }
+  #journal .ligne { border-bottom: 1px dashed #1c222b; padding: 3px 0; }
+  #journal .ligne:last-child { border-bottom: none; }
+  #journal .horodatage { color: var(--muted); }
+  #journal .erreur { color: var(--danger); }
+  #journal .succes { color: var(--accent); }
+
+  .dernier-id {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 8px;
+    word-break: break-all;
+  }
+</style>
+</head>
+<body>
+
+  <a class="retour" href="index.html">← Accueil</a>
+
+  <h1>Bridge Android — Notifications</h1>
+  <p class="sous-titre">Page de test isolée pour notifierMaintenant() / programmerNotification() (WorkManager)</p>
+
+  <div id="etatPont" class="etat">
+    <span class="pastille"></span>
+    <span id="etatPontTexte">Vérification du pont…</span>
+  </div>
+
+  <section>
+    <h2>01 — Notification instantanée</h2>
+    <label for="titreInstant">Titre</label>
+    <input id="titreInstant" value="Test immédiat">
+    <label for="messageInstant">Message</label>
+    <input id="messageInstant" value="Ceci est une notification instantanée.">
+    <label for="urlInstant">URL cible (optionnel, chemin relatif au site)</label>
+    <input id="urlInstant" placeholder="ex: commande/123">
+    <label for="iconeInstant">Icône (optionnel)</label>
+    <select id="iconeInstant"></select>
+    <div class="rangee">
+      <button onclick="envoyerMaintenant()">Envoyer maintenant</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>02 — Notification programmée (WorkManager)</h2>
+    <label for="titreProgramme">Titre</label>
+    <input id="titreProgramme" value="Rappel programmé">
+    <label for="messageProgramme">Message</label>
+    <input id="messageProgramme" value="Ceci devait arriver plus tard.">
+    <label for="delaiSecondes">Délai (secondes)</label>
+    <input id="delaiSecondes" type="number" value="15" min="0">
+    <label for="iconeProgramme">Icône (optionnel)</label>
+    <select id="iconeProgramme"></select>
+    <div class="rangee">
+      <button onclick="programmer()">Programmer</button>
+    </div>
+    <div class="rangee">
+      <button class="secondaire" onclick="annulerDerniere()">Annuler la dernière</button>
+      <button class="danger" onclick="annulerToutes()">Annuler toutes</button>
+    </div>
+    <div class="dernier-id" id="dernierId">Aucune notification programmée pour l'instant.</div>
+  </section>
+
+  <section>
+    <h2>03 — Journal</h2>
+    <div id="journal"></div>
+  </section>
+
+  <div class="rangee">
+    <a style="flex:1" href="historique-notifications.html">
+      <button class="secondaire" style="width:100%">Voir l'historique complet →</button>
+    </a>
+  </div>
+
+<script>
+  let dernierIdentifiant = "";
+
+
+  // Miroir de config/icons.js (utilisé par l'outil firebase-notif-manager) :
+  // un "id" ici DOIT correspondre exactement au nom d'une ressource
+  // drawable déjà compilée dans l'app (voir NotificationHelper côté
+  // Kotlin). À tenir à jour manuellement à chaque icône ajoutée/retirée
+  // côté Android Studio — rien n'est vérifié automatiquement.
+  // Si cette page finit par partager le même répertoire que
+  // config/icons.js, remplace ce tableau par
+  // <script src="config/icons.js"> <script> et utilise
+  // window.NOTIF_ICONS à la place, pour n'avoir qu'une seule liste à
+  // maintenir entre les deux outils.
+
+  const ICONES_DISPONIBLES = [
+    { id: "ic_stat_info", label: "Info" },
+    { id: "ic_stat_alert", label: "Alerte" },
+    // { id: "ic_notif_commande", label: "Commande" },
+    // { id: "ic_notif_alerte", label: "Alerte" },
+  ];
+
+  function peuplerSelectIcone(select) {
+    select.innerHTML = "";
+
+    const optionDefaut = document.createElement("option");
+    optionDefaut.value = "";
+    optionDefaut.textContent = "Icône native de l'app (par défaut)";
+    select.appendChild(optionDefaut);
+
+    for (const icone of ICONES_DISPONIBLES) {
+      const option = document.createElement("option");
+      option.value = icone.id;
+      option.textContent = icone.label || icone.id;
+      select.appendChild(option);
+    }
+  }
+
+  function peuplerIcones() {
+    peuplerSelectIcone(document.getElementById('iconeInstant'));
+    peuplerSelectIcone(document.getElementById('iconeProgramme'));
+  }
+
+  function horodatage() {
+    return new Date().toLocaleTimeString('fr-FR');
+  }
+
+  function log(message, type) {
+    const journal = document.getElementById('journal');
+    const ligne = document.createElement('div');
+    ligne.className = 'ligne' + (type ? ' ' + type : '');
+    ligne.innerHTML = '<span class="horodatage">[' + horodatage() + ']</span> ' + message;
+    journal.appendChild(ligne);
+    journal.scrollTop = journal.scrollHeight;
+  }
+
+  function pontDisponible() {
+    return typeof Android !== 'undefined';
+  }
+
+  function verifierPont() {
+    const pastille = document.querySelector('.pastille');
+    const texte = document.getElementById('etatPontTexte');
+
+    if (!pontDisponible()) {
+      texte.textContent = "Pont Android absent (ouvert dans un navigateur classique ?)";
+      log("Android.* introuvable : cette page doit être ouverte DANS l'app.", "erreur");
+      return;
+    }
+
+    try {
+      const capacites = JSON.parse(Android.obtenirCapacites());
+      const fonctions = capacites.fonctions || [];
+      const requises = [
+        "notifierMaintenant", "programmerNotification",
+        "annulerNotificationProgrammee", "annulerToutesNotificationsProgrammees"
+      ];
+      const manquantes = requises.filter(f => !fonctions.includes(f));
+
+      if (manquantes.length === 0) {
+        pastille.classList.add('ok');
+        texte.textContent = "Pont OK — version bridge " + capacites.versionBridge;
+        log("Pont Android détecté, toutes les fonctions de notification sont disponibles.", "succes");
+      } else {
+        texte.textContent = "Binaire installé trop ancien (bridge v" + capacites.versionBridge + ")";
+        log("Fonctions manquantes sur ce binaire : " + manquantes.join(", "), "erreur");
+      }
+    } catch (e) {
+      log("Erreur lors de l'appel à obtenirCapacites() : " + e, "erreur");
+    }
+  }
+
+  function envoyerMaintenant() {
+    if (!pontDisponible()) { log("Pont indisponible.", "erreur"); return; }
+
+    const titre = document.getElementById('titreInstant').value;
+    const message = document.getElementById('messageInstant').value;
+    const url = document.getElementById('urlInstant').value;
+    const icone = document.getElementById('iconeInstant').value;
+
+    try {
+      if (icone) {
+        // Surcharge à 4 arguments : nécessite urlCible même si vide,
+        // le pont (WebAppInterface) le traite comme "pas d'URL".
+        Android.notifierMaintenant(titre, message, url, icone);
+      } else if (url) {
+        Android.notifierMaintenant(titre, message, url);
+      } else {
+        Android.notifierMaintenant(titre, message);
+      }
+      log(
+        "notifierMaintenant() appelé : « " + titre + " »" +
+        (icone ? " — icône : " + icone : "") + ".",
+        "succes"
+      );
+    } catch (e) {
+      log("Erreur notifierMaintenant() : " + e, "erreur");
+    }
+  }
+
+  function programmer() {
+    if (!pontDisponible()) { log("Pont indisponible.", "erreur"); return; }
+
+    const titre = document.getElementById('titreProgramme').value;
+    const message = document.getElementById('messageProgramme').value;
+    const delaiMs = Number(document.getElementById('delaiSecondes').value) * 1000;
+    const icone = document.getElementById('iconeProgramme').value;
+
+    try {
+      // Surcharge à 5 arguments : nécessite urlCible même si vide (ici
+      // "", cette page n'a pas de champ URL pour la notif programmée).
+      const id = icone
+        ? Android.programmerNotification(titre, message, delaiMs, "", icone)
+        : Android.programmerNotification(titre, message, delaiMs);
+
+      if (id) {
+        dernierIdentifiant = id;
+        document.getElementById('dernierId').textContent = "Dernier ID programmé : " + id;
+        log(
+          "Notification programmée dans " + (delaiMs / 1000) + "s. ID = " + id +
+          (icone ? " — icône : " + icone : ""),
+          "succes"
+        );
+      } else {
+        log("programmerNotification() n'a rien renvoyé (voir logcat côté natif).", "erreur");
+      }
+    } catch (e) {
+      log("Erreur programmerNotification() : " + e, "erreur");
+    }
+  }
+
+  function annulerDerniere() {
+    if (!pontDisponible()) { log("Pont indisponible.", "erreur"); return; }
+
+    if (!dernierIdentifiant) {
+      log("Aucun ID à annuler pour l'instant.", "erreur");
+      return;
+    }
+
+    Android.annulerNotificationProgrammee(dernierIdentifiant);
+    log("Annulation demandée pour l'ID " + dernierIdentifiant, "succes");
+  }
+
+  function annulerToutes() {
+    if (!pontDisponible()) { log("Pont indisponible.", "erreur"); return; }
+
+    Android.annulerToutesNotificationsProgrammees();
+    log("Annulation de toutes les notifications programmées demandée.", "succes");
+  }
+
+  peuplerIcones();
+  verifierPont();
+</script>
+
+</body>
+</html>

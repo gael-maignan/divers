@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Accueil — Bridge Android</title>
+<style>
+  :root {
+    --bg: #0e1116;
+    --panel: #161b22;
+    --border: #2a313c;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #4fd1a5;
+    --accent-dim: #2b6e57;
+    --danger: #e5644a;
+    --mono: "SF Mono", "Consolas", "Roboto Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding: 20px 16px 40px;
+  }
+  h1 {
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin: 0 0 4px;
+  }
+  .sous-titre {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0 0 24px;
+  }
+
+  .etat {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .pastille { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); }
+  .pastille.ok { background: var(--accent); }
+
+  .grille {
+    display: grid;
+    gap: 12px;
+  }
+
+  a.carte {
+    display: block;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-decoration: none;
+    color: var(--text);
+  }
+  a.carte:active { transform: translateY(1px); }
+
+  .carte-entete {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  .carte-icone {
+    font-size: 20px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(79, 209, 165, 0.1);
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .carte-titre {
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .carte-desc {
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin: 0;
+  }
+  .carte-fleche {
+    margin-left: auto;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+</style>
+</head>
+<body>
+
+  <h1>Bridge Android</h1>
+  <p class="sous-titre">Pages de test et d'outillage pour l'intégration WebView ↔ natif</p>
+
+  <div id="etatPont" class="etat">
+    <span class="pastille"></span>
+    <span id="etatPontTexte">Vérification du pont…</span>
+  </div>
+
+  <div class="grille">
+
+    <a class="carte" href="gestionnaire-notifications.html">
+      <div class="carte-entete">
+        <span class="carte-icone">🔔</span>
+        <span class="carte-titre">Gestionnaire de notifications</span>
+        <span class="carte-fleche">→</span>
+      </div>
+      <p class="carte-desc">
+        Envoyer une notification instantanée, en programmer une via
+        WorkManager, annuler.
+      </p>
+    </a>
+
+    <a class="carte" href="historique-notifications.html">
+      <div class="carte-entete">
+        <span class="carte-icone">📜</span>
+        <span class="carte-titre">Historique des notifications</span>
+        <span class="carte-fleche">→</span>
+      </div>
+      <p class="carte-desc">
+        Toutes les notifications reçues (push Firebase et locales),
+        classées par date.
+      </p>
+    </a>
+
+    <a class="carte" href="demo-interface.html">
+      <div class="carte-entete">
+        <span class="carte-icone">🧪</span>
+        <span class="carte-titre">Démo des fonctions du pont</span>
+        <span class="carte-fleche">→</span>
+      </div>
+      <p class="carte-desc">
+        Partage, presse-papier, vibration, couleur des barres système,
+        état de la connexion.
+      </p>
+    </a>
+
+  </div>
+
+<script>
+  function verifierPont() {
+    const pastille = document.querySelector('.pastille');
+    const texte = document.getElementById('etatPontTexte');
+
+    if (typeof Android === 'undefined') {
+      texte.textContent = "Pont Android absent (ouvert dans un navigateur classique ?)";
+      return;
+    }
+
+    try {
+      const capacites = JSON.parse(Android.obtenirCapacites());
+      pastille.classList.add('ok');
+      texte.textContent = "Pont OK — version bridge " + capacites.versionBridge;
+    } catch (e) {
+      texte.textContent = "Erreur lors de l'appel à obtenirCapacites()";
+    }
+  }
+
+  verifierPont();
+</script>
+
+</body>
+</html>

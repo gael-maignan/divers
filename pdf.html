@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lecteur PDF</title>
+
+  <!-- PDF.js : affiche le PDF sur tous les navigateurs, y compris mobiles -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      color: #1f2937;
+    }
+
+    body.no-scroll { overflow: hidden; }
+
+    .container {
+      padding: 40px;
+      text-align: center;
+    }
+
+    .open-btn {
+      padding: 14px 24px;
+      border: none;
+      border-radius: 8px;
+      background: #2563eb;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .open-btn:hover { background: #1d4ed8; }
+
+    /* Fond sombre */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: 0.3s;
+      z-index: 10;
+    }
+
+    .overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* Panneau latéral */
+    .pdf-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 70%;
+      max-width: 1000px;
+      height: 100%;
+      background: white;
+      transform: translateX(100%);
+      visibility: hidden;
+      transition: transform 0.3s ease, visibility 0.3s;
+      z-index: 11;
+      display: flex;
+      flex-direction: column;
+      box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .pdf-panel.active {
+      transform: translateX(0);
+      visibility: visible;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 20px;
+      background: #111827;
+      color: white;
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 18px;
+      flex: 1;
+    }
+
+    .download-link {
+      color: #93c5fd;
+      font-size: 14px;
+      text-decoration: none;
+    }
+
+    .download-link:hover { text-decoration: underline; }
+
+    .close-btn {
+      border: none;
+      background: transparent;
+      color: white;
+      font-size: 30px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .pdf-viewer {
+      flex: 1;
+      overflow-y: auto;
+      background: #e5e7eb;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .pdf-viewer canvas {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .status {
+      margin-top: 40px;
+      color: #4b5563;
+      text-align: center;
+    }
+
+    .status.error { color: #b91c1c; }
+
+    @media (max-width: 768px) {
+      .pdf-panel {
+        width: 100%;
+        max-width: none;
+      }
+
+      .container { padding: 24px 12px; }
+
+      .pdf-viewer { padding: 8px; gap: 8px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Document PDF</h1>
+    <p>Clique sur le bouton pour consulter le document.</p>
+
+    <button class="open-btn" id="openPdf">📄 Ouvrir le PDF</button>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+
+  <aside
+    class="pdf-panel"
+    id="pdfPanel"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Lecteur PDF"
+    aria-hidden="true"
+  >
+    <div class="panel-header">
+      <h2>Lecteur PDF</h2>
+      <a class="download-link" id="downloadLink" target="_blank" rel="noopener">Télécharger</a>
+      <button class="close-btn" id="closePdf" aria-label="Fermer le PDF">×</button>
+    </div>
+
+    <div class="pdf-viewer" id="pdfViewer">
+      <p class="status" id="status">Chargement du document…</p>
+    </div>
+  </aside>
+
+  <script>
+    // Remplace cette URL par celle de ton PDF.
+    const PDF_URL = "https://pdf.gael-maignan.workers.dev/1s1VGqH6GSu5Rq33BI6sxTN9bJdTi-eBx";
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+    const openBtn = document.getElementById("openPdf");
+    const closeBtn = document.getElementById("closePdf");
+    const panel = document.getElementById("pdfPanel");
+    const overlay = document.getElementById("overlay");
+    const viewer = document.getElementById("pdfViewer");
+    const statusEl = document.getElementById("status");
+    const downloadLink = document.getElementById("downloadLink");
+
+    downloadLink.href = PDF_URL;
+
+    let loadState = "idle"; // idle | loading | done
+
+    async function loadPdf() {
+      if (loadState !== "idle") return;
+      loadState = "loading";
+
+      statusEl.className = "status";
+      statusEl.textContent = "Chargement du document…";
+      statusEl.hidden = false;
+
+      try {
+        const pdf = await pdfjsLib.getDocument({ url: PDF_URL }).promise;
+        statusEl.hidden = true;
+
+        const dpr = window.devicePixelRatio || 1;
+        const style = getComputedStyle(viewer);
+        const padding = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+        const targetWidth = Math.min(viewer.clientWidth - padding, 900);
+
+        for (let n = 1; n <= pdf.numPages; n++) {
+          const page = await pdf.getPage(n);
+          const baseViewport = page.getViewport({ scale: 1 });
+          const scale = targetWidth / baseViewport.width;
+          const viewport = page.getViewport({ scale: scale * dpr });
+
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.floor(viewport.width);
+          canvas.height = Math.floor(viewport.height);
+          canvas.style.width = Math.floor(viewport.width / dpr) + "px";
+          canvas.setAttribute("aria-label", `Page ${n} sur ${pdf.numPages}`);
+          viewer.appendChild(canvas);
+
+          await page.render({
+            canvasContext: canvas.getContext("2d"),
+            viewport
+          }).promise;
+        }
+
+        loadState = "done";
+      } catch (error) {
+        console.error(error);
+        loadState = "idle"; // permet de réessayer à la prochaine ouverture
+        viewer.querySelectorAll("canvas").forEach(c => c.remove());
+        statusEl.hidden = false;
+        statusEl.className = "status error";
+        statusEl.textContent =
+          "Impossible d'afficher le PDF. Vérifie que le fichier Google Drive est partagé publiquement, ou utilise le lien « Télécharger ».";
+      }
+    }
+
+    function openPdf() {
+      panel.classList.add("active");
+      overlay.classList.add("active");
+      panel.setAttribute("aria-hidden", "false");
+      document.body.classList.add("no-scroll");
+      closeBtn.focus();
+      // Laisse le panneau s'afficher avant de mesurer sa largeur
+      requestAnimationFrame(loadPdf);
+    }
+
+    function closePdf() {
+      if (!panel.classList.contains("active")) return;
+      panel.classList.remove("active");
+      overlay.classList.remove("active");
+      panel.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("no-scroll");
+      openBtn.focus();
+    }
+
+    openBtn.addEventListener("click", openPdf);
+    closeBtn.addEventListener("click", closePdf);
+    overlay.addEventListener("click", closePdf);
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closePdf();
+    });
+  </script>
+</body>
+</html>

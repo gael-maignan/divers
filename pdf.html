@@ -171,7 +171,7 @@
   >
     <div class="panel-header">
       <h2>Lecteur PDF</h2>
-      <a class="download-link" id="downloadLink" target="_blank" rel="noopener">Télécharger</a>
+      <a class="download-link" id="downloadLink" download>Télécharger</a>
       <button class="close-btn" id="closePdf" aria-label="Fermer le PDF">×</button>
     </div>
 
@@ -195,7 +195,7 @@
     const statusEl = document.getElementById("status");
     const downloadLink = document.getElementById("downloadLink");
 
-    downloadLink.href = PDF_URL;
+    downloadLink.href = PDF_URL + (PDF_URL.includes("?") ? "&" : "?") + "download=1";
 
     let loadState = "idle"; // idle | loading | done
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lecteur PDF</title>
+  <title>Documents PDF</title>
 
   <!-- PDF.js : affiche le PDF sur tous les navigateurs, y compris mobiles -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -21,24 +21,91 @@
     body.no-scroll { overflow: hidden; }
 
     .container {
-      padding: 40px;
-      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 16px;
     }
 
-    .open-btn {
-      padding: 14px 24px;
+    /* ---------- Liste ---------- */
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .check-btn {
+      padding: 10px 18px;
       border: none;
       border-radius: 8px;
       background: #2563eb;
       color: white;
-      font-size: 16px;
+      font-size: 15px;
       cursor: pointer;
       transition: background 0.2s;
     }
 
-    .open-btn:hover { background: #1d4ed8; }
+    .check-btn:hover { background: #1d4ed8; }
+    .check-btn:disabled { background: #93c5fd; cursor: wait; }
 
-    /* Fond sombre */
+    .summary { font-size: 14px; color: #4b5563; }
+
+    .doc-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+    }
+
+    .doc-list li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid #e5e7eb;
+      padding-right: 16px;
+    }
+
+    .doc-list li:last-child { border-bottom: none; }
+
+    .doc-open {
+      flex: 1;
+      text-align: left;
+      padding: 14px 16px;
+      border: none;
+      background: transparent;
+      font: inherit;
+      color: #1f2937;
+      cursor: pointer;
+      overflow-wrap: anywhere;
+    }
+
+    .doc-open::before { content: "📄 "; }
+    .doc-open:hover { color: #2563eb; text-decoration: underline; }
+
+    li.is-error .doc-open { color: #991b1b; }
+
+    .badge {
+      flex-shrink: 0;
+      font-size: 13px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      color: #4b5563;
+      white-space: nowrap;
+    }
+
+    .badge:empty { display: none; }
+    .badge.ok { background: #dcfce7; color: #166534; }
+    .badge.error { background: #fee2e2; color: #991b1b; }
+
+    /* ---------- Popup ---------- */
+
     .overlay {
       position: fixed;
       inset: 0;
@@ -49,54 +116,100 @@
       z-index: 10;
     }
 
-    .overlay.active {
-      opacity: 1;
-      visibility: visible;
-    }
+    .overlay.active { opacity: 1; visibility: visible; }
 
-    /* Panneau latéral */
     .pdf-panel {
       position: fixed;
-      top: 0;
-      right: 0;
-      width: 70%;
-      max-width: 1000px;
-      height: 100%;
+      top: 50%;
+      left: 50%;
       background: white;
-      transform: translateX(100%);
+      border-radius: 12px;
+      overflow: hidden;
+      opacity: 0;
       visibility: hidden;
-      transition: transform 0.3s ease, visibility 0.3s;
+      transform: translate(-50%, -50%) scale(0.96);
+      transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
       z-index: 11;
       display: flex;
       flex-direction: column;
-      box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+
+      /* Paysage : large et presque toute la hauteur */
+      width: min(90vw, 1100px);
+      height: 90vh;
+      height: 90dvh;
+    }
+
+    /* Portrait : presque toute la largeur, un peu de marge en haut et en bas */
+    @media (orientation: portrait) {
+      .pdf-panel {
+        width: 94vw;
+        height: 85vh;
+        height: 85dvh;
+      }
     }
 
     .pdf-panel.active {
-      transform: translateX(0);
+      opacity: 1;
       visibility: visible;
+      transform: translate(-50%, -50%) scale(1);
     }
 
     .panel-header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
       gap: 12px;
-      padding: 16px 20px;
+      padding: 12px 16px;
       background: #111827;
       color: white;
     }
 
     .panel-header h2 {
       margin: 0;
-      font-size: 18px;
+      font-size: 17px;
       flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Commandes de zoom */
+    .zoom-controls {
+      display: flex;
+      align-items: center;
+      background: #1f2937;
+      border-radius: 8px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .zoom-controls button {
+      border: none;
+      background: transparent;
+      color: white;
+      font: inherit;
+      font-size: 16px;
+      min-width: 34px;
+      height: 32px;
+      cursor: pointer;
+    }
+
+    .zoom-controls button:hover { background: #374151; }
+
+    .zoom-controls .zoom-level {
+      font-size: 13px;
+      min-width: 58px;
+      border-left: 1px solid #374151;
+      border-right: 1px solid #374151;
     }
 
     .download-link {
       color: #93c5fd;
       font-size: 14px;
       text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .download-link:hover { text-decoration: underline; }
@@ -108,26 +221,83 @@
       font-size: 30px;
       cursor: pointer;
       line-height: 1;
+      flex-shrink: 0;
     }
 
+    /* Zone de lecture */
     .pdf-viewer {
       flex: 1;
-      overflow-y: auto;
+      overflow: auto;
       background: #e5e7eb;
       padding: 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
       -webkit-overflow-scrolling: touch;
+      /* Le pincement zoome le PDF, pas toute la page web */
+      touch-action: pan-x pan-y;
     }
 
-    .pdf-viewer canvas {
-      display: block;
-      max-width: 100%;
-      height: auto;
+    .page {
+      position: relative;
+      margin: 0 auto 16px;
       background: white;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+    }
+
+    .page:last-child { margin-bottom: 0; }
+
+    .page canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Couche de texte invisible, posée sur la page, pour la sélection */
+    .textLayer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      overflow: hidden;
+      opacity: 0.25;
+      line-height: 1;
+      text-align: initial;
+      -webkit-text-size-adjust: none;
+      text-size-adjust: none;
+      forced-color-adjust: none;
+      transform-origin: 0 0;
+      z-index: 2;
+    }
+
+    .textLayer span,
+    .textLayer br {
+      color: transparent;
+      position: absolute;
+      white-space: pre;
+      cursor: text;
+      transform-origin: 0% 0%;
+      z-index: 1;
+    }
+
+    .textLayer ::selection { background: blue; }
+
+    /* Élément invisible qui couvre les zones vides pendant une sélection,
+       pour éviter que la sélection ne saute ailleurs dans le document */
+    .textLayer .endOfContent {
+      display: block;
+      position: absolute;
+      inset: 100% 0 0;
+      z-index: 0;
+      cursor: default;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .textLayer.selecting .endOfContent { top: 0; }
+
+    /* L'image et les marges des pages ne participent pas à la sélection */
+    .page canvas {
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     .status {
@@ -139,24 +309,36 @@
     .status.error { color: #b91c1c; }
 
     @media (max-width: 768px) {
-      .pdf-panel {
-        width: 100%;
-        max-width: none;
-      }
-
       .container { padding: 24px 12px; }
-
-      .pdf-viewer { padding: 8px; gap: 8px; }
+      .panel-header { padding: 10px 12px; gap: 8px; }
+      .panel-header h2 { font-size: 15px; }
+      .pdf-viewer { padding: 8px; }
+      .page { margin-bottom: 8px; }
+      .download-text { display: none; }
     }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <h1>Document PDF</h1>
-    <p>Clique sur le bouton pour consulter le document.</p>
+    <h1>Documents</h1>
 
-    <button class="open-btn" id="openPdf">📄 Ouvrir le PDF</button>
+    <div class="toolbar">
+      <button class="check-btn" id="checkBtn">Vérifier les documents</button>
+      <span class="summary" id="summary"></span>
+    </div>
+
+    <!-- Ajoute tes documents ici : URL du PDF dans data-pdf, titre dans le bouton -->
+    <ul class="doc-list" id="docList">
+      <li data-pdf="https://pdf.gael-maignan.workers.dev/1s1VGqH6GSu5Rq33BI6sxTN9bJdTi-eBx">
+        <button class="doc-open">Document principal</button>
+        <span class="badge"></span>
+      </li>
+      <li data-pdf="https://pdf.gael-maignan.workers.dev/ID_INEXISTANT_TEST">
+        <button class="doc-open">Document de test (lien cassé)</button>
+        <span class="badge"></span>
+      </li>
+    </ul>
   </div>
 
   <div class="overlay" id="overlay"></div>
@@ -166,95 +348,424 @@
     id="pdfPanel"
     role="dialog"
     aria-modal="true"
-    aria-label="Lecteur PDF"
+    aria-labelledby="pdfTitle"
     aria-hidden="true"
   >
     <div class="panel-header">
-      <h2>Lecteur PDF</h2>
-      <a class="download-link" id="downloadLink" download>Télécharger</a>
+      <h2 id="pdfTitle">Lecteur PDF</h2>
+
+      <div class="zoom-controls">
+        <button id="zoomOut" aria-label="Dézoomer">−</button>
+        <button id="zoomReset" class="zoom-level" aria-label="Ajuster à la largeur">100 %</button>
+        <button id="zoomIn" aria-label="Zoomer">+</button>
+      </div>
+
+      <a class="download-link" id="downloadLink" download aria-label="Télécharger"><span class="download-text"> Télécharger</span>
+      </a>
       <button class="close-btn" id="closePdf" aria-label="Fermer le PDF">×</button>
     </div>
 
     <div class="pdf-viewer" id="pdfViewer">
-      <p class="status" id="status">Chargement du document…</p>
+      <p class="status" id="status"></p>
     </div>
   </aside>
 
   <script>
-    // Remplace cette URL par celle de ton PDF.
-    const PDF_URL = "https://pdf.gael-maignan.workers.dev/1s1VGqH6GSu5Rq33BI6sxTN9bJdTi-eBx";
-
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-    const openBtn = document.getElementById("openPdf");
-    const closeBtn = document.getElementById("closePdf");
+    const docList = document.getElementById("docList");
+    const checkBtn = document.getElementById("checkBtn");
+    const summary = document.getElementById("summary");
+
     const panel = document.getElementById("pdfPanel");
     const overlay = document.getElementById("overlay");
     const viewer = document.getElementById("pdfViewer");
     const statusEl = document.getElementById("status");
+    const titleEl = document.getElementById("pdfTitle");
     const downloadLink = document.getElementById("downloadLink");
+    const closeBtn = document.getElementById("closePdf");
+    const zoomInBtn = document.getElementById("zoomIn");
+    const zoomOutBtn = document.getElementById("zoomOut");
+    const zoomResetBtn = document.getElementById("zoomReset");
 
-    downloadLink.href = PDF_URL + (PDF_URL.includes("?") ? "&" : "?") + "download=1";
+    /* =========================================================
+       Lecteur PDF
+       ========================================================= */
 
-    let loadState = "idle"; // idle | loading | done
+    const MIN_ZOOM = 0.5;   // 50 % de la largeur du popup
+    const MAX_ZOOM = 5;     // 500 %
+    const MAX_CANVAS_PIXELS = 16_000_000; // limite mémoire par page
 
-    async function loadPdf() {
-      if (loadState !== "idle") return;
-      loadState = "loading";
+    let currentUrl = null;  // PDF affiché
+    let currentDoc = null;  // document PDF.js
+    let pageViews = [];     // { page, wrap, renderedScale, task, textTask }
+    let baseWidth = 0;      // largeur de la 1re page à l'échelle 1
+    let zoom = 1;           // 1 = largeur ajustée au popup
+    let loadToken = 0;
+    let lastTrigger = null;
 
-      statusEl.className = "status";
-      statusEl.textContent = "Chargement du document…";
+    function showStatus(text, isError = false) {
+      statusEl.textContent = text;
+      statusEl.className = "status" + (isError ? " error" : "");
       statusEl.hidden = false;
+    }
+
+    // Largeur disponible dans le popup
+    function getFitWidth() {
+      const style = getComputedStyle(viewer);
+      const padding = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+      return Math.min(viewer.clientWidth - padding, 900);
+    }
+
+    // Échelle PDF.js correspondant au zoom actuel
+    function currentScale() {
+      return baseWidth ? (getFitWidth() / baseWidth) * zoom : 1;
+    }
+
+    // Donne aux pages leur taille sans les redessiner (rapide, utilisé pendant le zoom)
+    function layoutPages() {
+      const scale = currentScale();
+      for (const pv of pageViews) {
+        const vp = pv.page.getViewport({ scale });
+        pv.wrap.style.width = Math.floor(vp.width) + "px";
+        pv.wrap.style.height = Math.floor(vp.height) + "px";
+        // La couche de texte suit cette variable : elle reste alignée pendant le zoom
+        pv.wrap.style.setProperty("--scale-factor", scale);
+      }
+      zoomResetBtn.textContent = Math.round(zoom * 100) + " %";
+    }
+
+    // Dessine une page (image + texte sélectionnable)
+    async function renderPage(pv) {
+      const scale = currentScale();
+      if (pv.renderedScale === scale) return;
+
+      pv.task?.cancel();
+      pv.textTask?.cancel();
+      pv.renderedScale = scale;
+
+      const vp = pv.page.getViewport({ scale });
+      let outputScale = window.devicePixelRatio || 1;
+      const pixels = vp.width * vp.height * outputScale * outputScale;
+      if (pixels > MAX_CANVAS_PIXELS) {
+        outputScale = Math.sqrt(MAX_CANVAS_PIXELS / (vp.width * vp.height));
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.floor(vp.width * outputScale);
+      canvas.height = Math.floor(vp.height * outputScale);
+
+      const task = pv.page.render({
+        canvasContext: canvas.getContext("2d"),
+        viewport: vp,
+        transform: outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null
+      });
+      pv.task = task;
 
       try {
-        const pdf = await pdfjsLib.getDocument({ url: PDF_URL }).promise;
-        statusEl.hidden = true;
-
-        const dpr = window.devicePixelRatio || 1;
-        const style = getComputedStyle(viewer);
-        const padding = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
-        const targetWidth = Math.min(viewer.clientWidth - padding, 900);
-
-        for (let n = 1; n <= pdf.numPages; n++) {
-          const page = await pdf.getPage(n);
-          const baseViewport = page.getViewport({ scale: 1 });
-          const scale = targetWidth / baseViewport.width;
-          const viewport = page.getViewport({ scale: scale * dpr });
-
-          const canvas = document.createElement("canvas");
-          canvas.width = Math.floor(viewport.width);
-          canvas.height = Math.floor(viewport.height);
-          canvas.style.width = Math.floor(viewport.width / dpr) + "px";
-          canvas.setAttribute("aria-label", `Page ${n} sur ${pdf.numPages}`);
-          viewer.appendChild(canvas);
-
-          await page.render({
-            canvasContext: canvas.getContext("2d"),
-            viewport
-          }).promise;
-        }
-
-        loadState = "done";
+        await task.promise;
       } catch (error) {
-        console.error(error);
-        loadState = "idle"; // permet de réessayer à la prochaine ouverture
-        viewer.querySelectorAll("canvas").forEach(c => c.remove());
-        statusEl.hidden = false;
-        statusEl.className = "status error";
-        statusEl.textContent =
-          "Impossible d'afficher le PDF. Vérifie que le fichier Google Drive est partagé publiquement, ou utilise le lien « Télécharger ».";
+        if (pv.task === task) pv.renderedScale = 0;
+        if (error?.name !== "RenderingCancelledException") console.error(error);
+        return;
+      }
+      if (pv.task !== task) return;
+
+      // On remplace l'ancien rendu seulement quand le nouveau est prêt (pas de clignotement)
+      const textLayer = document.createElement("div");
+      textLayer.className = "textLayer";
+      pv.wrap.replaceChildren(canvas, textLayer);
+
+      const textTask = pdfjsLib.renderTextLayer({
+        textContentSource: pv.page.streamTextContent(),
+        container: textLayer,
+        viewport: vp,
+        textDivs: []
+      });
+      pv.textTask = textTask;
+
+      try {
+        await textTask.promise;
+      } catch (error) {
+        return;
+      }
+      if (pv.textTask !== textTask) return;
+
+      const endOfContent = document.createElement("div");
+      endOfContent.className = "endOfContent";
+      textLayer.appendChild(endOfContent);
+      textLayer._end = endOfContent;
+    }
+
+    /* ---------- Sélection de texte stable ----------
+       Même technique que le lecteur PDF de Firefox / PDF.js :
+       pendant la sélection, l'élément .endOfContent est déplacé juste après
+       l'endroit où se trouve la fin de la sélection et couvre toute la page.
+       Quand le curseur passe sur une zone vide, le navigateur prolonge la
+       sélection à cet endroit au lieu de sauter vers un texte éloigné. */
+
+    const isFirefox = /firefox/i.test(navigator.userAgent);
+    let isPointerDown = false;
+    let prevRange = null;
+
+    function resetTextLayer(layer) {
+      const end = layer._end;
+      layer.classList.remove("selecting");
+      if (end) {
+        layer.appendChild(end);
+        end.style.width = "";
+        end.style.height = "";
       }
     }
 
-    function openPdf() {
+    function resetAllTextLayers() {
+      viewer.querySelectorAll(".textLayer").forEach(resetTextLayer);
+      prevRange = null;
+    }
+
+    document.addEventListener("pointerdown", () => { isPointerDown = true; });
+    document.addEventListener("pointerup", () => {
+      isPointerDown = false;
+      viewer.querySelectorAll(".textLayer").forEach(resetTextLayer);
+    });
+    window.addEventListener("blur", () => {
+      isPointerDown = false;
+      resetAllTextLayers();
+    });
+    document.addEventListener("keyup", () => {
+      if (!isPointerDown) viewer.querySelectorAll(".textLayer").forEach(resetTextLayer);
+    });
+
+    document.addEventListener("selectionchange", () => {
+      const selection = document.getSelection();
+      if (!selection || selection.rangeCount === 0) {
+        resetAllTextLayers();
+        return;
+      }
+
+      const range = selection.getRangeAt(0);
+      const layers = viewer.querySelectorAll(".textLayer");
+
+      // Seules les pages touchées par la sélection passent en mode « selecting »
+      layers.forEach(layer => {
+        if (range.intersectsNode(layer)) layer.classList.add("selecting");
+        else resetTextLayer(layer);
+      });
+
+      // Firefox gère déjà correctement ce cas
+      if (isFirefox) return;
+
+      try {
+        // Quel bord de la sélection est en train de bouger ?
+        const modifyStart = prevRange && (
+          range.compareBoundaryPoints(Range.END_TO_END, prevRange) === 0 ||
+          range.compareBoundaryPoints(Range.START_TO_END, prevRange) === 0
+        );
+
+        let anchor = modifyStart ? range.startContainer : range.endContainer;
+        if (anchor.nodeType === Node.TEXT_NODE) anchor = anchor.parentNode;
+
+        // Si la sélection se termine au tout début d'un élément,
+        // on se replace sur l'élément de texte précédent
+        if (!modifyStart && range.endOffset === 0) {
+          let guard = 0;
+          do {
+            while (anchor && !anchor.previousSibling) anchor = anchor.parentNode;
+            anchor = anchor && anchor.previousSibling;
+          } while (anchor && !anchor.childNodes.length && ++guard < 1000);
+        }
+
+        const layer = anchor?.parentElement?.closest(".textLayer");
+        const end = layer?._end;
+        if (end && anchor.parentElement) {
+          end.style.width = layer.style.width;
+          end.style.height = layer.style.height;
+          anchor.parentElement.insertBefore(end, modifyStart ? anchor : anchor.nextSibling);
+        }
+      } catch (error) {
+        // En cas de structure inattendue, on garde le comportement par défaut
+      }
+
+      prevRange = range.cloneRange();
+    });
+
+    // Libère une page éloignée de l'écran (économise la mémoire)
+    function releasePage(pv) {
+      pv.task?.cancel();
+      pv.textTask?.cancel();
+      pv.task = pv.textTask = null;
+      pv.renderedScale = 0;
+      pv.wrap.replaceChildren();
+    }
+
+    // Ne dessine que les pages visibles (ou proches)
+    const visiblePages = new Set();
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        const pv = entry.target._pv;
+        if (entry.isIntersecting) {
+          visiblePages.add(pv);
+          renderPage(pv);
+        } else {
+          visiblePages.delete(pv);
+          releasePage(pv);
+        }
+      }
+    }, { root: viewer, rootMargin: "150% 0px" });
+
+    // Redessine les pages visibles un court instant après la fin du zoom
+    let renderTimer;
+    function scheduleRender() {
+      clearTimeout(renderTimer);
+      renderTimer = setTimeout(() => visiblePages.forEach(renderPage), 150);
+    }
+
+    function clearPages() {
+      observer.disconnect();
+      visiblePages.clear();
+      pageViews.forEach(releasePage);
+      pageViews.forEach(pv => pv.wrap.remove());
+      pageViews = [];
+    }
+
+    async function loadPdf(url) {
+      const token = ++loadToken;
+      currentUrl = url;
+      zoom = 1;
+
+      clearPages();
+      if (currentDoc) {
+        currentDoc.destroy();
+        currentDoc = null;
+      }
+
+      viewer.scrollTop = 0;
+      viewer.scrollLeft = 0;
+      showStatus("Chargement du document…");
+
+      try {
+        const pdf = await pdfjsLib.getDocument({ url }).promise;
+        if (token !== loadToken) return pdf.destroy();
+        currentDoc = pdf;
+
+        // Crée un emplacement par page (sans dessiner)
+        for (let n = 1; n <= pdf.numPages; n++) {
+          const page = await pdf.getPage(n);
+          if (token !== loadToken) return;
+          if (n === 1) baseWidth = page.getViewport({ scale: 1 }).width;
+
+          const wrap = document.createElement("div");
+          wrap.className = "page";
+          wrap.setAttribute("aria-label", `Page ${n} sur ${pdf.numPages}`);
+          const pv = { page, wrap, renderedScale: 0, task: null, textTask: null };
+          wrap._pv = pv;
+          pageViews.push(pv);
+          viewer.appendChild(wrap);
+        }
+
+        statusEl.hidden = true;
+        layoutPages();
+        pageViews.forEach(pv => observer.observe(pv.wrap));
+      } catch (error) {
+        if (token !== loadToken) return;
+        console.error(error);
+        currentUrl = null; // permet de réessayer
+        clearPages();
+        showStatus(
+          "Impossible d'afficher le PDF",
+          true
+        );
+      }
+    }
+
+    /* ---------- Zoom ---------- */
+
+    // Change le zoom en gardant fixe le point (ax, ay) du popup
+    function setZoom(newZoom, ax = viewer.clientWidth / 2, ay = viewer.clientHeight / 2) {
+      if (!currentDoc) return;
+      newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, newZoom));
+      if (Math.abs(newZoom - zoom) < 0.001) return;
+
+      const ratio = newZoom / zoom;
+      const x = viewer.scrollLeft + ax;
+      const y = viewer.scrollTop + ay;
+
+      zoom = newZoom;
+      layoutPages();
+
+      viewer.scrollLeft = x * ratio - ax;
+      viewer.scrollTop = y * ratio - ay;
+      scheduleRender();
+    }
+
+    zoomInBtn.addEventListener("click", () => setZoom(zoom * 1.25));
+    zoomOutBtn.addEventListener("click", () => setZoom(zoom / 1.25));
+    zoomResetBtn.addEventListener("click", () => setZoom(1));
+
+    // Ctrl + molette (ou pincement sur pavé tactile)
+    viewer.addEventListener("wheel", (event) => {
+      if (!event.ctrlKey && !event.metaKey) return;
+      event.preventDefault();
+      const rect = viewer.getBoundingClientRect();
+      setZoom(
+        zoom * Math.exp(-event.deltaY * 0.01),
+        event.clientX - rect.left,
+        event.clientY - rect.top
+      );
+    }, { passive: false });
+
+    // Pincement à deux doigts sur écran tactile
+    let pinch = null;
+
+    function touchInfo(touches) {
+      const [a, b] = touches;
+      const rect = viewer.getBoundingClientRect();
+      return {
+        dist: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY),
+        x: (a.clientX + b.clientX) / 2 - rect.left,
+        y: (a.clientY + b.clientY) / 2 - rect.top
+      };
+    }
+
+    viewer.addEventListener("touchstart", (event) => {
+      if (event.touches.length === 2) {
+        const info = touchInfo(event.touches);
+        pinch = { startDist: info.dist, startZoom: zoom };
+      }
+    }, { passive: true });
+
+    viewer.addEventListener("touchmove", (event) => {
+      if (!pinch || event.touches.length !== 2) return;
+      event.preventDefault();
+      const info = touchInfo(event.touches);
+      setZoom(pinch.startZoom * (info.dist / pinch.startDist), info.x, info.y);
+    }, { passive: false });
+
+    viewer.addEventListener("touchend", (event) => {
+      if (event.touches.length < 2) pinch = null;
+    });
+
+    /* ---------- Ouverture / fermeture ---------- */
+
+    function openPdf(url, title, trigger) {
+      lastTrigger = trigger || null;
+      titleEl.textContent = title || "Lecteur PDF";
+      downloadLink.href = url + (url.includes("?") ? "&" : "?") + "download=1";
+
       panel.classList.add("active");
       overlay.classList.add("active");
       panel.setAttribute("aria-hidden", "false");
       document.body.classList.add("no-scroll");
       closeBtn.focus();
-      // Laisse le panneau s'afficher avant de mesurer sa largeur
-      requestAnimationFrame(loadPdf);
+
+      if (url !== currentUrl) {
+        requestAnimationFrame(() => loadPdf(url));
+      } else {
+        // Même document : on réadapte la taille si l'écran a changé entre-temps
+        layoutPages();
+        scheduleRender();
+      }
     }
 
     function closePdf() {
@@ -263,16 +774,135 @@
       overlay.classList.remove("active");
       panel.setAttribute("aria-hidden", "true");
       document.body.classList.remove("no-scroll");
-      openBtn.focus();
+      if (lastTrigger) lastTrigger.focus();
     }
 
-    openBtn.addEventListener("click", openPdf);
+    // Rotation du téléphone ou redimensionnement : les pages suivent la nouvelle largeur
+    let resizeTimer;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (!currentDoc || !panel.classList.contains("active")) return;
+        const ratio = viewer.scrollTop / (viewer.scrollHeight || 1);
+        layoutPages();
+        viewer.scrollTop = ratio * viewer.scrollHeight;
+        scheduleRender();
+      }, 200);
+    });
+
     closeBtn.addEventListener("click", closePdf);
     overlay.addEventListener("click", closePdf);
 
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") closePdf();
+      if (!panel.classList.contains("active")) return;
+
+      if (event.key === "Escape") return closePdf();
+
+      // Ctrl/Cmd + « + », « - », « 0 » zooment le PDF plutôt que la page web
+      if (event.ctrlKey || event.metaKey) {
+        if (event.key === "+" || event.key === "=") { event.preventDefault(); setZoom(zoom * 1.25); }
+        else if (event.key === "-") { event.preventDefault(); setZoom(zoom / 1.25); }
+        else if (event.key === "0") { event.preventDefault(); setZoom(1); }
+      }
     });
+
+    // Un clic sur un document de la liste l'ouvre dans le lecteur
+    docList.addEventListener("click", (event) => {
+      const button = event.target.closest(".doc-open");
+      if (!button) return;
+      const item = button.closest("[data-pdf]");
+      openPdf(item.dataset.pdf, button.textContent.trim(), button);
+    });
+
+    /* =========================================================
+       Vérification des documents (sans les télécharger)
+       ========================================================= */
+
+    const MESSAGES = {
+      400: "Identifiant invalide",
+      403: "Non partagé publiquement",
+      404: "Introuvable",
+      415: "Pas un PDF",
+      502: "Drive injoignable"
+    };
+
+    function formatSize(bytes) {
+      const n = Number(bytes);
+      if (!n) return "";
+      if (n < 1024 * 1024) return Math.round(n / 1024) + " Ko";
+      return (n / (1024 * 1024)).toFixed(1).replace(".", ",") + " Mo";
+    }
+
+    // Vérifie qu'un PDF existe via une requête HEAD. Renvoie { ok, status, message }.
+    async function checkPdf(url, timeoutMs = 10000) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+      try {
+        const res = await fetch(url, { method: "HEAD", signal: controller.signal });
+        const size = res.headers.get("X-File-Size");
+        return {
+          ok: res.ok,
+          status: res.status,
+          message: res.ok
+            ? "Disponible" + (size ? " · " + formatSize(size) : "")
+            : MESSAGES[res.status] || "Erreur " + res.status
+        };
+      } catch (error) {
+        return {
+          ok: false,
+          status: 0,
+          message: error.name === "AbortError" ? "Délai dépassé" : "Erreur réseau"
+        };
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    // Vérifie tous les [data-pdf] de la page, 4 à la fois
+    async function checkAllDocuments(concurrency = 4) {
+      const items = [...document.querySelectorAll("[data-pdf]")];
+      let errors = 0;
+
+      items.forEach(item => {
+        const badge = item.querySelector(".badge");
+        badge.className = "badge";
+        badge.textContent = "Vérification…";
+        item.classList.remove("is-error");
+      });
+
+      let index = 0;
+      async function next() {
+        while (index < items.length) {
+          const item = items[index++];
+          const result = await checkPdf(item.dataset.pdf);
+          const badge = item.querySelector(".badge");
+
+          badge.textContent = result.message;
+          badge.classList.add(result.ok ? "ok" : "error");
+          item.classList.toggle("is-error", !result.ok);
+          if (!result.ok) {
+            errors++;
+            console.warn("PDF en erreur :", item.dataset.pdf, result);
+          }
+        }
+      }
+
+      await Promise.all(Array.from({ length: concurrency }, next));
+      return { total: items.length, errors };
+    }
+
+    async function runCheck() {
+      checkBtn.disabled = true;
+      summary.textContent = "";
+      const { total, errors } = await checkAllDocuments();
+      summary.textContent = errors
+        ? `${errors} document(s) en erreur sur ${total}`
+        : `Les ${total} documents sont disponibles`;
+      checkBtn.disabled = false;
+    }
+
+    checkBtn.addEventListener("click", runCheck);
   </script>
 </body>
 </html>
